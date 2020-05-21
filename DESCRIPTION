@@ -2,19 +2,19 @@ Package: bitemodelr
 Type: Package
 Title: What the Package Does (Title Case)
 Version: 0.1.0
-Author: Alaina L Pearce
-Maintainer: The package maintainer <azp271@psu.edu>
+Authors@R:  person("Pearce", "Alaina", role = c("aut", "cre"), 
+                  email = "gu.alaina.pearce@gmail.com")
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/alainapearce/BiteModel
-BugReports:https://github.com/alainapearce/BiteModel/issues
+BugReports: https://github.com/alainapearce/BiteModel/issues
 Imports:
     stats,
     mc2d,
     faux
 Suggests: 
     testthat
-s
+RoxygenNote: 7.1.0

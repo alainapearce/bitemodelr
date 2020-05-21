@@ -8,9 +8,25 @@
 #t: timing in minutes of bite
 #params: beta coefficients for the intercept, linear slope, and quadratic slope
 
-quad_EstimatedIntake = function(Time, params){
-  Time2 = Time^2
-  params[1] + params[2] * Time + params[3] * Time2
+
+#' @title Quadratic Model: Estimation of Intake
+#'
+#' @description This function uses the quadratic model for the cumulative intake curve
+#' from Kisslieff & Guss (2001)
+#' 1. Kissileff HR, Guss JL. Microstructure of eating behavior in humans. Appetite.
+#' 2001;36(1):70-78. doi:10.1006/appe.2000.0369
+#'
+#' @param Time The time of a bite in minutes since meal start
+#' @param parameters A list of beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)
+#'
+#' @return The estimated cumulative intake at specified Time
+#' @export
+#'
+#' @examples
+quad_EstimatedIntake = function(Time, parameters){
+  Time2 <- Time^2
+  E_t <- params[1] + params[2] * Time + params[3] * Time2
+  return(E_t)
 }
 
 

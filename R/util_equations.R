@@ -1,101 +1,21 @@
-#####################################
-####
-####   Kissileff Quadratic Model
-####
-#####################################
-#Estimate intake at a timepoint for given beta coefficients
-#input arguments
-#t: timing in minutes of bite
-#params: beta coefficients for the intercept, linear slope, and quadratic slope
-
-
-#' @title Quadratic Model: Estimation of Intake
-#'
-#' @description This function uses the quadratic model for the cumulative intake curve
-#' from Kisslieff & Guss (2001)
-#' 1. Kissileff HR, Guss JL. Microstructure of eating behavior in humans. Appetite.
-#' 2001;36(1):70-78. doi:10.1006/appe.2000.0369
-#'
-#' @param Time The time of a bite in minutes since meal start
-#' @param parameters A list of beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)
-#'
-#' @return The estimated cumulative intake at specified Time
-#' @export
-#'
-#' @examples
-quad_EstimatedIntake = function(Time, parameters){
-  Time2 <- Time^2
-  E_t <- params[1] + params[2] * Time + params[3] * Time2
-  return(E_t)
-}
-
-
-#####################################
-####
-####   Log-likilhood fit for
-####   Kissileff Quadratic Model
-####
-#####################################
-#Calculate the -2 log-likelihood for the given beta coefficients
-#using the probability density function for a normal distribution
-
-#input arguments
-#data: dataset is the dataset with columns
-##Time: timing in minutes of each bite
-##intake column: cumulative intake
-#### - if from simulated data (function simBites) it will be either 'CumulativeGrams' or 'CumulativeGrams_avgBite'
-#par: starting beta coefficients for the intercept, linear slope, and quadratic slope
-#intake: string with name of intake variable
-
-quad.ll = function(data, par, intake){
-  data$Estimated_intake = sapply(data[, time], quad_EstimatedIntake, params = c(par[1], par[2], par[3]))
-  estimated_name = paste0('Estimated_', intake)
-  names(data)[length(names(data))] = estimated_name
-  data$resid <- data[, intake]-data[, estimated_name]
-  sigma = sum(data$resid^2)/length(data$resid)
-
-  #ll equation
-  ll = (-length(data$resid)/2)*(log(2*pi*sigma^2)) + (-1/(2*sigma^2))*(sum(data$resid^2))
-  return(-2*ll)
-
-}
-
-#####################################
-####
-####   Estimated Time for given cumulative Intake
-####   Kissileff Quadratic Model
-####
-#####################################
-#Estimate time for a given cumulative intake and beta coefficients
-
-#input arguments
-#E_t: cumulative intake - single value
-#params: beta coefficients for the intercept, linear slope, and quadratic slope
-
-quad_EstimatedTime = function(E_t, params){
-  t1 = (-params[2] + sqrt(params[2]^2 + 4*(params[1]-E_t)*params[3]))/(2*params[3])
-  t2 = (-params[2] - sqrt(params[2]^2 + 4*(params[1]-E_t)*params[3]))/(2*params[3])
-  min(t1, t2)
-}
-
-#####################################
-####
-####   Thomas et al., 2017
-####   Incorrect First-Principles Model
-####
-#####################################
-#Estimate intake using the incorrect version of the
-#Thomas et al., 2017 First-Principles dynamic model
-
-#input arguments
-#t: time in minutes - single value
-#params: values for theta and r
-#Emax: total intake in grams
-
-FPmod_EstimatedIntake_orig = function(t, params, Emax){
-  #params = c(theta, r)
-  (Emax*params[1]*(exp((t*(Emax*params[2]+params[1]))/Emax)-1))/(params[1]*(exp((t*(Emax*params[2]+params[1]))/Emax) + (Emax*params[2])))
-}
+# This function was written by Alaina
+# Pearce in 2020 to simulate bites and cumulutive intake at a meal
+# NOT in r package
+#
+#     Copyright (C) 2020 Alaina L Pearce
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #####################################
 ####
@@ -123,79 +43,59 @@ FPmod_EstimatedTime_orig = function(E_t, params, Emax){
   (Emax/(Emax*params[2]+params[1]))*log((Emax*((E_t*params[2])+1))/(Emax - E_t))
 }
 
-#####################################
-####
-####   Correct First-Principles model
-####
-#####################################
-#Estimate intake using the correct version of the
-#Thomas et al., 2017 First-Principles dynamic model
+############ Basic Data Load/Setup ############
+library(stats)
+library(mc2d)
 
-#input arguments
-#t: time in minutes - single value
-#params: values for theta and r
-#Emax: total intake in grams
+#### set up ####
+#set piorking directory to location of script--not needed pihen called
+#through Rmarkdopin doc. Uncomment belopi if running locally/manually
+# this.dir = getActiveDocumentContext()$path
+# setwd(dirname(this.dir))
 
-FPmod_EstimatedIntake = function(t, params, Emax){
-  #params = c(theta, r)
-  (Emax*(exp((t*(Emax*params[2]+params[1]))/Emax)-1))/((exp((t*(Emax*params[2]+params[1]))/Emax) + (Emax*params[2])/params[1]))
-}
+#### function to simulate dataset ####
+#mealdur: meal duration in minutes
+#nBites: number of bites
+#Emax: total intake
 
+#OPTIONAL:
+#id: id number, if exists will be added to output_dat. Default is no id.
+#bitesize_sd: sd of normal distribution for randomly selected bite sizes
+#output: which dsets do you want output_dat if have error added
+##default is 'both': get accurate and error dsets
 
-#####################################
-####
-####   Log-likilhood fit for
-####   Correct First-Principles Model
-####
-#####################################
-#Calculate the -2 log-likelihood for the given beta coefficients
-#using the probability density function for a normal distribution
-#for the corrected Thomas et al., 2017 equation
+simBitesLogit = function(mealdur, nBites, Emax, id){
 
-#input arguments
-#data: dataset is the dataset with columns
-##Time: timing in minutes of each bite
-##intake column: cumulative intake
-#### - if from simulated data (function simBites) it will be either 'CumulativeGrams' or 'CumulativeGrams_avgBite'
-#par: starting parameter values for theta and r
-#Emax: total intake in grams
-#intake: string with name of intake variable
+  #get randomly generated values from logistic distribution
+  randlogistic = sort(rtrunc(rlogis, nBites, 0))
+  rand_time = (randlogistic/max(randlogistic))*mealdur
+  sampled_time = jitter(rand_time, factor = 2)
 
-FPmod.ll = function(data, par, Emax, intake, time){
-  #data must have columns: Time
-  data$Estimated_intake = sapply(data[, time], FPmod_EstimatedIntake, params = c(par[1], par[2]), Emax)
-  estimated_name = paste0('Estimated_', intake)
-  names(data)[length(names(data))] = estimated_name
-  data$resid <- data[, intake]-data[, estimated_name]
-  sigma = sum(data$resid^2)/length(data$resid)
-
-  #ll equation
-  ll = (-length(data$resid)/2)*(log(2*pi*sigma^2)) + (-1/(2*sigma^2))*(sum(data$resid^2))
-  return(-2*ll)
-}
-
-#####################################
-####
-####   Estimated Time given Cumulative Intake
-####   Correct First-Principles Model
-####
-#####################################
-#Estimate times using the correct version of the
-#Thomas et al., 2017 First-Principles dynamic model
-
-#input arguments
-#E_t:cumulative intake at a time point - single value
-#params: values for theta and r
-#Emax: total intake in grams
-
-FPmod_EstimatedTime = function(E_t, params, Emax){
-  #params = c(theta, r)
-
-  #since it is a logistic function, theoretically E_t will never be Emax. If
-  #E_t = Emax, use 99% of Emax to get estimate for last timepoint
-  if(E_t == Emax){
-    E_t = E_t*.9999
+  #make sure starting value is 0 or greater for first bite
+  if(sampled_time[1]<0){
+    sampled_time[1] = 0
   }
 
-  (Emax/(Emax*params[2]+params[1]))*log((Emax*(((E_t*params[2])/params[1])+1))/(Emax - E_t))
+  #make sure the jitter didn't extend the meal duraiton
+  if(sampled_time[nBites] > mealdur){
+    sampled_time[nBites] = mealdur
+  }
+
+  #get bite numbers
+  bites = seq(1, nBites, by = 1)
+
+  #get cummulative intake
+  grams.bite_avg = rep(Emax/nBites, nBites)
+  grams.cumulative_avg = cumsum(grams.bite_avg)
+
+  if(hasArg(id)){
+    sim_dat = data.frame(rep(id, length(nBites)), bites, sampled_time, grams.cumulative_avg)
+    names(sim_dat) = c('id', 'Bite', 'Time', 'CumulativeGrams_avgBite')
+  } else {
+    sim_dat = data.frame(bites, sampled_time, grams.cumulative_avg)
+    names(sim_dat) = c('Bite', 'Time', 'CumulativeGrams_avgBite')
+  }
+
+  #set up output_dat
+  return(sim_dat)
 }

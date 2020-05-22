@@ -1,0 +1,44 @@
+#' Kissileff_Intake: Estimates cumulative intake using Kisslieff's quadratic model
+#'
+#' This function estimates cumulative intake at a given time since start of meal using
+#' the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
+#'
+#' @section Kissileff's quadratic model:
+#'
+#' Kissileff HR, Thorton J, Becker E. A Quadratic Equation Adequately Describes the Cumulative Food
+#' Intake Curve in Man. Appetite. 1982;3(3):255–272. doi:10.1016/S0195-6663(82)80022-6
+#'
+#' Kissileff HR, Guss JL. Microstructure of eating behavior in humans. Appetite. 2001;36(1):70-78.
+#' doi:10.1006/appe.2000.0369
+#'
+#' @param time The time in minutes since meal start.
+#' @param parameters A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).
+#' @return Numeric value indicating the cumulative intake at specified time.
+#'
+#' @examples
+#' #Get cumulative intake at minute three:
+#' Kissileff_Intake(3, c(10, 7, -0.3))
+#'
+#' #save \beta coefficents as an object first:
+#' beta_coefs = c(10, 7, -0.3)
+#' Kissileff_Intake(3, beta_coefs)
+#'
+#' \dontrun{
+#' #be careful of how you format the list of \beta coefficients. These are incorrect:
+#' Kissileff_Intake(3, (10, 7, -.3))
+#' Kissileff_Intake(15, 10, 7, -.3)
+#' }
+#'
+#' @family aggregate functions
+#' @seealso For the reverse calculation, see \code{\link{Kissileff_Time}} to get meal time
+#' from entered cumulative intake. To get cumulative intake and meal time using the First
+#' Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
+#'
+#' @inheritSection FPM_Intake
+#'
+#' @export
+Kissileff_Intake <- function(time, parameters) {
+  time2 <- time^2
+  E_t <- parameters[1] + parameters[2] * time + parameters[3] * time2
+  return(E_t)
+}

@@ -10,7 +10,7 @@ FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
+\item{parameters}{A set of numeric parameters for the First Principles Model in the format: c(theta, r)}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
@@ -22,14 +22,10 @@ FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
 NEED TO EDIT
 }
 \description{
-This function fits \theta and r for the First Principles Model of the
+This function fits theta and r for the First Principles Model of the
 the cumulative intake curves from Thomas et al., (2017) using
 optim {stats}.
 }
-\section{}{
-
-}
-
 \examples{
 
 \dontrun{
@@ -37,15 +33,6 @@ optim {stats}.
 
 }
 \seealso{
-To get fit your intake data using the  Kisslieff's quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_FIT}}.
-
-Other aggregate functions:
-\code{\link{FPM_Intake}()},
-\code{\link{FPM_Time}()},
-\code{\link{Kissileff_Fit}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{Kissileff_Time}()},
-\code{\link{simBites}()}
+To get fit your intake data using the Kisslieff's quadratic model
+(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Fit}}.
 }
-\concept{aggregate functions}

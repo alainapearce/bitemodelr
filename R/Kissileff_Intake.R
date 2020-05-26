@@ -3,14 +3,6 @@
 #' This function estimates cumulative intake at a given time since start of meal using
 #' the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
 #'
-#' @section Kissileff's quadratic model:
-#'
-#' Kissileff HR, Thorton J, Becker E. A Quadratic Equation Adequately Describes the Cumulative Food
-#' Intake Curve in Man. Appetite. 1982;3(3):255–272. doi:10.1016/S0195-6663(82)80022-6
-#'
-#' Kissileff HR, Guss JL. Microstructure of eating behavior in humans. Appetite. 2001;36(1):70-78.
-#' doi:10.1006/appe.2000.0369
-#'
 #' @param time The time in minutes since meal start.
 #' @param parameters A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).
 #' @return Numeric value indicating the cumulative intake at specified time.
@@ -33,8 +25,6 @@
 #' @seealso For the reverse calculation, see \code{\link{Kissileff_Time}} to get meal time
 #' from entered cumulative intake. To get cumulative intake and meal time using the First
 #' Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
-#'
-#' @inheritSection FPM_Intake
 #'
 #' @export
 Kissileff_Intake <- function(time, parameters) {

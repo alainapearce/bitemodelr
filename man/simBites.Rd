@@ -4,7 +4,7 @@
 \alias{simBites}
 \title{simBites: Simulates cumulative intake for bites and bite timing}
 \usage{
-simBites(nBites, Emax, bitesize_sd, parameters, time_fn, idVar)
+simBites(nBites, Emax, parameters, time_fn, bitesize_sd, idVar)
 }
 \arguments{
 \item{nBites}{A numeric value that represents total number of bites in a meal.}
@@ -26,16 +26,14 @@ NEED TO EDIT
 \description{
 This function generates a bite data set that incluneds cumulative intake for *n* bites
 and the estimated bite timing. The simulation calculates cumulative intake using
-average bite size so the bite size is the same across the meal. If sd_bitesize is specified,
-the bites size will randomly vary across the meal using a Gussian ditribution with mean = average
-bite size and SD = sd_bitesize. Once the cumulative intake is generate, the timing of each bite will
-be estimated from either the Kissileff's quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
-or the First Principles Model (Thomas et al., 2017) cumulative intake models.
+average bite size so the bite size is the same across the meal. There is the option of altering
+bites size by a given standard deviation to reflect within meal variation in bite size.
+If sd_bitesize is specified, the bites size will randomly vary across the meal using a Gussian
+ditribution with mean = average bite size and SD = sd_bitesize. Once the cumulative intake
+is generated, the timing of each bite will be estimated from either the Kissileff's quadratic model
+(Kissileff, 1982; Kissileff & Guss, 2001) or the First Principles Model (Thomas et al., 2017)
+cumulative intake models.
 }
-\section{}{
-
-}
-
 \examples{
 
 \dontrun{
@@ -44,13 +42,4 @@ or the First Principles Model (Thomas et al., 2017) cumulative intake models.
 }
 \seealso{
 See also \code{\link{simCumulativeIntake}} to simualte a cumulative intake curve accross participatns.
-
-Other aggregate functions: 
-\code{\link{FPM_Fit}()},
-\code{\link{FPM_Intake}()},
-\code{\link{FPM_Time}()},
-\code{\link{Kissileff_Fit}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{Kissileff_Time}()}
 }
-\concept{aggregate functions}

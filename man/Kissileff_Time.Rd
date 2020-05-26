@@ -18,10 +18,6 @@ Numeric value indicating the time since start of meal for given cumulative.
 This function estimates the elapsed time since start of a meal for a given cumulative intake using
 the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
 }
-\section{}{
-
-}
-
 \examples{
 #Get the time when 15 grams have been consumed:
 Kissileff_Intake(15, c(10, 7, -0.3))
@@ -41,13 +37,4 @@ Kissileff_Time(15, 10, 7, -.3)
 For the reverse calculation, see \code{\link{Kissileff_Intake}} to get cumulative intake
 from entered time since start of meal. To get cumulative intake and meal time using the First
 Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
-
-Other aggregate functions: 
-\code{\link{FPM_Fit}()},
-\code{\link{FPM_Intake}()},
-\code{\link{FPM_Time}()},
-\code{\link{Kissileff_Fit}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{simBites}()}
 }
-\concept{aggregate functions}

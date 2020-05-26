@@ -4,21 +4,23 @@
 \alias{IntakeModelParams}
 \title{IntakeModelParams: Fits model parameters for cumulative intake curves}
 \usage{
-IntakeModelParams(data, timeVar, intakeVar, parameters, fit_fn, idVar)
+IntakeModelParams(data, parameters, timeVar, intakeVar, fit_fn, idVar)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{timeVar}{A string that is the name of the elapsed time variable in data}
-
-\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
-
 \item{parameters}{(optional) A set of numeric parameters to serve as the starting parameters for the optimization.
 Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c()) and FPM_Fit
 needs 2 starting parameters (default is c(20, .20)).}
 
-\item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or FPM_Fit; default is FPM_Fit.}
+\item{timeVar}{A string that is the name of the elapsed time variable in data}
+
+\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+
+\item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
+FPM_Fit; default is FPM_Fit. Can also enter an original fucntion to estimate time, just be sure to include nBites,
+Emax, and parameters as input arguments to your function and to specify the required parameters.}
 
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
@@ -33,10 +35,6 @@ intake curve for each participan/unique ID in a data set. The parameters
 are either fit with Kissileff's quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
 or the First Principles Model (Thomas et al., 2017). The models are fit using optims {stats}.
 }
-\section{}{
-
-}
-
 \examples{
 
 \dontrun{

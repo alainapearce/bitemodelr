@@ -9,7 +9,7 @@ FPM_Intake(time, parameters, Emax)
 \arguments{
 \item{time}{The time in minutes since meal start.}
 
-\item{parameters}{A set of numeric parameters for the First Principles Model in the format: c(\theta, r).}
+\item{parameters}{A set of numeric parameters for the First Principles Model in the format: c(theta, r)}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
@@ -20,16 +20,6 @@ Numeric value indicating the cumulative intake at specified time.
 This function estimates cumulative intake at a given time since start of meal using
 the First Principles Model for the cumulative intake curves from Thomas et al., (2017).
 }
-\section{Firt Principles Model}{
-
-
-The Firt Principles Model was developed by Thomas et al., (2017):
-#add correct equation
-
-Thomas DM, Paynter J, Peterson CM, et al. A new universal dynamic model to describe eating rate
-and cumulative intake curves. Am J Clin Nutr. 2017;105(2):323-331. doi:10.3945/ajcn.115.127811
-}
-
 \examples{
 #Get cumulative intake at minute three:
 FPM_Intake(3, c(30, .25), 300)
@@ -50,13 +40,4 @@ For the reverse calculation, see \code{\link{FPM_Time}} to get meal time
 from entered cumulative intake. To get cumulative intake and meal time using Kisslieff's
 quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Intake}}
 and \code{\link{Kissileff_Time}}.
-
-Other aggregate functions:
-\code{\link{FPM_Fit}()},
-\code{\link{FPM_Time}()},
-\code{\link{Kissileff_Fit}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{Kissileff_Time}()},
-\code{\link{simBites}()}
 }
-\concept{aggregate functions}

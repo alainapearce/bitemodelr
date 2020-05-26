@@ -2,7 +2,7 @@
 % Please edit documentation in R/Kissileff_Fit.R
 \name{Kissileff_Fit}
 \alias{Kissileff_Fit}
-\title{Kissileff_Fit: Fits \beta coeffiecents for Kissileff's quadratic model}
+\title{Kissileff_Fit: Fits beta coeffiecents for Kissileff's quadratic model}
 \usage{
 Kissileff_Fit(data, parameters, timeVar, intakeVar)
 }
@@ -20,14 +20,10 @@ Kissileff_Fit(data, parameters, timeVar, intakeVar)
 NEED TO EDIT
 }
 \description{
-This function fist the \beta coefficients for Kissileff's quadratic model
+This function fits the beta coefficients for Kissileff's quadratic model
 for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001) using
 optim {stats}.
 }
-\section{}{
-
-}
-
 \examples{
 
 \dontrun{
@@ -36,14 +32,5 @@ optim {stats}.
 }
 \seealso{
 To get fit your intake data using the First Principles Model (Thomas et al., 2017),
-see \code{\link{FPM_FIT}}.
-
-Other aggregate functions: 
-\code{\link{FPM_Fit}()},
-\code{\link{FPM_Intake}()},
-\code{\link{FPM_Time}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{Kissileff_Time}()},
-\code{\link{simBites}()}
+see \code{\link{FPM_Fit}}.
 }
-\concept{aggregate functions}

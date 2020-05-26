@@ -3,8 +3,6 @@
 #' This function estimates the elapsed time since start of a meal for a given cumulative intake
 #' using the First Principles Model for the cumulative intake curves from Thomas et al., (2017).
 #'
-#' @inheritSection FPM_Intake
-#'
 #' @inheritParams Kissileff_Time
 #' @inheritParams FPM_Intake
 #' @inheritParams FPM_Intake
@@ -25,17 +23,14 @@
 #' FPM_Time(15, 30, .25, 300)
 #' }
 #'
-#' @family aggregate functions
 #' @seealso For the reverse calculation, see \code{\link{FPM_Intake}} to get meal cumulative intake
 #' at a given time. To get cumulative intake and meal time using Kisslieff's
 #' quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Intake}}
 #' and \code{\link{Kissileff_Time}}.
 #'
-#' @inheritSection Kissileff_Intake
-#'
 #' @export
-FPM_Time <- function(intake, params, Emax) {
-  # params = c(theta, r)
+FPM_Time <- function(intake, parameters, Emax) {
+  # parameters = c(theta, r)
 
   # since it is a logistic function, theoretically intake will never be
   # Emax. If intake = Emax, use 99% of Emax to get estimate for last
@@ -44,6 +39,6 @@ FPM_Time <- function(intake, params, Emax) {
     intake <- intake * 0.9999
   }
 
-  (Emax/(Emax * params[2] + params[1])) * log((Emax * (((E_t * params[2])/params[1]) +
-      1))/(Emax - E_t))
+  (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake * parameters[2])/parameters[1]) +
+      1))/(Emax - intake))
 }

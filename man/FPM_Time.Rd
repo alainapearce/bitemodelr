@@ -4,10 +4,12 @@
 \alias{FPM_Time}
 \title{FPM_Time: Estimates the elapse time using the First Principles Model}
 \usage{
-FPM_Time(intake, params, Emax)
+FPM_Time(intake, parameters, Emax)
 }
 \arguments{
 \item{intake}{The cumulative intake since meal start.}
+
+\item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
@@ -18,10 +20,6 @@ Numeric value indicating the time since start of meal for given cumulative.
 This function estimates the elapsed time since start of a meal for a given cumulative intake
 using the First Principles Model for the cumulative intake curves from Thomas et al., (2017).
 }
-\section{}{
-
-}
-
 \examples{
 #Get the time when 15 grams have been consumed:
 FPM_Time(15, c(30, .25), 300)
@@ -42,13 +40,4 @@ For the reverse calculation, see \code{\link{FPM_Intake}} to get meal cumulative
 at a given time. To get cumulative intake and meal time using Kisslieff's
 quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Intake}}
 and \code{\link{Kissileff_Time}}.
-
-Other aggregate functions: 
-\code{\link{FPM_Fit}()},
-\code{\link{FPM_Intake}()},
-\code{\link{Kissileff_Fit}()},
-\code{\link{Kissileff_Intake}()},
-\code{\link{Kissileff_Time}()},
-\code{\link{simBites}()}
 }
-\concept{aggregate functions}

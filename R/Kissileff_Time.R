@@ -3,8 +3,6 @@
 #' This function estimates the elapsed time since start of a meal for a given cumulative intake using
 #' the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
 #'
-#' @inheritSection Kissileff_Intake
-#'
 #' @param intake The cumulative intake since meal start.
 #' @inheritParams Kissileff_Intake
 #'
@@ -24,12 +22,9 @@
 #' Kissileff_Time(15, 10, 7, -.3)
 #' }
 #'
-#' @family aggregate functions
 #' @seealso For the reverse calculation, see \code{\link{Kissileff_Intake}} to get cumulative intake
 #' from entered time since start of meal. To get cumulative intake and meal time using the First
 #' Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
-#'
-#' @inheritSection FPM_Intake
 #'
 #' @export
 Kissileff_Time <- function(intake, parameters) {

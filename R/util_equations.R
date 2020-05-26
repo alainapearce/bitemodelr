@@ -1,6 +1,6 @@
 # This function was written by Alaina
 # Pearce in 2020 to simulate bites and cumulutive intake at a meal
-# NOT in r package
+# NOT in r package format
 #
 #     Copyright (C) 2020 Alaina L Pearce
 #

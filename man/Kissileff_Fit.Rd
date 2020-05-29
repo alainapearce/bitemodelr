@@ -4,7 +4,7 @@
 \alias{Kissileff_Fit}
 \title{Kissileff_Fit: Fits beta coeffiecents for Kissileff's quadratic model}
 \usage{
-Kissileff_Fit(data, parameters, timeVar, intakeVar)
+Kissileff_Fit(data, parameters, timeVar, intakeVar, CI)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -15,6 +15,9 @@ Kissileff_Fit(data, parameters, timeVar, intakeVar)
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+
+\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
+for parameters. Default is FALSE}
 }
 \value{
 NEED TO EDIT

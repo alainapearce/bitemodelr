@@ -8,6 +8,8 @@
 #' @inheritParams Kissileff_Intake
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
+#' @param CI (optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
+#' for parameters. Default is FALSE
 #'
 #' @return NEED TO EDIT
 #'
@@ -20,10 +22,10 @@
 #' see \code{\link{FPM_Fit}}.
 #'
 #' @export
-Kissileff_Fit <- function(data, parameters, timeVar, intakeVar) {
+Kissileff_Fit <- function(data, parameters, timeVar, intakeVar, CI) {
 
   fit <- stats::optim(par = c(parameters), fn = Kissileff_n2ll, data = data,
-    time = timeVar, intake = intakeVar)
+    time = timeVar, intake = intakeVar, hessian = CI)
 
   # write catch if convergence is not equal to 1
 }

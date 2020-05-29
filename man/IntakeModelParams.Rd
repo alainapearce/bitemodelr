@@ -4,7 +4,7 @@
 \alias{IntakeModelParams}
 \title{IntakeModelParams: Fits model parameters for cumulative intake curves}
 \usage{
-IntakeModelParams(data, parameters, timeVar, intakeVar, fit_fn, idVar)
+IntakeModelParams(data, parameters, timeVar, intakeVar, fit_fn, idVar, CI)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -25,6 +25,9 @@ Emax, and parameters as input arguments to your function and to specify the requ
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 fitted values will be returned.}
+
+\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
+for parameters. Default is FALSE}
 }
 \value{
 NEED TO EDIT

@@ -17,6 +17,7 @@
 #' @param idVar (optional) A string that is the name of the ID variable in data. Optional: only include if
 #' data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 #' fitted values will be returned.
+#' @inheritParams Kissileff_Fit
 #'
 #' @return NEED TO EDIT
 #'
@@ -27,7 +28,7 @@
 #'
 #' @export
 IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
-  idVar) {
+  idVar, CI) {
 
   # check input arguments
   if (!hasArg(intakeVar)) {
@@ -49,7 +50,7 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
       stop("string entered for idVar does not match any variables in data")
     }
 
-    nID = unique(data[, idVar])
+    nID = length(unique(data[, idVar]))
   }
 
   ## Need to figure out this part - can call function like this?
@@ -73,18 +74,26 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
     }
   }
 
+  # if no CI entered, use default
+  if (!hasArg(CI)) {
+    CI = FALSE
+  }
+
   # check for ID and if there is more than 1 unique ID
   if (exists("nID")) {
     if (nID > 1) {
 
       id <- factor(data[, idVar])
+      data[, idVar] = factor(data[, idVar])
 
       bydatafrmae_list <- sapply(levels(id), function(x) {
-        list(data[idVar == x, ])
+        rowInd = data[, idVar] == x
+        list(data[rowInd, ])
       })
 
       byid_list <- t(sapply(levels(id), function(x) {
-        data[idVar == x, ]
+        rowInd = data[, idVar] == x
+        data[rowInd, ]
       }))
 
 
@@ -94,44 +103,88 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
 
       if (fn_name == "FPM_Fit") {
 
-        BiteMod_fit <- mapply(fit_fn, data = data, parameters = params_long,
-          timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector)
+        BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
+          timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector, CI = TRUE)
 
         ## Need to figure out this part convert to long dataset - correct dset
-        BiteMod_fit_long <- data.frame(matrix(unlist(BiteMod_fit),
-          nrow = length(BiteMod_fit), byrow = TRUE))
-        names(BiteMod_fit_long) <- c(idVar, "theta", "r", names(BiteMod_fit[[1]])[4:7])
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4, ])),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+        BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
+        names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3], "counts_gradiant", row.names(BiteMod_fit)[4])
         BiteMod_fit_long$method <- fn_name
+
+        if(isTRUE(CI)){
+          BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+            nrow = ncol(BiteMod_fit), byrow = TRUE))
+          names(BiteMod_fit_CI) = c('SE_theta', 'SE_r', 'u95CI_theta', 'u95CI_r', 'l95CI_theta', 'l95CI_r')
+          BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(1, 3, 5)], BiteMod_fit_CI[c(2, 4, 6)])
+        }
 
       } else if (fn_name == "Kissileff_Fit") {
 
-        BiteMod_fit <- mapply(fit_fn, data = data, parameters = params_long,
-          timeVar = timeVar, intakeVar = intakeVar)
+        BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
+          timeVar = timeVar, intakeVar = intakeVar, CI = CI)
 
         ## Need to figure out this part convert to long dataset - correct dset
-        BiteMod_fit_long <- data.frame(matrix(unlist(BiteMod_fit),
-          nrow = length(BiteMod_fit), byrow = TRUE))
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit)),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+        BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
         names(BiteMod_fit_long) <- c(idVar, "int", "linear", "quad",
-          names(BiteMod_fit[[1]])[5:8])
+          row.names(BiteMod_fit)[2:3], "counts_gradiant", row.names(BiteMod_fit)[4])
         BiteMod_fit_long$method <- fn_name
+
+        if(isTRUE(CI)){
+          BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+            nrow = ncol(BiteMod_fit), byrow = TRUE))
+          names(BiteMod_fit_CI) = c('SE_int', 'SE_linear', 'SE_quad', 'u95CI_int', 'u95CI_linear', 'u95CI_quad', 'l95CI_int', 'l95CI_linear', 'l95CI_quad')
+          BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(1, 4, 7)], BiteMod_fit_CI[c(2, 5, 8)], BiteMod_fit_CI[c(3, 6, 9)])
+        }
 
       } else {
         BiteMod_fit <- mapply(fit_fn, data = data, parameters = params_long,
-          timeVar = timeVar, intakeVar = intakeVar, Emax = emax)
+          timeVar = timeVar, intakeVar = intakeVar, Emax = emax, CI = CI)
 
         ## Need to figure out this part convert to long dataset - correct dset
-        BiteMod_fit_long <- data.frame(matrix(unlist(BiteMod_fit),
-          nrow = length(BiteMod_fit), byrow = TRUE))
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit)),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+        BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
 
         for (p in 1:length(parameters)) {
           names(BiteMod_fit_long)[p + 1] <- paste("param", p)
         }
         names(BiteMod_fit_long)[1] <- idVar
 
-        names(BiteMod_fit_long)[1] <- c(names(BiteMod_fit[[1]])[(length(parameters) +
-            2):(length(parameters) + 5)])
+        fit_col <- length(parameters) + 2
+        names(BiteMod_fit_long)[fit_col:fit_col + 3] <- c(names(BiteMod_fit)[2:3],
+          "counts_gradiant", names(BiteMod_fit)[4])
 
         BiteMod_fit_long$method <- fn_name
+
+        if(isTRUE(CI)){
+          seStart = length(names(BiteMod_fit_long))
+          npar = length(parameters)
+
+          BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+            nrow = ncol(BiteMod_fit), byrow = TRUE))
+
+          #re-name for ease
+          vals = c('SE', 'u95CI', 'l95CI')
+
+          for (val in 1:3){
+            #find end of value (e.g. se): seStart + npar*val; subtract 1 less than npar to get start
+            valstart = seStart + npar*val - (npar+1)
+
+            for (p in 1:npar) {
+              col = valstar + p - 1
+              names(BiteMod_fit_long)[col] <- paste(vals[val], p)
+            }
+          }
+
+          #re-order for ease of reading
+          for (p in 1:npar) {
+            BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(p, npar+p, npar*2+p)])
+          }
+        }
       }
       return(BiteMod_fit_long)
     }
@@ -142,7 +195,7 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
 
       if (class(fit_fn) == "name") {
         BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-          timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
+          timeVar = timeVar, intakeVar = intakeVar, Emax = emax, CI = CI))
       } else {
         BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
           Emax = emax)
@@ -160,11 +213,18 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
         BiteMod_fit_dat$method <- fn_name
       }
 
+      if(isTRUE(CI)){
+        BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+        names(BiteMod_fit_CI) = c('SE_int', 'SE_linear', 'SE_quad', 'u95CI_int', 'u95CI_linear', 'u95CI_quad', 'l95CI_int', 'l95CI_linear', 'l95CI_quad')
+        BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(1, 4, 7)], BiteMod_fit_CI[c(2, 5, 8)], BiteMod_fit_CI[c(3, 6, 9)])
+      }
+
     } else if (fn_name == "Kissileff_Fit") {
 
       if (class(fit_fn) == "name") {
         BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-          timeVar = timeVar, intakeVar = intakeVar))
+          timeVar = timeVar, intakeVar = intakeVar, CI = CI))
       } else {
         BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar)
       }
@@ -180,11 +240,19 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
           "counts_gradiant", names(BiteMod_fit)[4])
         BiteMod_fit_dat$method <- fn_name
       }
+
+      if(isTRUE(CI)){
+        BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+        names(BiteMod_fit_CI) = c('SE_int', 'SE_linear', 'SE_quad', 'u95CI_int', 'u95CI_linear', 'u95CI_quad', 'l95CI_int', 'l95CI_linear', 'l95CI_quad')
+        BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(1, 4, 7)], BiteMod_fit_CI[c(2, 5, 8)], BiteMod_fit_CI[c(3, 6, 9)])
+      }
+
     } else {
 
       if (class(fit_fn) == "name") {
         BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-          timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
+          timeVar = timeVar, intakeVar = intakeVar, Emax = emax, CI = CI))
       } else {
         BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
           Emax = emax)
@@ -202,6 +270,7 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
         names(BiteMod_fit_dat)[fit_col:fit_col + 3] <- c(names(BiteMod_fit)[2:3],
           "counts_gradiant", names(BiteMod_fit)[4])
         BiteMod_fit_dat$method <- fn_name
+
       } else {
         BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit))))
         for (p in 1:length(parameters)) {
@@ -212,6 +281,32 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
         names(BiteMod_fit_dat)[fit_col:fit_col + 3] <- c(names(BiteMod_fit)[2:3],
           "counts_gradiant", names(BiteMod_fit)[4])
         BiteMod_fit_dat$method <- fn_name
+      }
+
+      if(isTRUE(CI)){
+        seStart = length(names(BiteMod_fit_long))
+        npar = length(parameters)
+
+        BiteMod_fit_CI = data.frame(matrix(t(unlist(BiteMod_fit[7, ])),
+          nrow = ncol(BiteMod_fit), byrow = TRUE))
+
+        #re-name for ease
+        vals = c('SE', 'u95CI', 'l95CI')
+
+        for (val in 1:3){
+          #find end of value (e.g. se): seStart + npar*val; subtract 1 less than npar to get start
+          valstart = seStart + npar*val - (npar+1)
+
+          for (p in 1:npar) {
+            col = valstar + p - 1
+            names(BiteMod_fit_long)[col] <- paste(vals[val], p)
+          }
+        }
+
+        #re-order for ease of reading
+        for (p in 1:npar) {
+          BiteMod_fit_long = data.frame(BiteMod_fit_long, BiteMod_fit_CI[c(p, npar+p, npar*2+p)])
+        }
       }
     }
     return(BiteMod_fit_dat)

@@ -34,6 +34,7 @@
 #' @inheritParams simBites
 #' @param keepBites This is a logical indicator for wether to return the simulated bite dataset with
 #' elapsed timem and cumulative intake for each bite across all simulated intake curves. Default is FALSE.
+#' @inheritParams Kissileff_Fit
 #'
 #' @return NEED TO EDIT
 #'
@@ -47,7 +48,7 @@
 #' @export
 
 ParamRecovery <- function(nBites, Emax, parameters, time_fn, fit_fn, simVar,
-  simValue, nSims, bitesize_sd, keepBites) {
+  simValue, nSims, bitesize_sd, keepBites, CI) {
 
   # if no time_fn entered, use default
   if (!hasArg(time_fn)) {
@@ -72,6 +73,11 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn, fit_fn, simVar,
   # if no nSims entered, use default
   if (!hasArg(nSims)) {
     nSims <- 500
+  }
+
+  # if no CI entered, use default
+  if (!hasArg(CI)) {
+    CI = FALSE
   }
 
   # if no parameters specified
@@ -216,22 +222,22 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn, fit_fn, simVar,
         paramSim <- IntakeModelParams(simDat, parameters = parameters,
           timeVar = paste0("EstimatedTime_", round(bitesize_sd, digits = 2)),
           intakeVar = paste0("CumulativeGrams_", round(bitesize_sd,
-            digits = 2)), fit_fn = FPM_Fit)
+            digits = 2)), fit_fn = FPM_Fit, CI = CI)
       } else {
         paramSim <- IntakeModelParams(simDat, parameters = parameters,
           timeVar = "EstimatedTime_avg", intakeVar = "CumulativeGrams_avgBite",
-          fit_fn = FPM_Fit)
+          fit_fn = FPM_Fit, CI = CI)
       }
     } else {
       if (hasArg(bitesize_sd)) {
         paramSim <- IntakeModelParams(simDat, parameters = parameters,
           timeVar = paste0("EstimatedTime_", round(bitesize_sd, digits = 2)),
           intakeVar = paste0("CumulativeGrams_", round(bitesize_sd,
-            digits = 2)), fit_fn = substitute(fit_fn))
+            digits = 2)), fit_fn = substitute(fit_fn), CI = CI)
       } else {
         paramSim <- IntakeModelParams(simDat, parameters = parameters,
           timeVar = "EstimatedTime_avg", intakeVar = "CumulativeGrams_avgBite",
-          fit_fn = substitute(fit_fn))
+          fit_fn = substitute(fit_fn), CI = CI)
       }
     }
 
@@ -290,6 +296,7 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn, fit_fn, simVar,
       }
 
       simDat_paramRec$simNum <- n
+      simDat_paramRec$nBites <- init_dat$nBites
 
       if (n == 1) {
         # add to initial bite data if not 'bitesSamples'

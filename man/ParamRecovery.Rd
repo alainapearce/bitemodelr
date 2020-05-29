@@ -14,7 +14,8 @@ ParamRecovery(
   simValue,
   nSims,
   bitesize_sd,
-  keepBites
+  keepBites,
+  CI
 )
 }
 \arguments{
@@ -52,6 +53,9 @@ valuse to simulate missed bites or decreased meal duration or total intake):
 
 \item{keepBites}{This is a logical indicator for wether to return the simulated bite dataset with
 elapsed timem and cumulative intake for each bite across all simulated intake curves. Default is FALSE.}
+
+\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
+for parameters. Default is FALSE}
 }
 \value{
 NEED TO EDIT

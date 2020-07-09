@@ -30,8 +30,9 @@ FPM_Fit <- function(data, parameters, timeVar, intakeVar, Emax, CI) {
   # write catch if convergence is not equal to 1
 
   #get confidence interval and se
-  if(CI == TRUE){
-      SE <- sqrt(diag(solve(fit$hessian)))
+  if(isTRUE(CI)){
+      SE <- HelpersMG::SEfromHessian(fit$hessian)
+      # SE <- sqrt(diag(solve(fit$hessian)))
       upper<-fit$par+1.96*SE
       lower<- fit$par-1.96*SE
       param_CI <- data.frame(SE, upper, lower)

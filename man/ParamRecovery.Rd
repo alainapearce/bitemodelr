@@ -7,15 +7,17 @@
 ParamRecovery(
   nBites,
   Emax,
-  parameters,
-  time_fn,
-  fit_fn,
-  simVar,
-  simValue,
-  nSims,
-  bitesize_sd,
-  keepBites,
-  CI
+  parameters = c(10, 0.1),
+  time_fn = FPM_Time,
+  fit_fn = FPM_Fit,
+  simVar = "none",
+  simValue = NA,
+  nSims = 500,
+  procNoise = TRUE,
+  bitesize_sd = NA,
+  keepBites = FALSE,
+  intake_fn = FPM_Intake,
+  CI = FALSE
 )
 }
 \arguments{
@@ -23,7 +25,7 @@ ParamRecovery(
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c()) and FPM_Time needs 2 starting parameters (default is c(20, .20)). If enter an original time estimation function you MUST enter the required parameters for that function.}
+\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)). If enter an original time estimation function you MUST enter the required parameters for that function.}
 
 \item{time_fn}{(suggested) A string that is the name of the time function you want to use to estimate bite timing: either Kissileff_Time or FPM_Time; default is FPM_Time. Can also enter an original fucntion to estimate time, just be sure to include nBites, Emax, and parameters as input arguments to your function and to specify the required parameters.}
 
@@ -32,8 +34,10 @@ FPM_Fit; default is FPM_Fit. Can also enter an original fucntion to estimate tim
 Emax, and parameters as input arguments to your function and to specify the required parameters.}
 
 \item{simVar}{This indicates what manipuation will be used in the simulation:
+-none: default - if nothing entered will attempt parameter recovery as is
 -bitesSampled: will randomly select the number of bites from a Gaussian distribution with
 mean equal to the number of bites specified (default)
+-biteSize: this will discretize bite size into 1 or more bite size categories. Note, can only use if procNoise = TRUE. When procNoise = FLASE, the average bite size is used so bites cannot be further categorized.
 -nbiteError: will randomly alter the number of bites by the amount specified
 -mealdurError: will alter the length of the meal in minutes by the amount specified
 -EmaxError: will alter the total intake (Emax) but the amount speified
@@ -43,6 +47,7 @@ mean equal to the number of bites specified (default)
 valuse to simulate missed bites or decreased meal duration or total intake):
    -bitesSampled: enter standard deviation for the distribution number of bites will be sampled from
    -nbiteError: amount to adjust bites
+   -biteSize: either a single value representing average bite size or a vector of bite size cut points equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut points). Cut point will be left/lower inclusive but exclude upper boundary.
    -mealdurError: an object of length two specifying meal duration in minutes and number of minutes
    to adjust meal by, e.g., c(30, 3)
    -EmaxError: number of grams to adjust total intake by
@@ -51,8 +56,14 @@ valuse to simulate missed bites or decreased meal duration or total intake):
 
 \item{nSims}{The number of iterations to use. Default is 500.}
 
-\item{keepBites}{This is a logical indicator for wether to return the simulated bite dataset with
-elapsed timem and cumulative intake for each bite across all simulated intake curves. Default is FALSE.}
+\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size (and thus estimated timing). Default value is TRUE; if FALSE will use average bite size.}
+
+\item{bitesize_sd}{(optional) A numberic value that represents the standard deviate in an inidvidual's bite size over the course of the meal. This will be the standard deviation of the truncated normal distribution with mean Emax that bite sizes are chosesn from. procNoise must be set to TRUE, otherwise this argument will be ignored.}
+
+\item{keepBites}{(optional) This is a logical indicator for wether to return the simulated bite dataset with
+elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumumlative intake data will use the same bite timing as in the inital data but will estimate intake for each bite based on the recovered model parameters. Default is FALSE.}
+
+\item{intake_fn}{(only required if keepBites = TRUE) This is the name of the funtion that will be used to recover cumulative intake at sampled times. This is only used if keepBites = TRUE.}
 
 \item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
 for parameters. Default is FALSE}

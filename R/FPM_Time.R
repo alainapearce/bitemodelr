@@ -35,8 +35,14 @@ FPM_Time <- function(intake, parameters, Emax) {
   # since it is a logistic function, theoretically intake will never be
   # Emax. If intake = Emax, use 99% of Emax to get estimate for last
   # timepoint
-  if (intake == Emax) {
+  if (round(intake, 2) == round(Emax, 2)) {
     intake <- intake * 0.9999
+  }
+
+  rlimit = -1*parameters[1]/intake
+
+  if (parameters[2] < rlimit){
+    stop('r is less than -theta/intake. Check parameters and data are correct.')
   }
 
   (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake * parameters[2])/parameters[1]) +

@@ -12,11 +12,13 @@
 #'
 #' @param nBites A numeric value that represents total number of bites in a meal.
 #' @param Emax A numeric value that represents total cumulative intake.
-#' @param parameters (suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c()) and FPM_Time needs 2 starting parameters (default is c(20, .20)). If enter an original time estimation function you MUST enter the required parameters for that function.
+#' @param parameters (suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)). If enter an original time estimation function you MUST enter the required parameters for that function.
 #' @param time_fn (suggested) A string that is the name of the time function you want to use to estimate bite timing: either Kissileff_Time or FPM_Time; default is FPM_Time. Can also enter an original fucntion to estimate time, just be sure to include nBites, Emax, and parameters as input arguments to your function and to specify the required parameters.
-#' @param sd_bitesize (optional) A numeric value indicating the standard deviation for bite size within
-#' a meal.
 #' @param idVar (optional) A string or numeric value for ID to be added to the simulated bite data.
+#' @param procNoise (optional) A logical indicator for adding random process noise to the bite data by jittering bite size (and thus estimated timing). Used primarily for stimulations. Default value is FALSE.
+#' @param bitesize_sd (optional) A numeric value; the standard deviate in an inidvidual's bite size over the course of the meal. This will be the standard deviation of the truncated normal distribution with mean Emax that bite sizes are chosesn from. Need to use procNoise = TRUE to use.
+#'@param maxDur (optional) A numeric value; the maximum meal duration. Used for simulation purposes. Will check to see if meal duration extends beyoned entered value and sample bites based on the Emax possible the given meal duration. Only used if the quantitative model uses an Emax so is not relevant for the Kissileff model.
+#' @param intake_fn (optional) Name of function to calculate intake at Emax. Only needed if enter maxDur and you are using your own function. If using Kissileff_Time or FPM_Time, it will automatically use the correct intake function.
 #'
 #' @return NEED TO EDIT
 #'
@@ -28,7 +30,8 @@
 #' @seealso See also \code{\link{simCumulativeIntake}} to simualte a cumulative intake curve accross participatns.
 #'
 #' @export
-simBites <- function(nBites, Emax, parameters, time_fn, bitesize_sd, idVar) {
+simBites <- function(nBites, Emax, parameters, time_fn, idVar, procNoise,
+  bitesize_sd, maxDur, intake_fn) {
 
   # check function input
   if (!hasArg(time_fn)) {
@@ -45,86 +48,217 @@ simBites <- function(nBites, Emax, parameters, time_fn, bitesize_sd, idVar) {
   # check parameters
   if (!hasArg(parameters)) {
     if (fn_name == "FPM_Time") {
-      parameters <- c(20, 0.2)
+      parameters <- c(10, 0.1)
     } else if (fn_name == "Kissileff_Time") {
-      parameters <- c(20, 0.2, 0.2)
+      parameters <- c(10, 1, -1)
     } else {
       stop("If using a personal function to estimate bite timing, inital parameters are required")
     }
   }
 
+  # check maxDur limits - check intake at maxDur and set alternative
+  # cumulative intake to estimate bite sizes so that it does not exceed
+  # intake at maxDur
+  if (hasArg(maxDur) & fn_name != "Kissileff_Time") {
+    if (fn_name == "FPM_Time") {
+      Emax_Time <- sapply(Emax, FPM_Time, parameters = c(parameters),
+        Emax = Emax)
+    } else if (fn_name == "Kissileff_Time") {
+      Emax_Time <- sapply(Emax, Kisslieff_Time, parameters = c(parameters))
+    } else {
+        Emax_Time <- sapply(Emax, time_fn, parameters = c(parameters),
+          Emax = Emax)
+    }
+
+    if (round(Emax_Time,2) > maxDur) {
+      changeIntake = "Y"
+      if (fn_name == "FPM_Time") {
+        newEmax <- sapply(maxDur, FPM_Intake, parameters = c(parameters),
+          Emax = Emax)
+      } else if (fn_name == "Kissileff_Time") {
+        newEmax <- sapply(maxDur, Kisslieff_Intake, parameters = c(parameters))
+      } else {
+        if (hasArg(intake_fn)) {
+          newEmax <- sapply(maxDur, intake_fn, parameters = c(parameters),
+            Emax = Emax)
+        } else {
+          stop("If using a personal function to estimate bite timing, you need to specify the associated intake function becasue you entered the max duration of the meal (maxDur)")
+        }
+      }
+      message("The entered Emax is not reached by end of meal (maxDur). Bites are estimated based on cumulative intake at the end of the meal time. This means participant will not have reached Emax")
+    }
+  }
 
   # get bite numbers
   bites <- seq(1, nBites, by = 1)
 
-  # get cummulative intake average size
-  grams.bite_avg <- rep(Emax/nBites, nBites)
+  if (exists("changeIntake")) {
+    # get cummulative intake average size based on cumulative intake at
+    # maxDur
+    grams.bite_avg <- rep(newEmax/nBites, nBites)
+  } else {
+    # get cummulative intake average size
+    grams.bite_avg <- rep(Emax/nBites, nBites)
+  }
+
+  # get cumulative intake
   grams.cumulative_avg <- cumsum(grams.bite_avg)
 
-  # since it is a logistic function, theoretically E_t will never be
-  # Emax. change last cummulative intake to, use 99% of Emax to get
-  # estimate for last timepoint
-  grams.cumulative_avg[nBites] <- grams.cumulative_avg[nBites] * 0.9999
-
+  # get long list of parameters
   params_long <- rep(list(parameters), nBites)
 
-  # get estimated times
-  if (fn_name == "FPM_Time") {
-    simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg, parameters = params_long,
-      Emax = Emax)
-  } else if (fn_name == "Kissileff_Time") {
-    simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg, parameters = params_long)
+  # add process noise to bites if needed
+  if (hasArg(procNoise)) {
+    if (isTRUE(procNoise)) {
+      if (hasArg(bitesize_sd)) {
+
+        if (exists("changeIntake")) {
+          # randomly selected size that sum to the cumulative intake at maxDur
+          grams.bite_noise_init <- truncnorm::rtruncnorm(nBites,
+            a = 0, mean = (newEmax/nBites), sd = procNoise_biteSD)
+          grams.bite_noise <- (grams.bite_noise_init/sum(grams.bite_noise_init)) *
+            newEmax
+        } else {
+          # randomly selected size that sum to Emax
+          grams.bite_noise_init <- truncnorm::rtruncnorm(nBites,
+            a = 0, mean = (Emax/nBites), sd = procNoise_biteSD)
+          grams.bite_noise <- (grams.bite_noise_init/sum(grams.bite_noise_init)) *
+            Emax
+        }
+
+        # get cumulative intake
+        grams.cumulative_noise <- cumsum(grams.bite_noise)
+
+      } else {
+
+        # add random noise to data - the default is the minimum distance
+        # divided by 5
+        grams.cumulative_noise <- jitter(grams.cumulative_avg)
+
+        if (exists("changeIntake")) {
+          # if adding noise made the last bite of cumulative intake greater than
+          # cumulative intake at maxDur, set to cumulative intake at maxDur
+          if (grams.cumulative_noise[nBites] > newEmax) {
+            grams.cumulative_noise[nBites] <- newEmax
+          }
+        } else {
+          # if adding noise made the last bite of cumulative intake greater Emax,
+          # set to Emax
+          if (grams.cumulative_noise[nBites] > Emax) {
+            grams.cumulative_noise[nBites] <- Emax*.9999
+          }
+        }
+
+        # check to see if intake decrases at any point
+        grams.bite_noise <- c(grams.cumulative_noise[1], diff(grams.cumulative_noise,
+          difference = 1))
+
+        for (d in 1:length(grams.bite_noise)) {
+          if (grams.bite_noise[d] < 0) {
+            # if bite size is negative (cumulative intake whent down), set to the
+            # middle point between the surrounding bites
+            grams.bite_noise[d] = (grams.cumulative_noise[d + 1] -
+                grams.cumulative_noise[d - 1])/2
+          }
+        }
+      }
+
+      if (fn_name == "FPM_Time") {
+        simTime_procNoise <- mapply(time_fn, intake = grams.cumulative_noise,
+          parameters = params_long, Emax = Emax)
+      } else if (fn_name == "Kissileff_Time") {
+        simTime_procNoise <- mapply(time_fn, intake = grams.cumulative_noise,
+          parameters = params_long)
+      } else {
+        simTime_procNoise <- mapply(time_fn, intake = grams.cumulative_noise,
+          parameters = params_long, Emax = Emax)
+      }
+
+      # organize data
+      if (hasArg(bitesize_sd)) {
+        if (hasArg(id)) {
+          sim_dat <- data.frame(rep(id, length(nBites)), bites,
+            simTime_procNoise, grams.cumulative_noise, grams.bite_noise)
+          names(sim_dat) <- c("id", "Bite", paste0("EstimatedTime_procNoise_sd",
+            round(bitesize_sd, digits = 2)), paste0("CumulativeGrams_procNoise_sd",
+              round(bitesize_sd, digits = 2)), paste0("BiteGrams_procNoise_sd",
+                round(bitesize_sd, digits = 2)))
+        } else {
+          sim_dat <- data.frame(bites, simTime_procNoise, grams.cumulative_noise,
+            grams.bite_noise)
+          names(sim_dat) <- c("Bite", paste0("EstimatedTime_procNoise_sd",
+            round(bitesize_sd, digits = 2)), paste0("CumulativeGrams_procNoise_sd",
+              round(bitesize_sd, digits = 2)), paste0("BiteGrams_procNoise_sd",
+                round(bitesize_sd, digits = 2)))
+        }
+      } else {
+        if (hasArg(id)) {
+          sim_dat <- data.frame(rep(id, length(nBites)), bites,
+            simTime_procNoise, grams.cumulative_noise, grams.bite_noise)
+          names(sim_dat) <- c("id", "Bite", "EstimatedTime_procNoise",
+            "CumulativeGrams_procNoise", "BiteGrams_procNoise")
+        } else {
+          sim_dat <- data.frame(bites, simTime_procNoise, grams.cumulative_noise,
+            grams.bite_noise)
+          names(sim_dat) <- c("Bite", "EstimatedTime_procNoise",
+            "CumulativeGrams_procNoise", "BiteGrams_procNoise")
+        }
+      }
+
+    } else {
+      # procNoise is not TRUE
+
+      # get estimated times
+      if (fn_name == "FPM_Time") {
+        simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+          parameters = params_long, Emax = Emax)
+      } else if (fn_name == "Kissileff_Time") {
+        simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+          parameters = params_long)
+      } else {
+        simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+          parameters = params_long, Emax = Emax)
+      }
+
+      # organize data
+      if (hasArg(id)) {
+        sim_dat <- data.frame(rep(id, length(nBites)), bites, simTime_avg,
+          grams.cumulative_avg, grams.bite_avg)
+        names(sim_dat) <- c("id", "Bite", "EstimatedTime_avgBite",
+          "CumulativeGrams_avgBite", "BiteGrams_avgBite")
+      } else {
+        sim_dat <- data.frame(bites, simTime_avg, grams.cumulative_avg,
+          grams.bite_avg)
+        names(sim_dat) <- c("Bite", "EstimatedTime_avgBite", "CumulativeGrams_avgBite",
+          "BiteGrams_avgBite")
+      }
+    }
   } else {
-    simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg, parameters = params_long,
-      Emax = Emax)
-  }
+    # no procNoise entered
 
-  if (hasArg(bitesize_sd)) {
-    # randomly selected size that sum to Emax
-    grams.bite_rand <- truncnorm::rtruncnorm(nBites, a = 0, mean = (Emax/nBites),
-      sd = bitesize_sd)
-    grams.bite <- (grams.bite_rand/sum(grams.bite_rand)) * Emax
-    grams.cumulative <- cumsum(grams.bite)
-
-    # since it is a logistic function, theoretically E_t will never be
-    # Emax. change last cummulative intake to, use 99% of Emax to get
-    # estimate for last timepoint
-    grams.cumulative[nBites] <- grams.cumulative[nBites] * 0.9999
-
+    # get estimated times
     if (fn_name == "FPM_Time") {
-      simTime <- mapply(time_fn, intake = grams.cumulative, params = params_long,
-        Emax = Emax)
+      simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+        parameters = params_long, Emax = Emax)
     } else if (fn_name == "Kissileff_Time") {
-      simTime <- mapply(time_fn, intake = grams.cumulative, params = params_long)
+      simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+        parameters = params_long)
     } else {
-      simTime <- mapply(time_fn, intake = grams.cumulative, params = params_long,
-        Emax = Emax)
+      simTime_avg <- mapply(time_fn, intake = grams.cumulative_avg,
+        parameters = params_long, Emax = Emax)
     }
-  }
 
-  # organize data
-  if (hasArg(bitesize_sd)) {
-    if (hasArg(id)) {
-      sim_dat <- data.frame(rep(id, length(nBites)), bites, simTime,
-        grams.cumulative, simTime_avg, grams.cumulative_avg)
-      names(sim_dat) <- c("id", "Bite", paste0("EstimatedTime_",
-        round(bitesize_sd, digits = 2)), paste0("CumulativeGrams_",
-          round(bitesize_sd, digits = 2)), "EstimatedTime_avg", "CumulativeGrams_avgBite")
-    } else {
-      sim_dat <- data.frame(bites, simTime, grams.cumulative, simTime,
-        grams.cumulative_avg)
-      names(sim_dat) <- c("Bite", paste0("EstimatedTime_", round(bitesize_sd,
-        digits = 2)), paste0("CumulativeGrams_", round(bitesize_sd,
-          digits = 2)), "EstimatedTime_avg", "CumulativeGrams_avgBite")
-    }
-  } else {
+    # organize data
     if (hasArg(id)) {
       sim_dat <- data.frame(rep(id, length(nBites)), bites, simTime_avg,
-        grams.cumulative_avg)
-      names(sim_dat) <- c("id", "Bite", "EstimatedTime_avg", "CumulativeGrams_avgBite")
+        grams.cumulative_avg, grams.bite_avg)
+      names(sim_dat) <- c("id", "Bite", "EstimatedTime_avgBite",
+        "CumulativeGrams_avgBite", "BiteGrams_avgBite")
     } else {
-      sim_dat <- data.frame(bites, simTime_avg, grams.cumulative_avg)
-      names(sim_dat) <- c("Bite", "EstimatedTime_avg", "CumulativeGrams_avgBite")
+      sim_dat <- data.frame(bites, simTime_avg, grams.cumulative_avg,
+        grams.bite_avg)
+      names(sim_dat) <- c("Bite", "EstimatedTime_avgBite", "CumulativeGrams_avgBite",
+        "BiteGrams_avgBite")
     }
   }
 

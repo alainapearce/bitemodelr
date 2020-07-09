@@ -28,9 +28,27 @@
 #'
 #' @export
 Kissileff_Time <- function(intake, parameters) {
-  t1 <- (-parameters[2] + sqrt(parameters[2]^2 - 4 * (parameters[1] -
-      intake) * parameters[3]))/(2 * parameters[3])
-  t2 <- (-parameters[2] - sqrt(parameters[2]^2 - 4 * (parameters[1] -
-      intake) * parameters[3]))/(2 * parameters[3])
-  min(t1, t2)
+
+  sqrt_term = parameters[2]^2 - 4 * (parameters[1] - intake)  * parameters[3]
+
+  #check if can solve for time
+  if(sqrt_term >= 0){
+    t1 <- (-parameters[2] + sqrt(parameters[2]^2 - 4 * (parameters[1] -
+        intake) * parameters[3]))/(2 * parameters[3])
+    t2 <- (-parameters[2] - sqrt(parameters[2]^2 - 4 * (parameters[1] -
+        intake) * parameters[3]))/(2 * parameters[3])
+
+    # determine if parabala opens upward or downward to determine which
+    # time value is needed
+
+    if(parameters[3] < 0){
+      return(min(t1, t2))
+    } else {
+      return(max(t1, t2))
+    }
+
+
+  } else {
+    message("Unable to solve for time for the current parameters and max intake: linear^2 - 4*(intercept - intake)*quadratic is negative and cannot be square rooted")
+  }
 }

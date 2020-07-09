@@ -4,21 +4,36 @@
 \alias{simBites}
 \title{simBites: Simulates cumulative intake for bites and bite timing}
 \usage{
-simBites(nBites, Emax, parameters, time_fn, bitesize_sd, idVar)
+simBites(
+  nBites,
+  Emax,
+  parameters,
+  time_fn,
+  idVar,
+  procNoise,
+  bitesize_sd,
+  maxDur,
+  intake_fn
+)
 }
 \arguments{
 \item{nBites}{A numeric value that represents total number of bites in a meal.}
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c()) and FPM_Time needs 2 starting parameters (default is c(20, .20)). If enter an original time estimation function you MUST enter the required parameters for that function.}
+\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)). If enter an original time estimation function you MUST enter the required parameters for that function.}
 
 \item{time_fn}{(suggested) A string that is the name of the time function you want to use to estimate bite timing: either Kissileff_Time or FPM_Time; default is FPM_Time. Can also enter an original fucntion to estimate time, just be sure to include nBites, Emax, and parameters as input arguments to your function and to specify the required parameters.}
 
 \item{idVar}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 
-\item{sd_bitesize}{(optional) A numeric value indicating the standard deviation for bite size within
-a meal.}
+\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size (and thus estimated timing). Used primarily for stimulations. Default value is FALSE.}
+
+\item{bitesize_sd}{(optional) A numeric value; the standard deviate in an inidvidual's bite size over the course of the meal. This will be the standard deviation of the truncated normal distribution with mean Emax that bite sizes are chosesn from. Need to use procNoise = TRUE to use.}
+
+\item{maxDur}{(optional) A numeric value; the maximum meal duration. Used for simulation purposes. Will check to see if meal duration extends beyoned entered value and sample bites based on the Emax possible the given meal duration. Only used if the quantitative model uses an Emax so is not relevant for the Kissileff model.}
+
+\item{intake_fn}{(optional) Name of function to calculate intake at Emax. Only needed if enter maxDur and you are using your own function. If using Kissileff_Time or FPM_Time, it will automatically use the correct intake function.}
 }
 \value{
 NEED TO EDIT

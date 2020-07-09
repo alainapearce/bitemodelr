@@ -12,7 +12,7 @@ IntakeModelParams(data, parameters, timeVar, intakeVar, fit_fn, idVar, CI)
 
 \item{parameters}{(optional) A set of numeric parameters to serve as the starting parameters for the optimization.
 Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c()) and FPM_Fit
-needs 2 starting parameters (default is c(20, .20)).}
+needs 2 starting parameters (default is c(10, .10)).}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 

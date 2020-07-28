@@ -30,13 +30,9 @@
 #' @seealso See also \code{\link{simCumulativeIntake}} to simualte a cumulative intake curve accross participatns.
 #'
 #' @export
-simBites <- function(nBites, Emax, parameters, time_fn, idVar, procNoise,
-  bitesize_sd, maxDur, intake_fn) {
+simBites <- function(nBites, Emax, parameters, time_fn = FPM_Time, idVar = NA, procNoise = FALSE,
+  bitesize_sd = NA, maxDur = NA, intake_fn = FPM_Intake) {
 
-  # check function input
-  if (!hasArg(time_fn)) {
-    time_fn <- FPM_Time
-  }
 
   # get name of function that was passed
   if (class(time_fn) == "name") {

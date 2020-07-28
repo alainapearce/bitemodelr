@@ -7,7 +7,7 @@
 ParamRecovery(
   nBites,
   Emax,
-  parameters = c(10, 0.1),
+  parameters,
   time_fn = FPM_Time,
   fit_fn = FPM_Fit,
   simVar = "none",

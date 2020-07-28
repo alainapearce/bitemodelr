@@ -27,10 +27,10 @@
 #' }
 #'
 #' @export
-IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
-  idVar, CI) {
+IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn = FPM_Fit,
+  idVar, CI = FALSE) {
 
-  # check input arguments
+  #check input arguments
   if (!hasArg(intakeVar)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
@@ -55,10 +55,6 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
     nID = 0
   }
 
-  ## Need to figure out this part - can call function like this?
-  if (!hasArg(fit_fn)) {
-    fit_fn <- FPM_Fit
-  }
 
   if (class(fit_fn) == "name") {
     fn_name <- as.character(fit_fn)
@@ -66,19 +62,15 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn,
     fn_name <- as.character(substitute(fit_fn))
   }
 
+  # check parameters
   if (!hasArg(parameters)) {
-    if (fn_name == "FPM_Fit") {
+    if (fn_name == "FPM_Time") {
       parameters <- c(10, 0.1)
-    } else if (fn_name == "Kissileff_Fit") {
+    } else if (fn_name == "Kissileff_Time") {
       parameters <- c(10, 1, -1)
     } else {
-      stop("If using a personal function to fit parameters, inital parameters are required")
+      stop("If using a personal function to estimate bite timing, inital parameters are required")
     }
-  }
-
-  # if no CI entered, use default
-  if (!hasArg(CI)) {
-    CI = FALSE
   }
 
   # check for ID and if there is more than 1 unique ID

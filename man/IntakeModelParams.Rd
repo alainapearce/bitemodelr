@@ -4,7 +4,15 @@
 \alias{IntakeModelParams}
 \title{IntakeModelParams: Fits model parameters for cumulative intake curves}
 \usage{
-IntakeModelParams(data, parameters, timeVar, intakeVar, fit_fn, idVar, CI)
+IntakeModelParams(
+  data,
+  parameters,
+  timeVar,
+  intakeVar,
+  fit_fn = FPM_Fit,
+  idVar,
+  CI = FALSE
+)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:

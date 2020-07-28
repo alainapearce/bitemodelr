@@ -8,12 +8,12 @@ simBites(
   nBites,
   Emax,
   parameters,
-  time_fn,
-  idVar,
-  procNoise,
-  bitesize_sd,
-  maxDur,
-  intake_fn
+  time_fn = FPM_Time,
+  idVar = NA,
+  procNoise = FALSE,
+  bitesize_sd = NA,
+  maxDur = NA,
+  intake_fn = FPM_Intake
 )
 }
 \arguments{

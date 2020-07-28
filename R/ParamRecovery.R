@@ -52,7 +52,7 @@
 #'
 #' @export
 
-ParamRecovery <- function(nBites, Emax, parameters = c(10, 0.1), time_fn = FPM_Time, fit_fn = FPM_Fit, simVar = 'none',
+ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn = FPM_Fit, simVar = 'none',
   simValue = NA, nSims = 500, procNoise = TRUE, bitesize_sd = NA, keepBites = FALSE, intake_fn = FPM_Intake, CI = FALSE) {
 
   # get entered of default function names as characters
@@ -60,6 +60,16 @@ ParamRecovery <- function(nBites, Emax, parameters = c(10, 0.1), time_fn = FPM_T
   fnFit_name <- as.character(substitute(fit_fn))
   fnIntake_name <- as.character(substitute(fit_fn))
 
+  # check parameters
+  if (!hasArg(parameters)) {
+    if (fn_name == "FPM_Time") {
+      parameters <- c(10, 0.1)
+    } else if (fn_name == "Kissileff_Time") {
+      parameters <- c(10, 1, -1)
+    } else {
+      stop("If using a personal function to estimate bite timing, inital parameters are required")
+    }
+  }
 
   # set up data to use in simBites function
   if (!hasArg(simValue) & simVar != 'none'){
@@ -126,7 +136,7 @@ ParamRecovery <- function(nBites, Emax, parameters = c(10, 0.1), time_fn = FPM_T
     paramRecov$r <- NA
 
     #set default parameters to use as starting values in recovery
-    parametersDefault = c(10, 0.1)
+    parametersDefault = c(0, 0)
 
     if(isTRUE(CI)){
       paramRecov$SE_theta <- NA

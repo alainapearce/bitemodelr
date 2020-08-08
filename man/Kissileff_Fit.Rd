@@ -4,7 +4,7 @@
 \alias{Kissileff_Fit}
 \title{Kissileff_Fit: Fits beta coeffiecents for Kissileff's quadratic model}
 \usage{
-Kissileff_Fit(data, parameters, timeVar, intakeVar, CI)
+Kissileff_Fit(data, parameters, timeVar, intakeVar)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:

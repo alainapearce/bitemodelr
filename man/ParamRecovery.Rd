@@ -17,7 +17,8 @@ ParamRecovery(
   bitesize_sd = NA,
   keepBites = FALSE,
   intake_fn = FPM_Intake,
-  CI = FALSE
+  paramCI,
+  bound = "both"
 )
 }
 \arguments{
@@ -63,10 +64,11 @@ valuse to simulate missed bites or decreased meal duration or total intake):
 \item{keepBites}{(optional) This is a logical indicator for wether to return the simulated bite dataset with
 elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumumlative intake data will use the same bite timing as in the inital data but will estimate intake for each bite based on the recovered model parameters. Default is FALSE.}
 
-\item{intake_fn}{(only required if keepBites = TRUE) This is the name of the funtion that will be used to recover cumulative intake at sampled times. This is only used if keepBites = TRUE.}
+\item{intake_fn}{(only required if keepBites = TRUE) This is the name of the function that will be used to recover cumulative intake at sampled times. This is only used if keepBites = TRUE.}
 
-\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
-for parameters. Default is FALSE}
+\item{paramCI}{A list of strings with the names of the parameters to compute CIs for. Optional. If none specified, no CI will be computed}
+
+\item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
 }
 \value{
 NEED TO EDIT

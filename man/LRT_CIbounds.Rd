@@ -6,27 +6,22 @@
 \usage{
 LRT_CIbounds(
   data,
-  Emax,
   parameters,
   min_n2ll,
-  paramFIT = "All",
+  paramCI = c("theta", "r"),
   fit_fn = FPM_Fit,
   timeVar,
   intakeVar,
-  Bound = "both"
+  bound = "both"
 )
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{Emax}{A numeric value that represents total cumulative intake.}
-
 \item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)). If enter an original time estimation function you MUST enter the required parameters for that function.}
 
-\item{min_n2ll}{This is a single value or list of the fitted minimum -2 log-likelihood.}
-
-\item{paramFIT}{This is a string or list of strings with the parameters a CI should be returned for. If want to return CIs for all parameters of a model, set to "All". It is important that the number of entered parameters matches the number of values for min_n2ll. Also, the parameters must match those for your model (e.g., FPM_Fit - 'r', 'theta'; Kissileff_Fit - 'int', 'linear', 'quad') Default is "All".}
+\item{min_n2ll}{This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.}
 
 \item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
 FPM_Fit; default is FPM_Fit. Can also enter an original fucntion to estimate time, just be sure to include nBites,
@@ -37,12 +32,14 @@ Emax, and parameters as input arguments to your function and to specify the requ
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
+
+\item{A}{list of strings with the names of the parameters to compute CIs for. Default assumes First Principles Model for both parameters: c('theta'. 'r')}
 }
 \value{
 NEED TO EDIT
 }
 \description{
-This function Estimates the confidence bounds using log ratio tests using optim()
+This function Estimates the confidence bounds using log ratio tests using optim() to identify the bouandries for the upper and lower confidence bounds
 }
 \examples{
 

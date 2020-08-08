@@ -4,7 +4,7 @@
 \alias{FPM_Fit}
 \title{FPM_Fit: Fits parameters for the First Principles Model}
 \usage{
-FPM_Fit(data, parameters, timeVar, intakeVar, Emax, CI)
+FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -17,9 +17,6 @@ FPM_Fit(data, parameters, timeVar, intakeVar, Emax, CI)
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
-
-\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
-for parameters. Default is FALSE}
 }
 \value{
 NEED TO EDIT

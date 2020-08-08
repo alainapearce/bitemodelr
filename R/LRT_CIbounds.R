@@ -1,12 +1,11 @@
 #' LRT_CIbounds: Estimates the confidence bounds using log ratio tests
 #'
-#' This function Estimates the confidence bounds using log ratio tests using optim()
+#' This function Estimates the confidence bounds using log ratio tests using optim() to identify the bouandries for the upper and lower confidence bounds
 #'
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams simBites
-#' @inheritParams simBites
-#' @param min_n2ll This is a single value or list of the fitted minimum -2 log-likelihood.
-#' @param paramCI_val This is a single value or list of the parameter value that the CI will be estimated for. If fitting separate models, it will assume each value maps to the same index in min_n2ll. If only 1 value entered for min_n2ll, will assume all entered values are from same model fit.
+#' @param min_n2ll This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.
+#' @param A list of strings with the names of the parameters to compute CIs for. Default assumes First Principles Model for both parameters: c('theta'. 'r')
 #' @inheritParams IntakeModelParams
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
@@ -23,7 +22,7 @@
 #' (Kissileff, 1982; Kissileff & Guss, 2001; Thomas et al., 2017), see \code{\link{Kissileff_Fit}, see \code{\link{FPM_Fit}}.
 #'
 #' @export
-LRT_CIbounds <- function(data, Emax, parameters, min_n2ll, paramCI_val, fit_fn = FPM_Fit, timeVar, intakeVar, bound = 'both') {
+LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c('theta', 'r'), fit_fn = FPM_Fit, timeVar, intakeVar, bound = 'both') {
 
   # get name of function that was passed
   if (class(fit_fn) == "name") {
@@ -58,53 +57,70 @@ LRT_CIbounds <- function(data, Emax, parameters, min_n2ll, paramCI_val, fit_fn =
     stop("string entered for timeVar does not match any variables in data")
   }
 
-  if (length(c(min_n2ll)) == 1 & length(c(paramCI_val)) > 1){
-        message("Only 1 -2LL value entered - using for all parameters")
-    } else if(length(c(min_n2ll)) > 1 & length(c(min_n2ll)) == length(c(paramCI_val))){
-      message("Number of values entered for min_n2LL equals that of paramCI_val. Assuming -2LL from separate model fits apply to parameters in order entered.")
-  } else if (length(c(min_n2ll)) > 1 & length(c(min_n2ll)) != length(c(paramCI_val))){
-      stop("More than one value entered for min_n2LL but length is not equal to that of paramCI_val. If want to calculate CIs from different model fits (more than one -2nLL), the lenth of min_2LL and paramCI_val ")
-  }
+  CIlist <- list(parFit_names = rep(NA, length(paramCI)),
+                 parFit_values = rep(NA, length(paramCI)),
+                 parCI_upper = rep(NA, length(paramCI)),
+                 parCI_lower = rep(NA, length(paramCI)))
 
-  for (p in 1:length(c(paramCI_val))){
+  for (l in 1:length(min_n2ll)){
+    for (p in 1:length(paramCI)){
+      if (fn_name == "FPM_Fit"){
+        #identify the index for the parameter
+        if (paramCI[p] == "theta" | paramCI[p] == "Theta"){
+          parIndex <- 1
+        } else if (paramCI[p] == "r" | paramCI[p] == "R"){
+          parIndex <- 2
+        }
 
-    if (length(min_n2ll) == 1){
-      n2ll = min_n2ll
+        #run the LRT optimization for CI bounds
+        if (bound == 'both' | bound == 'lower'){
+          BiteMod_CIlower <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, n2ll_fn = FPM_n2ll, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = 'lower')
+
+          CIlist$parCI_lower[p] <- BiteMod_CIlower$par[parIndex]
+        }
+
+        if (bound == 'both' | bound == 'upper'){
+          BiteMod_CIupper <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, n2ll_fn = FPM_n2ll, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = 'upper')
+
+          CIlist$parCI_upper[p] <- BiteMod_CIupper$par[parIndex]
+        }
+      } else if (fnTime_name == "Kissilef_Time") {
+
+        #get the parameter index
+        if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] == "Intercept" | paramCI[p] == "intercept" ){
+          parIndex <- 1
+        } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" | paramCI[p] == "lin" | paramCI[p] == "Lin"){
+          parIndex <- 2
+        } else if (paramCI[p] == "quad" | paramCI[p] == "Quad" | paramCI[p] == "quadratic" | paramCI[p] == "Quadratic" ){
+          parIndex <- 3
+        }
+
+        #run the LRT optimization for CI bounds
+        if (bound == 'both' | bound == 'lower'){
+          BiteMod_CIlower <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, n2ll_fn = Kissileff_n2ll, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = 'lower')
+
+          CIlist$parCI_lower[p] <-BiteMod_CIlower$par[parIndex]
+        }
+
+        if (bound == 'both' | bound == 'upper'){
+          BiteMod_CIupper <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, n2ll_fn = Kissileff_n2ll, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = 'upper')
+
+          CIlist$parCI_upper[p] <- BiteMod_CIupper$par[parIndex]
+        }
+      }
+
+      #Add information to dataset
+      CIlist$parFit_min_n2ll[p] <- min_n2ll[l]
+      CIlist$parFit_values[p] = parameters[p]
+      CIlist$parFit_names[p] = paramCI[parIndex]
+    }
+
+    #determine whether to ouput a list array for multiple fit values or not
+    if (length(min_n2ll) > 1 & l != 1){
+      BiteMod_CIlist = list(BiteMod_CIlist, CIlist)
     } else {
-      n2ll = min_n2ll[p]
-    }
-
-    if (bound == 'both' | bound == 'lower'){
-      BiteMod_CIlower <- stats::optim(par = c(parameters), fn = LRT_CIfit, data = data, fit_fn = fit_nf, Emax = Emax, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = n2LL, paramCI_val = paramCI_val[p], bound = 'lower')
-    }
-
-    if (bound == 'both' | bound == 'upper'){
-
+      BiteMod_CIlist = CIlist
     }
   }
-
-
-
-
-
-  if (class(fit_fn) == "name") {
-    BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-                                         timeVar = timeVar, intakeVar = intakeVar, Emax = emax, CI = CI))
-  } else {
-    BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-                          Emax = emax)
-  }
-
-  # data must have columns: Time
-  data$Estimated_intake <- sapply(data[, timeVar], FPM_Intake, parameters = c(par),
-    Emax = Emax)
-  estimated_name <- paste0("Estimated_", intakeVar)
-  names(data)[length(names(data))] <- estimated_name
-  data$resid <- data[, intakeVar] - data[, estimated_name]
-  sigma <- sum(data$resid^2)/length(data$resid)
-
-  # ll equation
-  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 *
-      sigma^2)) * (sum(data$resid^2))
-  return(-2 * ll)
+  return(BiteMod_CIlist)
 }

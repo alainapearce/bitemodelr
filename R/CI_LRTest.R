@@ -4,12 +4,12 @@
 #'
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams FPM_n2ll
-#' @inheritParams IntakeModelParams
+#' @param n2ll_fn Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams FPM_Intake
 #' @inheritParams LRT_CIbounds
-#' @param paramCI_value The fitted value of the parameter whose confidence bound is being computed
+#' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.
 #' @inheritParams LRT_CIbounds
 #' @return NEED TO EDIT
 #'
@@ -23,21 +23,21 @@
 #'
 #' @export
 #'
-CI_LRTest <- function(data, par, fit_fn = FPM_fit, timeVar, intakeVar, Emax, min_n2ll, paramCI_val, bound) {
+CI_LRTest <- function(data, par, n2ll_fn = FPM_2nll, timeVar, intakeVar, min_n2ll, paramIndex, bound) {
 
   #check input arguments
-  if (class(fit_fn) == "name") {
-    fn_name <- as.character(fit_fn)
+  if (class(n2ll_fn) == "name") {
+    fn_name <- as.character(n2ll_fn)
   } else {
-    fn_name <- as.character(substitute(fit_fn))
+    fn_name <- as.character(substitute(n2ll_fn))
   }
 
   # check parameters
-  if (!hasArg(parameters)) {
-    if (fn_name == "FPM_Fit") {
-      parameters <- c(10, 0.1)
-    } else if (fn_name == "Kissileff_Fit") {
-      parameters <- c(10, 1, -1)
+  if (!hasArg(par)) {
+    if (fn_name == "FPM_n2ll") {
+      par <- c(10, 0.1)
+    } else if (fn_name == "Kissileff_n2ll") {
+      par <- c(10, 1, -1)
     } else {
       stop("If using a personal function to estimate bite timing, inital parameters are required")
     }
@@ -58,25 +58,24 @@ CI_LRTest <- function(data, par, fit_fn = FPM_fit, timeVar, intakeVar, Emax, min
     stop("string entered for timeVar does not match any variables in data")
   }
 
-
   #run fit function
-  if (fn_name == 'FPM_Fit'){
-    if (class(fit_fn) == 'name') {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax))
+  if (fn_name == 'FPM_n2ll'){
+    if (class(n2ll_fn) == 'name') {
+      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
     } else {
-      fit <- fit_fn(data, par, timeVar, intakeVar, Emax)
+      fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
     }
-  } else if (fn_name == 'Kissileff_Fit'){
-    if (class(fit_fn) == 'name') {
+  } else if (fn_name == 'Kissileff_n2ll'){
+    if (class(n2ll_fn) == 'name') {
       fit <- do.call(fn_name, list(data, par, timeVar, intakeVar))
     } else {
-      fit <- fit_fn(data, par, timeVar, intakeVar)
+      fit <- n2ll_fn(data, par, timeVar, intakeVar)
     }
   } else {
-    if (class(fit_fn) == 'name') {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax))
+    if (class(n2ll_fn) == 'name') {
+      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
     } else {
-      fit <- fit_fn(data, par, timeVar, intakeVar, Emax)
+      fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
     }
   }
 
@@ -84,9 +83,9 @@ CI_LRTest <- function(data, par, fit_fn = FPM_fit, timeVar, intakeVar, Emax, min
   target = min_n2ll + 3.84
 
   if (bound == 'lower'){
-    lrt = (target-fit$value)^2 + paramCI_val
+    lrt <- (target-fit)^2 + par[paramIndex]
   } else if (bound == 'upper'){
-    lrt = (target-fit$value)^2 - paramCI_val
+    lrt <- (target-fit)^2 - par[paramIndex]
   }
 
   return(lrt)

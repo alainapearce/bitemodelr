@@ -22,10 +22,10 @@
 #' see \code{\link{FPM_Fit}}.
 #'
 #' @export
-Kissileff_Fit <- function(data, parameters, timeVar, intakeVar, CI) {
+Kissileff_Fit <- function(data, parameters, timeVar, intakeVar) {
 
   fit <- stats::optim(par = c(parameters), fn = Kissileff_n2ll, data = data,
-    time = timeVar, intake = intakeVar, hessian = CI)
+    time = timeVar, intake = intakeVar)
 
   # write catch if convergence is not equal to 1
 }

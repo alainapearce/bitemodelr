@@ -38,8 +38,9 @@
 #' @param bitesize_sd (optional) A numberic value that represents the standard deviate in an inidvidual's bite size over the course of the meal. This will be the standard deviation of the truncated normal distribution with mean Emax that bite sizes are chosesn from. procNoise must be set to TRUE, otherwise this argument will be ignored.
 #' @param keepBites (optional) This is a logical indicator for wether to return the simulated bite dataset with
 #' elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumumlative intake data will use the same bite timing as in the inital data but will estimate intake for each bite based on the recovered model parameters. Default is FALSE.
-#' @param intake_fn (only required if keepBites = TRUE) This is the name of the funtion that will be used to recover cumulative intake at sampled times. This is only used if keepBites = TRUE.
-#' @inheritParams Kissileff_Fit
+#' @param intake_fn (only required if keepBites = TRUE) This is the name of the function that will be used to recover cumulative intake at sampled times. This is only used if keepBites = TRUE.
+#' @param paramCI A list of strings with the names of the parameters to compute CIs for. Optional. If none specified, no CI will be computed
+#' @inheritParams LRT_CIbounds
 #'
 #' @return NEED TO EDIT
 #'
@@ -52,8 +53,7 @@
 #'
 #' @export
 
-ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn = FPM_Fit, simVar = 'none',
-  simValue = NA, nSims = 500, procNoise = TRUE, bitesize_sd = NA, keepBites = FALSE, intake_fn = FPM_Intake, CI = FALSE) {
+ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn = FPM_Fit, simVar = 'none', simValue = NA, nSims = 500, procNoise = TRUE, bitesize_sd = NA, keepBites = FALSE, intake_fn = FPM_Intake, paramCI, bound = 'both') {
 
   # get entered of default function names as characters
   fnTime_name <- as.character(substitute(time_fn))
@@ -62,9 +62,9 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
 
   # check parameters
   if (!hasArg(parameters)) {
-    if (fn_name == "FPM_Time") {
+    if (fnTime_name == "FPM_Time") {
       parameters <- c(10, 0.1)
-    } else if (fn_name == "Kissileff_Time") {
+    } else if (fnTime_name == "Kissileff_Time") {
       parameters <- c(10, 1, -1)
     } else {
       stop("If using a personal function to estimate bite timing, inital parameters are required")
@@ -72,7 +72,7 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
   }
 
   # set up data to use in simBites function
-  if (!hasArg(simValue) & simVar != 'none'){
+  if (is.na(simValue) & simVar != 'none'){
     stop("No value entered for simValue")
   } else {
     if (length(simValue) != 1) {
@@ -95,9 +95,9 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
 
   # create empty data frame with a row per simulation
   paramRecov <- data.frame(model = rep(fnTime_name, nSims), initial_nBites = rep(nBites,
-    nSims), initial_Emax = rep(Emax, nSims), nBites = rep(init_dat$nBites,
-      nSims), Emax = rep(init_dat$Emax, nSims), nSim = seq(1, by = 1,
-        length.out = nSims))
+                                                                                 nSims), initial_Emax = rep(Emax, nSims), nBites = rep(init_dat$nBites,
+                                                                                                                                       nSims), Emax = rep(init_dat$Emax, nSims), nSim = seq(1, by = 1,
+                                                                                                                                                                                            length.out = nSims))
 
   # add simulation specific data to data frame
   if (simVar == "biteSize") {
@@ -136,15 +136,19 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
     paramRecov$r <- NA
 
     #set default parameters to use as starting values in recovery
-    parametersDefault = c(0, 0)
+    parametersDefault = c(10, 0.1)
 
-    if(isTRUE(CI)){
-      paramRecov$SE_theta <- NA
-      paramRecov$SE_r <- NA
-      paramRecov$u95CI_theta <- NA
-      paramRecov$u95CI_r <- NA
-      paramRecov$l95CI_theta <- NA
-      paramRecov$l95CI_r <- NA
+    #check if CI will be returned
+    if(hasArg(paramCI)){
+      for (p in 1:length(paramCI)){
+        if (paramCI[p] == "theta" | paramCI[p] == "Theta"){
+          paramRecov$u95CI_theta <- NA
+          paramRecov$l95CI_theta <- NA
+        } else if (paramCI[p] == "r" | paramCI[p] == "R"){
+          paramRecov$u95CI_r <- NA
+          paramRecov$l95CI_r <- NA
+        }
+      }
     }
   } else if (fnTime_name == "Kissilef_Time") {
     paramRecov$initial_int <- rep(parameters[1], nSims)
@@ -157,28 +161,44 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
     #set default parameters to use as starting values in recovery
     parametersDefault = c(10, 1, -0.1)
 
-    if(isTRUE(CI)){
-      paramRecov$SE_int <- NA
-      paramRecov$SE_linear <- NA
-      paramRecov$SE_quad <- NA
-      paramRecov$u95CI_int <- NA
-      paramRecov$u95CI_linear <- NA
-      paramRecov$u95CI_quad <- NA
-      paramRecov$l95CI_int <- NA
-      paramRecov$l95CI_linear <- NA
-      paramRecov$l95CI_quad <- NA
-    }
+    #check if CI will be returned
+    if(hasArg(paramCI)){
+      for (p in 1:length(paramCI)){
+        if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] == "Intercept" | paramCI[p] == "intercept" ){
+          paramRecov$u95CI_int <- NA
+          paramRecov$l95CI_int <- NA
 
+        } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" | paramCI[p] == "lin" | paramCI[p] == "Lin"){
+          paramRecov$u95CI_linear <- NA
+          paramRecov$l95CI_linear <- NA
+
+        } else if (paramCI[p] == "quad" | paramCI[p] == "Quad" | paramCI[p] == "quadratic" | paramCI[p] == "Quadratic" ){
+          paramRecov$u95CI_quad <- NA
+          paramRecov$l95CI_quad <- NA
+
+        }
+      }
+    }
   } else {
     for (p in 1:length(parameters)) {
       colnum <- length(paramRecov)
       paramRecov[colnum + 1] <- rep(parameters[p], nSims)
       names(paramRecov)[colnum + 1] <- paste0("initial_parameter",
-        p)
+                                              p)
+    }
 
-      ##Add CI for other model
-      ##Add - how to do default for other model
-      parametersDefault[p] = parameters[p]
+    ##Add CI for other model
+    ##Add - how to do default for other model
+    parametersDefault[p] = parameters[p]
+
+    #check if CI will be returned
+    if(hasArg(paramCI)){
+      for (p in length(paramCI)){
+        colnum <- length(paramRecov)
+        paramRecov[colnum + 1] <- NA
+        paramRecov[colnum + 2] <- NA
+        names(paramRecov)[colnum + 1:colnum + 2] <- c(paste0("u95CI_param", p), paste0("l95CI_param", p))
+      }
     }
   }
 
@@ -186,18 +206,18 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
   # not doing 'bitesSampled' or 'none' because in that there is no adjustment just
   # repeated sim of nbite samples
   if (isTRUE(keepBites) & simVar != "bitesSampled" & simVar != "none"){
-      if (hasArg(bitesize_sd) & isTRUE(procNoise)) {
-        simDat_init <- simBites(nBites = nBites, Emax = Emax, parameters = c(parameters),
-          time_fn = substitute(time_fn), procNoise = procNoise, bitesize_sd = bitesize_sd)
-        simDat_init = c(rep(nBites, length(simDat_init)), simDat_init)
-        simDat_init <- cbind(rep(round(nBites), nrow(simDat_init)), simDat_init)
-        names(simDat_init)[1] <- 'nBites'
-      } else {
-        simDat_init <- simBites(nBites = nBites, Emax = Emax, parameters = c(parameters),
-          time_fn = substitute(time_fn), procNoise = procNoise)
-        simDat_init <- cbind(rep(round(nBites), nrow(simDat_init)), simDat_init)
-        names(simDat_init)[1] <- 'nBites'
-      }
+    if (hasArg(bitesize_sd) & isTRUE(procNoise)) {
+      simDat_init <- simBites(nBites = nBites, Emax = Emax, parameters = c(parameters),
+                              time_fn = substitute(time_fn), procNoise = procNoise, bitesize_sd = bitesize_sd)
+      simDat_init = c(rep(nBites, length(simDat_init)), simDat_init)
+      simDat_init <- cbind(rep(round(nBites), nrow(simDat_init)), simDat_init)
+      names(simDat_init)[1] <- 'nBites'
+    } else {
+      simDat_init <- simBites(nBites = nBites, Emax = Emax, parameters = c(parameters),
+                              time_fn = substitute(time_fn), procNoise = procNoise)
+      simDat_init <- cbind(rep(round(nBites), nrow(simDat_init)), simDat_init)
+      names(simDat_init)[1] <- 'nBites'
+    }
     simDat_init$simNum <- 0
   }
 
@@ -281,52 +301,64 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
 
     }
 
-    if(isTRUE(procNoise)){
-      if (hasArg(bitesize_sd)) {
-        if (simVar == "biteSize"){
-          paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                        timeVar = paste0("EstimatedTime_procNoise_sd", round(bitesize_sd, digits = 2)),
-                                        intakeVar = paste0("CumulativeGramsAdj_procNoise_sd", round(bitesize_sd,
-                                                                                                 digits = 2)), fit_fn = substitute(fit_fn), CI = CI)
-        } else {
-          paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                        timeVar = paste0("EstimatedTime_procNoise_sd", round(bitesize_sd, digits = 2)),
-                                        intakeVar = paste0("CumulativeGrams_procNoise_sd", round(bitesize_sd,
-                                                                                                 digits = 2)), fit_fn = substitute(fit_fn), CI = CI)
-        }
 
+    if (hasArg(bitesize_sd)) {
+
+      if(isTRUE(procNoise)){
+        param_timeVar = 'EstimatedTime_procNoise_sd'
+
+        if (simVar == "biteSize"){
+          param_intakeVar = 'CumulativeGramsAdj_procNoise_sd'
+        }
+        else {
+          param_intakeVar = 'CumulativeGrams_procNoise_sd'
+        }
       } else {
-        if (simVar == "biteSize"){
-          paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                        timeVar = "EstimatedTime_procNoise", intakeVar = "CumulativeGramsAdj_procNoise",
-                                        fit_fn = substitute(fit_fn), CI = CI)
-        } else {
-          paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                        timeVar = "EstimatedTime_procNoise", intakeVar = "CumulativeGrams_procNoise",
-                                        fit_fn = substitute(fit_fn), CI = CI)
-        }
+        param_timeVar = 'EstimatedTime_sd'
 
+        if (simVar == "biteSize"){
+          param_intakeVar = 'CumulativeGramsAdj_sd'
+        }
+        else {
+          param_intakeVar = 'CumulativeGrams_sd'
+        }
       }
-    } else {
+
       paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                    timeVar = "EstimatedTime_avgBite", intakeVar = "CumulativeGrams_avgBite",
-                                    fit_fn = substitute(fit_fn), CI = CI)
+                                    timeVar = paste0(param_timeVar, round(bitesize_sd, digits = 2)),
+                                    intakeVar = paste0(param_intakeVar, round(bitesize_sd,
+                                                                              digits = 2)), fit_fn = substitute(fit_fn))
+    } else {
+      if(isTRUE(procNoise)){
+        param_timeVar = 'EstimatedTime_procNoise'
+
+        if (simVar == "biteSize"){
+          param_intakeVar = 'CumulativeGramsAdj_procNoise'
+        }
+        else {
+          param_intakeVar = 'CumulativeGrams_procNoise'
+        }
+      } else {
+        param_timeVar = 'EstimatedTime'
+
+        if (simVar == "biteSize"){
+          param_intakeVar = 'CumulativeGramsAdj'
+        }
+        else {
+          param_intakeVar = 'CumulativeGrams'
+        }
+      }
+
+      paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
+                                    timeVar = param_timeVar, intakeVar = param_intakeVar,
+                                    fit_fn = substitute(fit_fn))
     }
 
-
+    #add recovered parameters to dataset
     if (fnFit_name == "FPM_Fit") {
       # add recovered parameters to data
       paramRecov$r[n] <- paramSim$r
       paramRecov$theta[n] <- paramSim$theta
-
-      if(isTRUE(CI)){
-        paramRecov$SE_theta[n] <- paramSim$SE_theta
-        paramRecov$SE_r[n] <- paramSim$SE_r
-        paramRecov$u95CI_theta[n] <- paramSim$u95CI_theta
-        paramRecov$u95CI_r[n] <- paramSim$u95CI_r
-        paramRecov$l95CI_theta[n] <- paramSim$l95CI_theta
-        paramRecov$l95CI_r[n] <- paramSim$l95CI_r
-      }
 
     } else if (fnFit_name == "Kissileff_Fit") {
       # add recovered parameters to data
@@ -334,30 +366,57 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
       paramRecov$linear[n] <- paramSim$linear
       paramRecov$quad[n] <- paramSim$quad
 
-      if(isTRUE(CI)){
-        paramRecov$SE_int[n] <- paramSim$SE_int
-        paramRecov$SE_linear[n] <- paramSim$SE_linear
-        paramRecov$SE_quad[n] <- paramSim$SE_quad
-        paramRecov$u95CI_int[n] <- paramSim$u95CI_int
-        paramRecov$u95CI_linear[n] <- paramSim$u95CI_linear
-        paramRecov$u95CI_quad[n] <- paramSim$u95CI_quad
-        paramRecov$l95CI_int[n] <- paramSim$l95CI_int
-        paramRecov$l95CI_linear[n] <- paramSim$l95CI_linear
-        paramRecov$l95CI_quad[n] <- paramSim$l95CI_quad
-      }
-
     } else {
       for (p in 1:length(parameters)) {
         colnum <- length(paramRecov)
         if (n == 1) {
           paramRecov[colnum + 1] <- NA
           names(paramRecov)[colnum + 1] <- paste0("parameter",
-            p)
+                                                  p)
         }
         paramRecov[colnum + 1, n] <- paramSim[p]
       }
+    }
 
-      ##Add - need to figure out CI true
+    #Get CI bounds if paramCI was used as an argument
+    if(hasArg(paramCI)){
+      paramCI_list = LRT_CIbounds(simDat, parameters = c(paramSim$theta, paramSim$r), min_n2ll = paramSim$value, paramCI = paramCI, fit_fn = substitute(fit_fn), timeVar = param_timeVar, intakeVar = param_intakeVar, bound)
+
+      #add to dataset
+      if (fnFit_name == "FPM_Fit") {
+        if (hasName(paramRecov, 'u95CI_theta')){
+          paramRecov$u95CI_theta[n] <- paramCI_list$parCI_upper[1]
+        }
+        if (hasName(paramRecov, 'l95CI_theta')){
+          paramRecov$l95CI_theta[n] <- paramCI_list$parCI_lower[1]
+        }
+        if (hasName(paramRecov, 'u95CI_r')){
+          paramRecov$u95CI_r[n] <- paramCI_list$parCI_upper[2]
+        }
+        if (hasName(paramRecov, 'l95CI_r')){
+          paramRecov$l95CI_r[n] <-  paramCI_list$parCI_lower[2]
+        }
+      } else if (fnFit_name == "Kissileff_Fit") {
+        if (hasName(paramRecov, 'u95CI_int')){
+          paramRecov$u95CI_int[n] <- paramCI_list$parCI_upper[2]
+        }
+        if (hasName(paramRecov, 'l95CI_int')){
+          paramRecov$l95CI_int[n] <- paramCI_list$parCI_lower[1]
+        }
+        if (hasName(paramRecov, 'u95CI_linear')){
+          paramRecov$u95CI_linear[n] <- paramCI_list$parCI_upper[2]
+        }
+        if (hasName(paramRecov, 'l95CI_linear')){
+          paramRecov$l95CI_linear[n] <- paramCI_list$parCI_lower[2]
+        }
+        if (hasName(paramRecov, 'u95CI_quad')){
+          paramRecov$u95CI_quad[n] <- paramCI_list$parCI_upper[3]
+        }
+        if (hasName(paramRecov, 'l95CI_quad')){
+          paramRecov$l95CI_quad[n] <- paramCI_list$parCI_lower[3]
+        }
+
+      }
     }
 
     # if want to output bite data, add to simDat_init
@@ -434,7 +493,7 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
         }
 
         simDat_paramRecov_long <- rbind(simDat_paramRecov_long,
-          simDat_paramRec)
+                                        simDat_paramRec)
       }
     }
   }

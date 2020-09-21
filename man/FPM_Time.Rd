@@ -4,7 +4,7 @@
 \alias{FPM_Time}
 \title{FPM_Time: Estimates the elapse time using the First Principles Model}
 \usage{
-FPM_Time(intake, parameters, Emax)
+FPM_Time(intake, parameters, Emax, message)
 }
 \arguments{
 \item{intake}{The cumulative intake since meal start.}
@@ -12,6 +12,8 @@ FPM_Time(intake, parameters, Emax)
 \item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
+
+\item{message}{(optional) Return warning message about not being able to fit a time point. Default is TRUE}
 }
 \value{
 Numeric value indicating the time since start of meal for given cumulative.

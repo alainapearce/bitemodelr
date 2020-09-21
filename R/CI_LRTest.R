@@ -39,7 +39,7 @@ CI_LRTest <- function(data, par, n2ll_fn = FPM_2nll, timeVar, intakeVar, min_n2l
     } else if (fn_name == "Kissileff_n2ll") {
       par <- c(10, 1, -1)
     } else {
-      stop("If using a personal function to estimate bite timing, inital parameters are required")
+      stop('Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.')
     }
   }
 
@@ -58,34 +58,69 @@ CI_LRTest <- function(data, par, n2ll_fn = FPM_2nll, timeVar, intakeVar, min_n2l
     stop("string entered for timeVar does not match any variables in data")
   }
 
+  #calculate log-likelihood ratio
+  target = min_n2ll + 3.84
+
   #run fit function
   if (fn_name == 'FPM_n2ll'){
-    if (class(n2ll_fn) == 'name') {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
+    ##re-paramaterized r
+    if (par[2] >= 0){
+      if (class(n2ll_fn) == 'name') {
+        fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
+      } else {
+        fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+      }
+
+      #check if e^r is zero
+      if (round(par[2], 3) == 0){
+        par[2] = par[2]*0.001
+      }
+
+      #back transform exp(r) to r
+      par[2] = log(par[2])
+
+      #get lrt
+      if (bound == 'lower'){
+        lrt <- (target-fit)^2 + par[paramIndex]
+      } else if (bound == 'upper'){
+        lrt <- (target-fit)^2 - par[paramIndex]
+      }
+
     } else {
-      fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+      lrt = NA
     }
+
+    ##origina r fit
+      # if (class(n2ll_fn) == 'name') {
+      #   fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
+      # } else {
+      #   fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+      # }
+      #
+      #
+      # #get lrt
+      # if (bound == 'lower'){
+      #   lrt <- (target-fit)^2 + par[paramIndex]
+      # } else if (bound == 'upper'){
+      #   lrt <- (target-fit)^2 - par[paramIndex]
+      # }
+
   } else if (fn_name == 'Kissileff_n2ll'){
     if (class(n2ll_fn) == 'name') {
       fit <- do.call(fn_name, list(data, par, timeVar, intakeVar))
     } else {
       fit <- n2ll_fn(data, par, timeVar, intakeVar)
     }
-  } else {
-    if (class(n2ll_fn) == 'name') {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
-    } else {
-      fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+
+    #get lrt
+    if (bound == 'lower'){
+      lrt <- (target-fit)^2 + par[paramIndex]
+    } else if (bound == 'upper'){
+      lrt <- (target-fit)^2 - par[paramIndex]
     }
-  }
 
-  #calculate log-likelihood ratio
-  target = min_n2ll + 3.84
-
-  if (bound == 'lower'){
-    lrt <- (target-fit)^2 + par[paramIndex]
-  } else if (bound == 'upper'){
-    lrt <- (target-fit)^2 - par[paramIndex]
+  } else {
+    stop('Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.')
   }
 
   return(lrt)

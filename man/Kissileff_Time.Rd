@@ -4,12 +4,14 @@
 \alias{Kissileff_Time}
 \title{Kissileff_Time: Estimates elapsed time using Kisslieff's quadratic model}
 \usage{
-Kissileff_Time(intake, parameters)
+Kissileff_Time(intake, parameters, message = TRUE)
 }
 \arguments{
 \item{intake}{The cumulative intake since meal start.}
 
 \item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
+
+\item{message}{(optional) Return warning message about not being able to fit a time point. Default is TRUE}
 }
 \value{
 Numeric value indicating the time since start of meal for given cumulative.

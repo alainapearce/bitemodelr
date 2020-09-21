@@ -5,7 +5,7 @@
 #'
 #' @param intake The cumulative intake since meal start.
 #' @inheritParams Kissileff_Intake
-#'
+#' @param message (optional) Return warning message about not being able to fit a time point. Default is TRUE
 #' @return Numeric value indicating the time since start of meal for given cumulative.
 #'
 #' @examples
@@ -27,7 +27,7 @@
 #' Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
 #'
 #' @export
-Kissileff_Time <- function(intake, parameters) {
+Kissileff_Time <- function(intake, parameters, message = TRUE) {
 
   sqrt_term = parameters[2]^2 - 4 * (parameters[1] - intake)  * parameters[3]
 
@@ -49,6 +49,8 @@ Kissileff_Time <- function(intake, parameters) {
 
 
   } else {
-    message("Unable to solve for time for the current parameters and max intake: linear^2 - 4*(intercept - intake)*quadratic is negative and cannot be square rooted")
+    if(isTRUE(message)){
+      message("Unable to solve for time for the current parameters and max intake: linear^2 - 4*(intercept - intake)*quadratic is negative and cannot be square rooted")
+    }
   }
 }

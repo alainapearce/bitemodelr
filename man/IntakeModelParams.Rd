@@ -26,8 +26,7 @@ needs 2 starting parameters (default is c(10, .10)).}
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
-FPM_Fit; default is FPM_Fit. Can also enter an original fucntion to estimate time, just be sure to include nBites,
-Emax, and parameters as input arguments to your function and to specify the required parameters.}
+FPM_Fit; default is FPM_Fit.}
 
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of

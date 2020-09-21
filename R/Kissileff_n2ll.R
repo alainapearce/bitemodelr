@@ -24,15 +24,25 @@
 #'
 #' @export
 Kissileff_n2ll <- function(data, par, timeVar, intakeVar) {
+
+  #estimate intake from equation
   data$Estimated_intake <- sapply(data[, timeVar], Kissileff_Intake,
     parameters = c(par))
+
+  #get variabel name
   estimated_name <- paste0("Estimated_", intakeVar)
   names(data)[length(names(data))] <- estimated_name
+
+  #calculate residual/error between actual and extimated intake
   data$resid <- data[, intakeVar] - data[, estimated_name]
+
+  #calculate sigma
   sigma <- sum(data$resid^2)/length(data$resid)
 
   # ll equation
   ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 *
       sigma^2)) * (sum(data$resid^2))
+
+  #return -2ll
   return(-2 * ll)
 }

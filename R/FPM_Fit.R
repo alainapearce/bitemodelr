@@ -24,9 +24,23 @@
 #' @export
 FPM_Fit <- function(data, parameters, timeVar, intakeVar, Emax) {
 
-  fit <- stats::optim(par = c(parameters), fn = FPM_n2ll, data = data, Emax = Emax,
+  ##re-parameterized r fit
+  #exponentiate r to get better parameterization steps
+  fit <- stats::optim(par = c(parameters[1], exp(parameters[2])), fn = FPM_n2ll, data = data, Emax = Emax,
     time = timeVar, intake = intakeVar)
 
-  return(fit)
+  #check if e^r is zero
+  if (round(fit$par[2], 3) == 0){
+    fit$par[2] = fit$par[2]*0.001
+  }
 
+  #transform r back to orignial scale
+  fit$par[2] = log(fit$par[2])
+
+  # ##origina r fit
+  # fit <- stats::optim(par = c(parameters[1], parameters[2]), fn = FPM_n2ll, data = data, Emax = Emax,
+  #                     time = timeVar, intake = intakeVar)
+
+
+  return(fit)
 }

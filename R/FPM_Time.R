@@ -6,7 +6,7 @@
 #' @inheritParams Kissileff_Time
 #' @inheritParams FPM_Intake
 #' @inheritParams FPM_Intake
-#'
+#' @inheritParams Kissileff_Time
 #' @return Numeric value indicating the time since start of meal for given cumulative.
 #'
 #' @examples
@@ -29,7 +29,7 @@
 #' and \code{\link{Kissileff_Time}}.
 #'
 #' @export
-FPM_Time <- function(intake, parameters, Emax) {
+FPM_Time <- function(intake, parameters, Emax, message) {
   # parameters = c(theta, r)
 
   # since it is a logistic function, theoretically intake will never be
@@ -42,7 +42,9 @@ FPM_Time <- function(intake, parameters, Emax) {
   rlimit = -1*parameters[1]/intake
 
   if (parameters[2] < rlimit){
-    stop('r is less than -theta/intake. Check parameters and data are correct.')
+    if (isTRUE(message)){
+      stop('Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.')
+    }
   }
 
   (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake * parameters[2])/parameters[1]) +

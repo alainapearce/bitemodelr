@@ -4,7 +4,7 @@
 \alias{FPM_Time}
 \title{FPM_Time: Estimates the elapse time using the First Principles Model}
 \usage{
-FPM_Time(intake, parameters, Emax, message)
+FPM_Time(intake, parameters, Emax, message = TRUE)
 }
 \arguments{
 \item{intake}{The cumulative intake since meal start.}

@@ -10,7 +10,7 @@ IntakeModelParams(
   timeVar,
   intakeVar,
   fit_fn = FPM_Fit,
-  idVar
+  idVar = NA
 )
 }
 \arguments{
@@ -18,7 +18,7 @@ IntakeModelParams(
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{parameters}{(optional) A set of numeric parameters to serve as the starting parameters for the optimization.
-Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c()) and FPM_Fit
+Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Fit
 needs 2 starting parameters (default is c(10, .10)).}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
@@ -36,10 +36,10 @@ fitted values will be returned.}
 NEED TO EDIT
 }
 \description{
-This function provides fited model parameters for the cumulative
-intake curve for each participan/unique ID in a data set. The parameters
+This function provides fitted model parameters for the cumulative
+intake curve for each participant/unique ID in a data set. The parameters
 are either fit with Kissileff's quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
-or the First Principles Model (Thomas et al., 2017). The models are fit using optims {stats}.
+or the First Principles Model (Thomas et al., 2017). The models are fit using optim {stats}.
 }
 \examples{
 

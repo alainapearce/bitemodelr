@@ -29,8 +29,7 @@
 #' and \code{\link{Kissileff_Time}}.
 #'
 #' @export
-FPM_Time <- function(intake, parameters, Emax, message)
-{
+FPM_Time <- function(intake, parameters, Emax, message = TRUE) {
   # parameters = c(theta, r)
 
   # since it is a logistic function, theoretically intake will never be

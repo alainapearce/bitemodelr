@@ -36,7 +36,9 @@ simBites <- function(nBites, Emax, parameters, time_fn = FPM_Time, id = NA,
   # get name of function that was passed
   if (class(time_fn) == "name") {
     fn_name <- as.character(time_fn)
-  } else {
+  } else if (class(time_fn) == "character") {
+    fn_name <- time_fn
+  }  else {
     fn_name <- as.character(substitute(time_fn))
   }
 

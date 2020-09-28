@@ -37,7 +37,10 @@
 #'
 #' @export
 
-ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn = FPM_Fit, nSims = 1, procNoise = TRUE, measureNoise = FALSE, biteSize_sd = NA, biteTime_sd = 0.35, biteSize_cat = "mean", keepBites = FALSE, intake_fn = FPM_Intake, paramCI, bound = 'both') {
+ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time,
+                          fit_fn = FPM_Fit, nSims = 1, procNoise = TRUE, measureNoise = FALSE,
+                          biteSize_sd = NA, biteTime_sd = 0.25, biteSize_cat = "mean", keepBites = FALSE,
+                          intake_fn = FPM_Intake, paramCI, bound = "both") {
 
   # get entered of default function names as characters
   fnTime_name <- as.character(substitute(time_fn))
@@ -51,17 +54,21 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
     } else if (fnTime_name == "Kissileff_Time") {
       parameters <- c(10, 1, -1)
     } else {
-      stop('Entered time function not found. Must enter either FPM_Time or Kissileff_Time.')
+      stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
     }
   }
 
   # create empty data frame with a row per simulation
-  if (length(nBites) > 1){
+  if (length(nBites) > 1) {
     nrows = length(nBites) * nSims
-    paramRecov <- data.frame(model = rep(fnTime_name, nrows), nBites = rep(nBites,nSims), Emax = rep(Emax, nrows), Emax = rep(Emax, nrows), nSim = seq(1, by = 1, length.out = nrows))
+    paramRecov <- data.frame(model = rep(fnTime_name, nrows), nBites = rep(nBites,
+                                                                           nSims), Emax = rep(Emax, nrows), Emax = rep(Emax, nrows), nSim = seq(1,
+                                                                                                                                                by = 1, length.out = nrows))
   } else {
     nrows = nSims
-    paramRecov <- data.frame(model = rep(fnTime_name, nrows), nBites = rep(nBites,nrows), Emax = rep(Emax, nrows), Emax = rep(Emax, nrows), nSim = seq(1, by = 1, length.out = nrows))
+    paramRecov <- data.frame(model = rep(fnTime_name, nrows), nBites = rep(nBites,
+                                                                           nrows), Emax = rep(Emax, nrows), Emax = rep(Emax, nrows), nSim = seq(1,
+                                                                                                                                                by = 1, length.out = nrows))
   }
 
 
@@ -73,35 +80,35 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
     paramRecov$r <- NA
     paramRecov$min_n2ll <- NA
 
-    #set default parameters to use as starting values in recovery
+    # set default parameters to use as starting values in recovery
     parametersDefault = c(10, 0.1)
 
-    #check if CI will be returned
-    if(hasArg(paramCI)){
-      for (p in 1:length(paramCI)){
-        if (paramCI[p] == "theta" | paramCI[p] == "Theta"){
-          if (bound == 'both' | bound == 'upper'){
+    # check if CI will be returned
+    if (hasArg(paramCI)) {
+      for (p in 1:length(paramCI)) {
+        if (paramCI[p] == "theta" | paramCI[p] == "Theta") {
+          if (bound == "both" | bound == "upper") {
             paramRecov$u95CI_theta <- NA
             paramRecov$u95CI_theta_n2ll <- NA
             paramRecov$u95CI_theta_chisq <- NA
             paramRecov$u95CI_theta_chisq.p <- NA
           }
 
-          if (bound == 'both' | bound == 'lower') {
+          if (bound == "both" | bound == "lower") {
             paramRecov$l95CI_theta <- NA
             paramRecov$l95CI_theta_n2ll <- NA
             paramRecov$l95CI_theta_chisq <- NA
             paramRecov$l95CI_theta_chisq.p <- NA
           }
-        } else if (paramCI[p] == "r" | paramCI[p] == "R"){
-          if (bound == 'both' | bound == 'upper'){
+        } else if (paramCI[p] == "r" | paramCI[p] == "R") {
+          if (bound == "both" | bound == "upper") {
             paramRecov$u95CI_r <- NA
             paramRecov$u95CI_r_n2ll <- NA
             paramRecov$u95CI_r_chisq <- NA
             paramRecov$u95CI_r_chisq.p <- NA
           }
 
-          if (bound == 'both' | bound == 'lower') {
+          if (bound == "both" | bound == "lower") {
             paramRecov$l95CI_r <- NA
             paramRecov$l95CI_r_n2ll <- NA
             paramRecov$l95CI_r_chisq <- NA
@@ -119,52 +126,55 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
     paramRecov$quad <- NA
     paramRecov$min_n2ll <- NA
 
-    #set default parameters to use as starting values in recovery
+    # set default parameters to use as starting values in recovery
     parametersDefault = c(10, 1, -0.1)
 
-    #check if CI will be returned
-    if(hasArg(paramCI)){
+    # check if CI will be returned
+    if (hasArg(paramCI)) {
       paramRecov$min_n2ll = NA
-      for (p in 1:length(paramCI)){
-        if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] == "Intercept" | paramCI[p] == "intercept" ){
-          if (bound == 'both' | bound == 'upper'){
+      for (p in 1:length(paramCI)) {
+        if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] ==
+            "Intercept" | paramCI[p] == "intercept") {
+          if (bound == "both" | bound == "upper") {
             paramRecov$u95CI_int <- NA
             paramRecov$u95CI_int_n2ll <- NA
             paramRecov$u95CI_int_chisq <- NA
             paramRecov$u95CI_int_chisq.p <- NA
           }
 
-          if (bound == 'both' | bound == 'lower') {
+          if (bound == "both" | bound == "lower") {
             paramRecov$l95CI_int <- NA
             paramRecov$l95CI_int_n2ll <- NA
             paramRecov$l95CI_int_chisq <- NA
             paramRecov$l95CI_int_chisq.p <- NA
           }
 
-        } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" | paramCI[p] == "lin" | paramCI[p] == "Lin"){
-          if (bound == 'both' | bound == 'upper'){
+        } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" |
+                   paramCI[p] == "lin" | paramCI[p] == "Lin") {
+          if (bound == "both" | bound == "upper") {
             paramRecov$u95CI_linear <- NA
             paramRecov$u95CI_linear_n2ll <- NA
             paramRecov$u95CI_linear_chisq <- NA
             paramRecov$u95CI_linear_chisq.p <- NA
           }
 
-          if (bound == 'both' | bound == 'lower') {
+          if (bound == "both" | bound == "lower") {
             paramRecov$l95CI_linear <- NA
             paramRecov$l95CI_linear_n2ll <- NA
             paramRecov$l95CI_linear_chisq <- NA
             paramRecov$l95CI_linear_chisq.p <- NA
           }
 
-        } else if (paramCI[p] == "quad" | paramCI[p] == "Quad" | paramCI[p] == "quadratic" | paramCI[p] == "Quadratic" ){
-          if (bound == 'both' | bound == 'upper'){
+        } else if (paramCI[p] == "quad" | paramCI[p] == "Quad" |
+                   paramCI[p] == "quadratic" | paramCI[p] == "Quadratic") {
+          if (bound == "both" | bound == "upper") {
             paramRecov$u95CI_quad <- NA
             paramRecov$u95CI_quad_n2ll <- NA
             paramRecov$u95CI_quad_chisq <- NA
             paramRecov$u95CI_quad_chisq.p <- NA
           }
 
-          if (bound == 'both' | bound == 'lower') {
+          if (bound == "both" | bound == "lower") {
             paramRecov$l95CI_quad <- NA
             paramRecov$l95CI_quad_n2ll <- NA
             paramRecov$l95CI_quad_chisq <- NA
@@ -174,49 +184,57 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
       }
     }
   } else {
-    stop('Entered time function not found. Must enter either FPM_Time or Kissileff_Time.')
+    stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
   }
 
 
-  # #initial data for simBites
-  # init_dat <- data.frame(nBites = nBites, Emax = rep(Emax, nBites))
+  # #initial data for simBites init_dat <- data.frame(nBites = nBites,
+  # Emax = rep(Emax, nBites))
 
 
   # start looping
   for (b in 1:length(nBites)) {
-    for (l in 1:nSims){
+    for (l in 1:nSims) {
 
-      #row number
-      n = b+((l-1)*length(nBites))
+      # row number
+      n = b + ((l - 1) * length(nBites))
 
-      ## Get bite sizes and bite timing using entered parameters - if procNoise is TRUE, this noise is added in the simBites function
-      if (hasArg(biteSize_sd) & isTRUE(procNoise)) {
-        initDat <- simBites(nBites = nBites[b], Emax = Emax, parameters = c(parameters),
-                            time_fn = substitute(time_fn), procNoise = procNoise, biteSize_sd = biteSize_sd)
+      ## Get bite sizes and bite timing using entered parameters - if
+      ## procNoise is TRUE, this noise is added in the simBites function
+      if (isTRUE(procNoise)){
+        if (!is.na(biteSize_sd)) {
+          initDat <- simBites(nBites = nBites[b], Emax = Emax, parameters = c(parameters),
+                              time_fn = substitute(time_fn), procNoise = procNoise,
+                              biteSize_sd = biteSize_sd)
+        } else {
+          initDat <- simBites(nBites = nBites[b], Emax = Emax, parameters = c(parameters),
+                              time_fn = substitute(time_fn), procNoise = procNoise)
+        }
       } else {
         initDat <- simBites(nBites = nBites[b], Emax = Emax, parameters = c(parameters),
                             time_fn = substitute(time_fn), procNoise = procNoise)
       }
 
-      #parameter recovery database
+      # parameter recovery database
       simDat = initDat
 
       ## Add measurement error
-      if (isTRUE(measureNoise)){
+      if (isTRUE(measureNoise)) {
 
-        #add measurement error
+        # add measurement error
         if (!is.na(biteSize_cat)) {
 
-          #default: use average bites size for parameter recovery
-          if (simValue == "mean"){
-            simDat$BiteGrams_recParam_AdjMean <- rep(Emax/nBites[b], nrow(simDat))
-            simDat$CumulativeGrams_recParam_AdjMean <- cumsum(simDat$BiteGrams_adj)
+          # default: use average bites size for parameter recovery
+          if (biteSize_cat == "mean") {
+            simDat$BiteGrams_recParam_AdjMean <- rep(Emax/nBites[b],
+                                                     nrow(simDat))
+            simDat$CumulativeGrams_recParam_AdjMean <- cumsum(simDat$BiteGrams_recParam_AdjMean)
           } else {
-            #use user-entered bite categories
+            # use user-entered bite categories
 
-            #get max bite size
-            if(isTRUE(procNoise)){
-              if(!is.na(biteSize_sd)){
+            # get max bite size
+            if (isTRUE(procNoise)) {
+              if (!is.na(biteSize_sd)) {
                 maxBiteSize <- max(simDat[, paste0("BiteGrams_procNoise_sd",
                                                    round(biteSize_sd, digits = 2))])
               } else {
@@ -227,121 +245,136 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
               maxBiteSize <- max(simDat[, "BiteGrams_avgBite"])
             }
 
-            #get full list of breaks
+            # get full list of breaks
             breaks_full <- c(0, biteSize_cat, maxBiteSize)
 
-            #generate category labels
+            # generate category labels
             nlabels <- length(breaks_full) - 1
             label_names <- rep(NA, nlabels)
 
-            for(l in 1:nlabels){
-              if(l < nlabels){
-                label_names[l] <- paste0("less", round(breaks_full[l+1], 2))
+            for (l in 1:nlabels) {
+              if (l < nlabels) {
+                label_names[l] <- paste0("less", round(breaks_full[l + 1], 2))
               } else {
                 label_names[l] <- paste0(round(breaks_full[l], 2), "plus")
               }
             }
 
-            #apply categories
-            if (isTRUE(procNoise)){
-              if(!is.na(biteSize_sd)){
+            # apply categories
+            if (isTRUE(procNoise)) {
+              if (!is.na(biteSize_sd)) {
 
-                #add new variable for bite size category
-                simDat$BiteSizeCat <- cut(simDat[, paste0("BiteGrams_procNoise_sd", round(biteSize_sd, digits = 2))], breaks = c(breaks_full), labels = c(label_names))
+                # add new variable for bite size category
+                simDat$BiteSizeCat <- cut(simDat[, paste0("BiteGrams_procNoise_sd",
+                                                          round(biteSize_sd, digits = 2))], breaks = c(breaks_full),
+                                          labels = c(label_names))
 
-                #set up the new bite size variable
+                # set up the new bite size variable
                 simDat$BiteGrams_recParam_AdjCat <- NA
 
-                #get average bite size per category
-                for(l in 1:nlabels){
-                  simDat[simDat$BiteSizeCat == label_names[l], ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat == label_names[l], paste0("BiteGrams_procNoise_sd", round(biteSize_sd, digits = 2))])
+                # get average bite size per category
+                for (l in 1:nlabels) {
+                  simDat[simDat$BiteSizeCat == label_names[l],
+                  ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat ==
+                                                               label_names[l], paste0("BiteGrams_procNoise_sd",
+                                                                                      round(biteSize_sd, digits = 2))])
                 }
 
               } else {
-                #add new variable for bite size category
-                simDat$BiteSizeCat <- cut(simDat[, "BiteGrams_procNoise"], breaks = breaks_full, labels = label_names)
+                # add new variable for bite size category
+                simDat$BiteSizeCat <- cut(simDat[, "BiteGrams_procNoise"],
+                                          breaks = breaks_full, labels = label_names)
 
-                #set up the new bite size variable
+                # set up the new bite size variable
                 simDat$BiteGrams_recParam_AdjCat <- NA
 
-                #get average bite size per category
-                for(l in 1:nlabels){
-                  simDat[simDat$BiteSizeCat == label_names[l], ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat == label_names[l], "BiteGrams_procNoise"])
+                # get average bite size per category
+                for (l in 1:nlabels) {
+                  simDat[simDat$BiteSizeCat == label_names[l],
+                  ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat ==
+                                                               label_names[l], "BiteGrams_procNoise"])
                 }
               }
 
             } else {
-              simDat$BiteSizeCat <- cut(simDat[, "BiteGrams_avgBite"], breaks = breaks_full, labels = label_names)
+              simDat$BiteSizeCat <- cut(simDat[, "BiteGrams_avgBite"],
+                                        breaks = breaks_full, labels = label_names)
 
-              #set up the new bite size variable
+              # set up the new bite size variable
               simDat$BiteGrams_recParam_AdjCat <- NA
 
-              #get average bite size per category
-              for(l in 1:nlabels){
-                simDat[simDat$BiteSizeCat == label_names[l], ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat == label_names[l], "BiteGrams_avgBite"])
+              # get average bite size per category
+              for (l in 1:nlabels) {
+                simDat[simDat$BiteSizeCat == label_names[l], ]$BiteGrams_recParam_AdjCat <- mean(simDat[simDat$BiteSizeCat ==
+                                                                                                          label_names[l], "BiteGrams_avgBite"])
               }
             }
 
-            #new cumulative intake
+            # new cumulative intake
             simDat$Cumulative_recParam_AdjCat <- cumsum(simDat$BiteGrams_recParam_AdjCat)
 
           }
         }
 
-        #add measurement error to bite timing
+        # add measurement error to bite timing
         if (!is.na(biteTime_sd)) {
-          #get vector of values to adjust bite timing
+          # get vector of values to adjust bite timing
           biteTime_adj = rnorm(nBites[b], mean = 0, sd = biteTime_sd)
 
-          #add values to estimated bite timing
-          if(isTRUE(procNoise)){
-            if(!is.na(biteSize_sd)){
+          # add values to estimated bite timing
+          if (isTRUE(procNoise)) {
+            if (!is.na(biteSize_sd)) {
               simDat$EstimatedTime_recParam_Adj <- simDat[, paste0("EstimatedTime_procNoise_sd",
                                                                    round(biteSize_sd, digits = 2))] + biteTime_adj
             } else {
-              simDat$EstimatedTimeAdj_procNoise <- simDat[, "EstimatedTime_procNoise"] + biteTime_adj
+              simDat$EstimatedTimeAdj_procNoise <- simDat[, "EstimatedTime_procNoise"] +
+                biteTime_adj
             }
           } else {
-            simDat$EstimatedTimeAdj <- simDat[, "EstimatedTime_avgBite"] + biteTime_adj
+            simDat$EstimatedTimeAdj <- simDat[, "EstimatedTime_avgBite"] +
+              biteTime_adj
           }
 
-          #add sd to name
-          names(simDat)[end] = paste0('EstimatedTime_recParam_Adjsd', round(biteTime_sd, 2))
+          # add sd to name
+          names(simDat)[ncol(simDat)] = paste0("EstimatedTime_recParam_Adjsd",
+                                      round(biteTime_sd, 2))
         }
       }
 
-      #get variable names based on process and measurement error
-      if (isTURE(measureNoise)){
-        if (!is.na(biteSize_cat)){
-          if (biteSize_cat == 'mean'){
-            param_intakeVar = 'CumulativeGrams_recParam_AdjMean'
+      # get variable names based on process and measurement error
+      if (isTRUE(measureNoise)) {
+        if (!is.na(biteSize_cat)) {
+          if (biteSize_cat == "mean") {
+            param_intakeVar = "CumulativeGrams_recParam_AdjMean"
           } else {
-            param_intakeVar = 'CumulativeGrams_recParam_AdjCat'
+            param_intakeVar = "CumulativeGrams_recParam_AdjCat"
           }
         }
 
-        if (!is.na(biteTime_sd)){
-          param_timeVar = paste0('EstimatedTime_recParam_Adjsd', round(biteTime_sd, 2))
+        if (!is.na(biteTime_sd)) {
+          param_timeVar = paste0("EstimatedTime_recParam_Adjsd",
+                                 round(biteTime_sd, 2))
         }
       } else if (isTRUE(procNoise)) {
-        if(!is.na(biteSize_sd)){
-          param_timeVar = paste0("EstimatedTime_procNoise_sd", round(biteSize_sd, digits = 2))
-          param_intakeVar = paste0("CumulativeGrams_procNoise_sd", round(biteSize_sd, digits = 2))
+        if (!is.na(biteSize_sd)) {
+          param_timeVar = paste0("EstimatedTime_procNoise_sd",
+                                 round(biteSize_sd, digits = 2))
+          param_intakeVar = paste0("CumulativeGrams_procNoise_sd",
+                                   round(biteSize_sd, digits = 2))
         } else {
           param_timeVar = "EstimatedTime_procNoise"
           param_intakeVar = "CumulativeGrams_procNoise"
         }
-      }  else {
+      } else {
         param_timeVar = "EstimatedTime_avgBite"
         param_intakeVar = "CumulativeGrams_avgBite"
       }
 
-      #recover parameters
+      # recover parameters
       paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                    timeVar = param_timeVar,
-                                    intakeVar = param_intakeVar, fit_fn = substitute(fit_fn))
+                                    timeVar = param_timeVar, intakeVar = param_intakeVar, fit_fn = substitute(fit_fn))
 
-      #add recovered parameters to dataset
+      # add recovered parameters to dataset
       if (fnFit_name == "FPM_Fit") {
         # add recovered parameters to data
         paramRecov$r[n] <- paramSim$r
@@ -355,81 +388,87 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
         paramRecov$quad[n] <- paramSim$quad
         paramRecov$min_n2ll[n] <- paramSim$value
       } else {
-        stop('Entered time function not found. Must enter either FPM_Time or Kissileff_Time.')
+        stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
       }
 
-      #Get CI bounds if paramCI was used as an argument
-      if(hasArg(paramCI)){
+      # Get CI bounds if paramCI was used as an argument
+      if (hasArg(paramCI)) {
         if (fnFit_name == "FPM_Fit") {
-          paramCI_list = LRT_CIbounds(simDat, parameters = c(paramSim$theta, paramSim$r), min_n2ll = paramSim$value, paramCI = paramCI, fit_fn = substitute(fit_fn), timeVar = param_timeVar, intakeVar = param_intakeVar, bound = bound)
+          paramCI_list = LRT_CIbounds(simDat, parameters = c(paramSim$theta,
+                                                             paramSim$r), min_n2ll = paramSim$value, paramCI = paramCI,
+                                      fit_fn = substitute(fit_fn), timeVar = param_timeVar,
+                                      intakeVar = param_intakeVar, bound = bound)
 
         } else if (fnFit_name == "Kissileff_Fit") {
-          paramCI_list = LRT_CIbounds(simDat, parameters = c(paramSim$int, paramSim$linear, paramSim$quad), min_n2ll = paramSim$value, paramCI = paramCI, fit_fn = substitute(fit_fn), timeVar = param_timeVar, intakeVar = param_intakeVar, bound = bound)
+          paramCI_list = LRT_CIbounds(simDat, parameters = c(paramSim$int,
+                                                             paramSim$linear, paramSim$quad), min_n2ll = paramSim$value,
+                                      paramCI = paramCI, fit_fn = substitute(fit_fn), timeVar = param_timeVar,
+                                      intakeVar = param_intakeVar, bound = bound)
 
         } else {
-          stop('Entered time function not found. Must enter either FPM_Time or Kissileff_Time.')
+          stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
         }
 
 
-        #add to dataset
+        # add to dataset
         if (fnFit_name == "FPM_Fit") {
-          if (hasName(paramRecov, 'u95CI_theta')){
+          if (hasName(paramRecov, "u95CI_theta")) {
             paramRecov$u95CI_theta[n] <- paramCI_list$parCI_upper[1]
             paramRecov$u95CI_theta_n2ll[n] <- paramCI_list$parCI_upper_n2ll[1]
             paramRecov$u95CI_theta_chisq[n] <- paramCI_list$parCI_upper_chisq[1]
             paramRecov$u95CI_theta_chisq.p[n] <- paramCI_list$parCI_upper_chisq.p[1]
           }
-          if (hasName(paramRecov, 'l95CI_theta')){
+          if (hasName(paramRecov, "l95CI_theta")) {
             paramRecov$l95CI_theta[n] <- paramCI_list$parCI_lower[1]
             paramRecov$l95CI_theta_n2ll[n] <- paramCI_list$parCI_lower_n2ll[1]
             paramRecov$l95CI_theta_chisq[n] <- paramCI_list$parCI_lower_chisq[1]
             paramRecov$l95CI_theta_chisq.p[n] <- paramCI_list$parCI_lower_chisq.p[1]
           }
 
-          if (hasName(paramRecov, 'u95CI_r')){
+          if (hasName(paramRecov, "u95CI_r")) {
             paramRecov$u95CI_r[n] <- paramCI_list$parCI_upper[2]
             paramRecov$u95CI_r_n2ll[n] <- paramCI_list$parCI_upper_n2ll[2]
             paramRecov$u95CI_r_chisq[n] <- paramCI_list$parCI_upper_chisq[2]
             paramRecov$u95CI_r_chisq.p[n] <- paramCI_list$parCI_upper_chisq.p[2]
           }
-          if (hasName(paramRecov, 'l95CI_r')){
-            paramRecov$l95CI_r[n] <-  paramCI_list$parCI_lower[2]
+          if (hasName(paramRecov, "l95CI_r")) {
+            paramRecov$l95CI_r[n] <- paramCI_list$parCI_lower[2]
             paramRecov$l95CI_r_n2ll[n] <- paramCI_list$parCI_lower_n2ll[2]
             paramRecov$l95CI_r_chisq[n] <- paramCI_list$parCI_lower_chisq[2]
             paramRecov$l95CI_r_chisq.p[n] <- paramCI_list$parCI_lower_chisq.p[2]
           }
         } else if (fnFit_name == "Kissileff_Fit") {
-          if (hasName(paramRecov, 'u95CI_int')){
+          if (hasName(paramRecov, "u95CI_int")) {
             paramRecov$u95CI_int[n] <- paramCI_list$parCI_upper[1]
             paramRecov$u95CI_int_n2ll[n] <- paramCI_list$parCI_upper_n2ll[1]
             paramRecov$u95CI_int_chisq[n] <- paramCI_list$parCI_upper_chisq[1]
             paramRecov$u95CI_int_chisq.p[n] <- paramCI_list$parCI_upper_chisq.p[1]
           }
-          if (hasName(paramRecov, 'l95CI_int')){
+          if (hasName(paramRecov, "l95CI_int")) {
             paramRecov$l95CI_int[n] <- paramCI_list$parCI_lower[1]
             paramRecov$l95CI_int_n2ll[n] <- paramCI_list$parCI_lower_n2ll[1]
             paramRecov$l95CI_int_chisq[n] <- paramCI_list$parCI_lower_chisq[1]
             paramRecov$l95CI_int_chisq.p[n] <- paramCI_list$parCI_lower_chisq.p[1]
           }
-          if (hasName(paramRecov, 'u95CI_linear')){
+          if (hasName(paramRecov, "u95CI_linear")) {
             paramRecov$u95CI_linear[n] <- paramCI_list$parCI_upper[2]
             paramRecov$u95CI_linear_n2ll[n] <- paramCI_list$parCI_upper_n2ll[2]
             paramRecov$u95CI_linear_chisq[n] <- paramCI_list$parCI_upper_chisq[2]
             paramRecov$u95CI_linear_chisq.p[n] <- paramCI_list$parCI_upper_chisq.p[2]
           }
-          if (hasName(paramRecov, 'l95CI_linear')){
+          if (hasName(paramRecov, "l95CI_linear")) {
             paramRecov$l95CI_linear[n] <- paramCI_list$parCI_lower[2]
             paramRecov$l95CI_linear_n2ll[n] <- paramCI_list$parCI_lower_n2ll[2]
             paramRecov$l95CI_linear_chisq[n] <- paramCI_list$parCI_lower_chisq[2]
             paramRecov$l95CI_linear_chisq.p[n] <- paramCI_list$parCI_lower_chisq.p[2]
           }
-          if (hasName(paramRecov, 'u95CI_quad')){
+          if (hasName(paramRecov, "u95CI_quad")) {
             paramRecov$u95CI_quad[n] <- paramCI_list$parCI_upper[3]
             paramRecov$u95CI_quad_n2ll[n] <- paramCI_list$parCI_upper_n2ll[3]
             paramRecov$u95CI_quad_chisq[n] <- paramCI_list$parCI_upper_chisq[3]
             paramRecov$u95CI_quD_chisq.p[n] <- paramCI_list$parCI_upper_chisq.p[3]
           }
-          if (hasName(paramRecov, 'l95CI_quad')){
+          if (hasName(paramRecov, "l95CI_quad")) {
             paramRecov$l95CI_quad[n] <- paramCI_list$parCI_lower[3]
             paramRecov$l95CI_quad_n2ll[n] <- paramCI_list$parCI_lower_n2ll[3]
             paramRecov$l95CI_quad_chisq[n] <- paramCI_list$parCI_lower_chisq[3]
@@ -438,26 +477,29 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
         }
       }
 
-      # if want to output bite data, add to simDat_init
-      # recover bite data from timing in simDat
+      # if want to output bite data, add to simDat_init recover bite data
+      # from timing in simDat
       if (isTRUE(keepBites)) {
 
         # get parameters
         if (fnTime_name == "FPM_Time") {
           param_fit <- c(paramRecov$theta[n], paramRecov$r[n])
         } else if (fnTime_name == "Kissileff_Time") {
-          param_fit <- c(paramRecov$int[n], paramRecov$linear[n], paramRecov$quad[n])
+          param_fit <- c(paramRecov$int[n], paramRecov$linear[n],
+                         paramRecov$quad[n])
         }
 
         # get long param list
-        param_fit_long <- rep(list(param_fit), nBites_sim)
+        param_fit_long <- rep(list(param_fit), nBites[b])
 
-        #get original bite timing because that is the measured item
-        if(isTRUE(procNoise)){
+        # get original bite timing because that is the measured item
+        if (isTRUE(procNoise)) {
 
           if (hasArg(biteSize_sd)) {
-            bite.time_fit <- simDat[, paste0("EstimatedTime_procNoise_sd", round(biteSize_sd, digits = 2))]
-            time_name = paste0("EstimatedTime_procNoise_sd", round(biteSize_sd, digits = 2))
+            bite.time_fit <- simDat[, paste0("EstimatedTime_procNoise_sd",
+                                             round(biteSize_sd, digits = 2))]
+            time_name = paste0("EstimatedTime_procNoise_sd", round(biteSize_sd,
+                                                                   digits = 2))
           } else {
             bite.time_fit <- simDat[, "EstimatedTime_procNoise"]
             time_name = "EstimatedTime_procNoise"
@@ -467,15 +509,19 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
           time_name = "EstimatedTime_avgBite"
         }
 
-        #get cumulative grams based on timing
-        grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit, parameters = param_fit_long, Emax = rep(init_dat$Emax, nBites_sim))
+        # get cumulative grams based on timing
+        grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit,
+                                       parameters = param_fit_long, Emax = rep(init_dat$Emax,
+                                                                               nBites_sim))
 
         # get bite size
-        grams.bite_fit = c(grams.cumulative_fit[1], diff(grams.cumulative_fit, difference = 1))
+        grams.bite_fit = c(grams.cumulative_fit[1], diff(grams.cumulative_fit,
+                                                         difference = 1))
 
-        #create dataset for recovered bites
-        simDat_paramRec <- data.frame(rep(nBites_sim, nBites_sim), seq(1, nBites_sim, 1), bite.time_fit,
-                                      grams.cumulative_fit, grams.bite_fit)
+        # create dataset for recovered bites
+        simDat_paramRec <- data.frame(rep(nBites_sim, nBites_sim),
+                                      seq(1, nBites_sim, 1), bite.time_fit, grams.cumulative_fit,
+                                      grams.bite_fit)
         names(simDat_paramRec) <- c("nBites", "Bite", paste0(time_name),
                                     "CumulativeGrams_recov", "BiteGrams_recov")
 
@@ -490,24 +536,25 @@ ParamRecovery <- function(nBites, Emax, parameters, time_fn = FPM_Time, fit_fn =
       }
     }
 
-    #add simulation output to list
+    # add simulation output to list
     if (isTRUE(keepBites)) {
-      sim_output <- list(biteDat_paramRecov = simDat_paramRecov_long, paramDat = paramRecov)
+      sim_output <- list(biteDat_paramRecov = simDat_paramRecov_long,
+                         paramDat = paramRecov)
     } else {
       sim_output <- paramRecov
     }
 
-    #if have more than nBites value
-    if(length(nBites) > 1){
+    # if have more than nBites value
+    if (length(nBites) > 1) {
       nBites_ouputList[b] = sim_output
     }
   }
 
-  #return output
-  if(length(nBites) > 1){
+  # return output
+  if (length(nBites) > 1) {
     return(nBites_ouputList)
   } else {
-    return(output)
+    return(sim_output)
   }
 }
 

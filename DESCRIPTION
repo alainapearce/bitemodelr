@@ -14,8 +14,7 @@ BugReports: https://github.com/alainapearce/BiteModel/issues
 Imports:
     stats,
     mc2d,
-    truncnorm,
-    HelpersMG
+    truncnorm
 Suggests: 
     testthat
 RoxygenNote: 7.1.1

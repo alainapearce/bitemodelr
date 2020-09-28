@@ -27,8 +27,14 @@
 #' Principles Model (Thomas et al., 2017), see \code{\link{FPM_Intake}} and \code{\link{FPM_Time}}.
 #'
 #' @export
-Kissileff_Intake <- function(time, parameters) {
+Kissileff_Intake <- function(time, parameters)
+{
+  #get time squared
   time2 <- time^2
+
+  #solve for intake at time t
   E_t <- parameters[1] + parameters[2] * time + parameters[3] * time2
+
+  #return intake valueß
   return(E_t)
 }

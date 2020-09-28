@@ -23,41 +23,57 @@
 #'
 #' @export
 FPM_n2ll <- function(data, par, timeVar, intakeVar, Emax) {
-  #re-parameterized r fit
-  if (par[2] >= 0){
-    #check if e^r is zero
-    if (round(par[2], 3) == 0){
-      par[2] = par[2]*0.001
-    }
+  # # re-parameterized r fit
+  # if (par[2] >= 0) {
+  #
+  #   if (round(par[2], 3) == 0) {
+  #     par[2] = par[2] + 0.001
+  #   }
+  #
+  #   # transform r back to original scale
+  #   #use e^r as entry into optim
+  #   r = log(par[2])
+  #
+  #
+  #   # get estimated intake
+  #   data$Estimated_intake <- sapply(data[, timeVar], FPM_Intake, parameters = c(par[1], r), Emax = Emax)
+  #
+  #   # re-name estimated intake variable
+  #   estimated_name <- paste0("Estimated_", intakeVar)
+  #   names(data)[length(names(data))] <- estimated_name
+  #
+  #   # calculate the error/residual between predicted and actual intake
+  #   data$resid <- data[, intakeVar] - data[, estimated_name]
+  #
+  #   # get sigma
+  #   sigma <- sum(data$resid^2)/length(data$resid)
+  #
+  #   # ll equation
+  #   ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 * sigma^2)) * (sum(data$resid^2))
+  #
+  #   # retun -2ll
+  #   return(-2 * ll)
+  # } else {
+  #   # if r is negative
+  #   return(NA)
+  # }
 
-    # adjust r value to be correct scale again (par[2] = exp(r))
-    r = log(par[2])
+  # get estimated intake
+  data$Estimated_intake <- sapply(data[, timeVar], FPM_Intake, parameters = c(par[1], par[2]), Emax = Emax)
 
-    data$Estimated_intake <- sapply(data[, timeVar], FPM_Intake, parameters = c(par[1], r),
-                                    Emax = Emax)
-    estimated_name <- paste0("Estimated_", intakeVar)
-    names(data)[length(names(data))] <- estimated_name
-    data$resid <- data[, intakeVar] - data[, estimated_name]
-    sigma <- sum(data$resid^2)/length(data$resid)
+  # re-name estimated intake variable
+  estimated_name <- paste0("Estimated_", intakeVar)
+  names(data)[length(names(data))] <- estimated_name
 
-    # ll equation
-    ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 *
-                                                                     sigma^2)) * (sum(data$resid^2))
-    return(-2 * ll)
-  } else {
-    return(NA)
-  }
+  # calculate the error/residual between predicted and actual intake
+  data$resid <- data[, intakeVar] - data[, estimated_name]
 
-  ##origina r fit
-    # data$Estimated_intake <- sapply(data[, timeVar], FPM_Intake, parameters = c(par[1], par[2]),
-    #                                 Emax = Emax)
-    # estimated_name <- paste0("Estimated_", intakeVar)
-    # names(data)[length(names(data))] <- estimated_name
-    # data$resid <- data[, intakeVar] - data[, estimated_name]
-    # sigma <- sum(data$resid^2)/length(data$resid)
-    #
-    # # ll equation
-    # ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 *
-    #                                                                  sigma^2)) * (sum(data$resid^2))
-    # return(-2 * ll)
+  # get sigma
+  sigma <- sum(data$resid^2)/length(data$resid)
+
+  # ll equation
+  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 * sigma^2)) * (sum(data$resid^2))
+
+  # retun -2ll
+  return(-2 * ll)
 }

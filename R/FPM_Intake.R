@@ -29,11 +29,12 @@
 #' and \code{\link{Kissileff_Time}}.
 #'
 #' @export
-FPM_Intake <- function(time, parameters, Emax) {
+FPM_Intake <- function(time, parameters, Emax)
+{
   # parameters = c(theta, r)
   E_t = (Emax * (exp((time * (Emax * parameters[2] + parameters[1]))/Emax) -
-      1))/((exp((time * (Emax * parameters[2] + parameters[1]))/Emax) +
-          (Emax * parameters[2])/parameters[1]))
+                   1))/((exp((time * (Emax * parameters[2] + parameters[1]))/Emax) +
+                           (Emax * parameters[2])/parameters[1]))
   return(E_t)
 }
 

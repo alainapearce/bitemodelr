@@ -29,7 +29,8 @@
 #' and \code{\link{Kissileff_Time}}.
 #'
 #' @export
-FPM_Time <- function(intake, parameters, Emax, message) {
+FPM_Time <- function(intake, parameters, Emax, message)
+{
   # parameters = c(theta, r)
 
   # since it is a logistic function, theoretically intake will never be
@@ -39,14 +40,20 @@ FPM_Time <- function(intake, parameters, Emax, message) {
     intake <- intake * 0.9999
   }
 
-  rlimit = -1*parameters[1]/intake
+  #calculate the r limit to determine if model is not sovlable
+  rlimit = -1 * parameters[1]/intake
 
-  if (parameters[2] < rlimit){
-    if (isTRUE(message)){
-      stop('Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.')
+  #check to see if r limit is exceeded
+  if (parameters[2] < rlimit) {
+    if (isTRUE(message))  {
+      stop("Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.")
     }
   }
 
-  (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake * parameters[2])/parameters[1]) +
-      1))/(Emax - intake))
+  #get time at which intake is achieved given the FPM equation
+  T_e = (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake *
+                                                                   parameters[2])/parameters[1]) + 1))/(Emax - intake))
+
+  #return time
+  return(T_e)
 }

@@ -17,7 +17,7 @@ Kissileff_n2ll(data, par, timeVar, intakeVar)
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 }
 \value{
-NEED TO EDIT
+The -2 log-likelihood for the model given the specified parameters.
 }
 \description{
 This function calculates the -2 loglikelihood for specific function for

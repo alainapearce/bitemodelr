@@ -19,7 +19,14 @@ FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
 \value{
-NEED TO EDIT
+A list with of values from optim fit
+\itemize{
+  \item{par}{fitted parameters theta (par[1]) and r (par[2])}
+  \item{ value}{-2 log-likelihood corresponding to the fitted parameters}
+  \item{counts}{the number of itterations to achieve fit}
+  \item{convergence}{code for convergence status; see optim}
+  \item{message}{a string with additional information, generally NULL}
+}
 }
 \description{
 This function fits theta and r for the First Principles Model of the

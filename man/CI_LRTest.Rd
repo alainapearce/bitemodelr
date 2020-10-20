@@ -7,7 +7,7 @@
 CI_LRTest(
   data,
   par,
-  n2ll_fn = FPM_2nll,
+  model_str = "FPM",
   timeVar,
   intakeVar,
   min_n2ll,
@@ -21,7 +21,8 @@ CI_LRTest(
 
 \item{par}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)}
 
-\item{n2ll_fn}{Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)}
+\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
+Default is 'FPM'.}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
@@ -32,9 +33,11 @@ CI_LRTest(
 \item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.}
 
 \item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
+
+\item{n2ll_fn}{Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)}
 }
 \value{
-NEED TO EDIT
+A numeric value for the likelihood ratio test
 }
 \description{
 This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
@@ -44,8 +47,4 @@ This function wrpas model fit functions called through optim {stats} to calcualt
 \dontrun{
 }
 
-}
-\seealso{
-To get fit your intake data using the Kisslieff's quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Fit}}.
 }

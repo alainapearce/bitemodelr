@@ -5,7 +5,7 @@
 #'
 #' @param time The time in minutes since meal start.
 #' @param parameters A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).
-#' @return Numeric value indicating the cumulative intake at specified time.
+#' @return Numeric value indicating the cumulative intake at specified time for the given set of parameters.
 #'
 #' @examples
 #' #Get cumulative intake at minute three:

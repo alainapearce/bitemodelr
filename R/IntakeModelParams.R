@@ -11,13 +11,14 @@
 #'  needs 2 starting parameters (default is c(10, .10)).
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
-#' @param fit_fn (optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
-#'  FPM_Fit; default is FPM_Fit.
+#' @inheritParams simBites
 #' @param idVar (optional) A string that is the name of the ID variable in data. Optional: only include if
 #' data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 #' fitted values will be returned.
 #'
-#' @return NEED TO EDIT
+#' @return A dataframe with fitted parameter values and all optim outputs
+#'
+#' @seealso For data details see \code{\link{FPM_Fit}} or \code{\link{Kissileff_Fit}}
 #'
 #' @examples
 #'
@@ -25,7 +26,7 @@
 #' }
 #'
 #' @export
-IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn = FPM_Fit,
+IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM',
                               idVar = NA) {
 
   # check input arguments
@@ -58,12 +59,17 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, fit_fn = FPM
     nID = 0
   }
 
-  #check class of entered fit_fn and get a character vector for fn_name
-  if (class(fit_fn) == "name") {
-    fn_name <- as.character(fit_fn)
+  # get name of function that was passed
+  if (model_str == 'FPM'){
+    fit_fn <- substitute(FPM_Fit)
+  } else if (model_str == 'Kissileff'){
+    fit_fn <- substitute(Kissileff_Fit)
   } else {
-    fn_name <- as.character(substitute(fit_fn))
+    stop("model_str does not match available models. Options are 'FPM' or 'Kissileff'")
   }
+
+  #get funciton names as characters
+  fn_name <- as.character(substitute(fit_fn))
 
   # check parameters
   if (!hasArg(parameters)) {

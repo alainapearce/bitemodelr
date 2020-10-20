@@ -12,7 +12,7 @@ Kissileff_Intake(time, parameters)
 \item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
 }
 \value{
-Numeric value indicating the cumulative intake at specified time.
+Numeric value indicating the cumulative intake at specified time for the given set of parameters.
 }
 \description{
 This function estimates cumulative intake at a given time since start of meal using

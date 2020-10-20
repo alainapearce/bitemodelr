@@ -10,7 +10,7 @@
 #' @param timeVar A string that is the name of the elapsed time variable in data
 #' @param intakeVar A string that is the name of the cumulative intake variable in data
 #'
-#' @return NEED TO EDIT
+#' @return The -2 log-likelihood for the model given the specified parameters.
 #'
 #' @examples
 #'

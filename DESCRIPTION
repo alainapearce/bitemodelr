@@ -14,7 +14,13 @@ BugReports: https://github.com/alainapearce/BiteModel/issues
 Imports:
     stats,
     mc2d,
-    truncnorm
+    truncnorm,
+    MASS,
+    faux
+Remotes:
+    debruine/faux
 Suggests: 
     testthat
 RoxygenNote: 7.1.1
+Depends: 
+    R (>= 2.10)

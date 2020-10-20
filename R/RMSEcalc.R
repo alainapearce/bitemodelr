@@ -6,19 +6,18 @@
 #' @param par Fitted parameters for which error is being tested
 #' @param timeVar The variable name for the 'True' bite timing in dataset
 #' @param intakeVar The variable name for the 'True' cumulative intake in dataset
-#' @inheritParams ParameterRecovery
+#' @inheritParams ParamRecovery
 #' @param error_outcome Which variable to use to calculate error - 'Time' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.
 #' @inheritParams FPM_Intake
 #'
-#' @return NEED TO EDIT
+#' @return A list with two values
+#'     \item{rmse}{the root mean squared error}
+#'     \item{nNAs}{number of timepoints where the value (time or intake) could not be estimated}
 #'
 #' @examples
 #'
 #' \dontrun{
 #' }
-#'
-#' @seealso To get fit your intake data using the Kisslieff's quadratic model
-#' (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Fit}}.
 #'
 #' @export
 #'
@@ -79,40 +78,68 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
   if (model_str == 'FPM') {
     parameters_long = rep(list(parameters), nrow(data))
     Emax_long = rep(Emax, nrow(data))
-
-    if(error_outcome == 'timing') {
-      #predicted values for bite timing
-      predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, Emax = Emax_long)
-
-      #RMSE
-      rmse <- RMSE(data[, timeVar], predValue)
-    } else if (error_outcome == 'intake'){
-      #predicted values for cumulative intake
-      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, Emax = Emax_long)
-
-      #RMSE
-      rmse <- RMSE(data[, intakeVar], predValue)
-    }
   } else if (model_str == 'Kissileff') {
     parameters_long = rep(list(parameters), nrow(data))
+  }
 
-    if(error_outcome == 'timing') {
-      #predicted values for bite timing
-      predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long)
-
-
-      #RMSE
-      rmse <- RMSE(data[, timeVar], predValue)
-    } else if (error_outcome == 'intake'){
-      #predicted values for cumulative intake
-      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long)
-
-
-      #RMSE
-      rmse <- RMSE(data[, intakeVar], predValue)
+  if(error_outcome == 'timing') {
+    #predicted values for bite timing
+    if (model_str == 'FPM') {
+      predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, Emax = Emax_long, message = FALSE)
+    } else if (model_str == 'Kissileff') {
+      predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, message = FALSE)
     }
+
+    #number of NAs
+    nNA <- sum(is.na(predValue))
+
+    #replace NA values
+    if(nNA > 0){
+      for (b in 1:length(predValue)){
+        if(is.na(predValue[b])){
+          #1st half timepoints vs 2nd half timepoints
+          if (b/length(predValue) < 0.5){
+            #set time to zero
+            predValue[b] <- 0
+          } else {
+            #replace with max predicted timing
+            predValue[b] <- max(data[, timeVar])
+          }
+        }
+      }
+    }
+
+    #RMSE
+    rmse <- RMSE(data[, timeVar], predValue)
+  } else if (error_outcome == 'intake'){
+    #predicted values for cumulative intake
+    if (model_str == 'FPM') {
+      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, Emax = Emax_long, message = FALSE)
+    } else if (model_str == 'Kissileff') {
+      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, message = FALSE)
+    }
+
+    #number of NAs
+    nNA <- sum(is.na(predValue))
+
+    #replace NA values
+    if(nNA > 0){
+      for (b in 1:length(predValue)){
+        if(is.na(predValue[b])){
+          #early timepoints -- less than half through
+          if (b/length(predValue) < 0.5){
+            predValue[b] <- 0
+          } else {
+            predValue[b] <- Emax
+          }
+        }
+      }
+    }
+    #RMSE
+    rmse <- RMSE(data[, intakeVar], predValue)
   }
 
   #return
-  return(rmse)
+  output = data.frame(rmse = rmse, nNA = nNA)
+  return(output)
 }

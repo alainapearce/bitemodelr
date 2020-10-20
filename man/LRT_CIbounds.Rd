@@ -9,7 +9,7 @@ LRT_CIbounds(
   parameters,
   min_n2ll,
   paramCI = c("theta", "r"),
-  fit_fn = FPM_Fit,
+  model_str = "FPM",
   timeVar,
   intakeVar,
   bound = "both"
@@ -23,19 +23,30 @@ LRT_CIbounds(
 
 \item{min_n2ll}{This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.}
 
-\item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
-FPM_Fit; default is FPM_Fit.}
+\item{paramCI}{list of strings with the names of the parameters to compute CIs for. Default assumes First Principles Model for both parameters: c('theta'. 'r')}
+
+\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
+Default is 'FPM'.}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
-
-\item{A}{list of strings with the names of the parameters to compute CIs for. Default assumes First Principles Model for both parameters: c('theta'. 'r')}
 }
 \value{
-NEED TO EDIT
+A list with all information for the specified confidence bounds, model, and parameters
+   \item{parFit_names}{A vector of strings with the names of parameters (from entry paramCI)}
+   \item{parFit_values}{A vector of parameter values (from entry parameters)}
+   \item{parFit_min_n2ll}{The -2 log-likelihood corresponding to the model fit for specificed parameters}
+   \item{parCI_upper}{A vector of numbers with the upper confidence bounds for each parameter entered in paramCI}
+   \item{parCI_lower}{A vector of numbers with the lower confidence bounds for each parameter entered in paramCI}
+   \item{parCI_upper_n2ll}{A vector of numbers with the -2 log-likihood for the model fit when the the upper confidence bounds was found for each parameter entered in paramCI}
+   \item{parCI_lower_n2ll}{A vector of numbers with the -2 log-likihood for the model fit when the the lower confidence bounds was found for each parameter entered in paramCI}
+   \item{parCI_upper_chisq}{A vector of numbers with the chi-square p-value for the upper confidence bounds for each parameter entered in paramCI}
+   \item{parCI_lower_chisq}{A vector of numbers with the chi-square value for the upper confidence bounds for each parameter entered in paramCI}
+   \item{parCI_lower_chisq.p}{A vector of numbers with the chi-square value for the lower confidence bounds for each parameter entered in paramCI}
+   \item{parCI_upper_chisq.p}{A vector of numbers with the chi-square p-value for the lower confidence bounds for each parameter entered in paramCI}
 }
 \description{
 This function Estimates the confidence bounds using log ratio tests using optim() to identify the bouandries for the upper and lower confidence bounds
@@ -45,8 +56,4 @@ This function Estimates the confidence bounds using log ratio tests using optim(
 \dontrun{
 }
 
-}
-\seealso{
-This uses the original fit functions for the models
-(Kissileff, 1982; Kissileff & Guss, 2001; Thomas et al., 2017), see \code{\link{Kissileff_Fit}}, see \code{\link{FPM_Fit}}.
 }

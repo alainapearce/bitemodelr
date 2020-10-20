@@ -16,7 +16,7 @@ FPM_Time(intake, parameters, Emax, message = TRUE)
 \item{message}{(optional) Return warning message about not being able to fit a time point. Default is TRUE}
 }
 \value{
-Numeric value indicating the time since start of meal for given cumulative.
+Numeric value indicating the time since start of meal for given cumulative intake and parameters.
 }
 \description{
 This function estimates the elapsed time since start of a meal for a given cumulative intake

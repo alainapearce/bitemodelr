@@ -20,7 +20,14 @@ Kissileff_Fit(data, parameters, timeVar, intakeVar)
 for parameters. Default is FALSE}
 }
 \value{
-NEED TO EDIT
+A list with of values from optim fit
+\itemize{
+  \item{par}{fitted parameters intercept (par[1]), linear (par[2]), quadratic (par[3])}
+  \item{ value}{-2 log-likelihood corresponding to the fitted parameters}
+  \item{counts}{the number of itterations to achieve fit}
+  \item{convergence}{code for convergence status; see optim}
+  \item{message}{a string with additional information, generally NULL}
+}
 }
 \description{
 This function fits the beta coefficients for Kissileff's quadratic model

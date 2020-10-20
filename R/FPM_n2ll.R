@@ -9,7 +9,7 @@
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams FPM_Intake
 #'
-#' @return NEED TO EDIT
+#' @return A numeric value representing the -2 log-likelihood for the FPM model with given
 #'
 #' @examples
 #'

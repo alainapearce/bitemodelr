@@ -17,20 +17,25 @@ RMSEcalc(
 \arguments{
 \item{data}{The dataset with 'True' bite timing and cumulative intake.}
 
-\item{parameters}{A set of numeric parameters for the First Principles Model in the format: c(theta, r)}
+\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).}
 
 \item{timeVar}{The variable name for the 'True' bite timing in dataset}
 
 \item{intakeVar}{The variable name for the 'True' cumulative intake in dataset}
 
+\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
+Default is 'FPM'.}
+
 \item{error_outcome}{Which variable to use to calculate error - 'Time' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.}
 
-\item{Emax}{The total cumulative intake at the end of the meal.}
+\item{Emax}{A numeric value that represents total cumulative intake.}
 
 \item{par}{Fitted parameters for which error is being tested}
 }
 \value{
-NEED TO EDIT
+A list with two values
+    \item{rmse}{the root mean squared error}
+    \item{nNAs}{number of timepoints where the value (time or intake) could not be estimated}
 }
 \description{
 This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
@@ -40,8 +45,4 @@ This function wrpas model fit functions called through optim {stats} to calcualt
 \dontrun{
 }
 
-}
-\seealso{
-To get fit your intake data using the Kisslieff's quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Fit}}.
 }

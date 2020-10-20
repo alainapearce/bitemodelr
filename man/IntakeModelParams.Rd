@@ -9,7 +9,7 @@ IntakeModelParams(
   parameters,
   timeVar,
   intakeVar,
-  fit_fn = FPM_Fit,
+  model_str = "FPM",
   idVar = NA
 )
 }
@@ -25,15 +25,15 @@ needs 2 starting parameters (default is c(10, .10)).}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
-\item{fit_fn}{(optional) A string that is the name of the fitting function you want to use: either Kissileff_Fit or
-FPM_Fit; default is FPM_Fit.}
+\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
+Default is 'FPM'.}
 
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 fitted values will be returned.}
 }
 \value{
-NEED TO EDIT
+A dataframe with fitted parameter values and all optim outputs
 }
 \description{
 This function provides fitted model parameters for the cumulative
@@ -46,4 +46,7 @@ or the First Principles Model (Thomas et al., 2017). The models are fit using op
 \dontrun{
 }
 
+}
+\seealso{
+For data details see \code{\link{FPM_Fit}} or \code{\link{Kissileff_Fit}}
 }

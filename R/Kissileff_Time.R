@@ -6,7 +6,7 @@
 #' @param intake The cumulative intake since meal start.
 #' @inheritParams Kissileff_Intake
 #' @param message (optional) Return warning message about not being able to fit a time point. Default is TRUE
-#' @return Numeric value indicating the time since start of meal for given cumulative.
+#' @return Numeric value indicating the time since start of meal for given cumulative intake and parameters.
 #'
 #' @examples
 #' #Get the time when 15 grams have been consumed:

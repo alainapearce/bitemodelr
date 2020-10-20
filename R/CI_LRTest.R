@@ -7,30 +7,32 @@
 #' @param n2ll_fn Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
-#' @inheritParams FPM_Intake
+#' @inheritParams simBites
 #' @inheritParams LRT_CIbounds
 #' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.
 #' @inheritParams LRT_CIbounds
-#' @return NEED TO EDIT
+#'
+#' @return A numeric value for the likelihood ratio test
 #'
 #' @examples
 #'
 #' \dontrun{
 #' }
 #'
-#' @seealso To get fit your intake data using the Kisslieff's quadratic model
-#' (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Kissileff_Fit}}.
-#'
 #' @export
 #'
-CI_LRTest <- function(data, par, n2ll_fn = FPM_2nll, timeVar, intakeVar,
+CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
                       min_n2ll, paramIndex, bound) {
 
   # check input arguments
-  if (class(n2ll_fn) == "name") {
+  if (model_str == "FPM") {
+    n2ll_fn <- substitute(FPM_n2ll)
     fn_name <- as.character(n2ll_fn)
-  } else {
+  } else if (model_str == "Kissileff") {
+    n2ll_fn <- substitute(Kissileff_n2ll)
     fn_name <- as.character(substitute(n2ll_fn))
+  } else {
+    stop("model_str does not match available models. Options are 'FPM' or 'Kissileff'")
   }
 
   # check parameters
@@ -64,32 +66,6 @@ CI_LRTest <- function(data, par, n2ll_fn = FPM_2nll, timeVar, intakeVar,
 
   # run fit function
   if (fn_name == "FPM_n2ll") {
-    ## re-paramaterized r (note, it is converted to original scale in FPM_n2ll)
-    # if (par[2] >= 0) {
-    #   if (class(n2ll_fn) == "name") {
-    #     fit <- do.call(fn_name, list(data, par, timeVar, intakeVar,
-    #                                  Emax = max(data[3])), neg = neg)
-    #   } else {
-    #     fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
-    #   }
-    #
-    #   #re-parameterize r to original scale
-    #   if (round(par[2], 3) == 0){
-    #     par[2] == par[2] + 0.001
-    #   }
-    #
-    #   par[2] = log(par[2])
-#
-#       # get lrt
-#       if (bound == "lower") {
-#         lrt <- (target - fit)^2 + par[paramIndex]
-#       } else if (bound == "upper") {
-#         lrt <- (target - fit)^2 - par[paramIndex]
-#       }
-#
-#     } else {
-#       lrt = NA
-#     }
 
     if (class(n2ll_fn) == 'name') {
       fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))

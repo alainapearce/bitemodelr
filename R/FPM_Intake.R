@@ -7,7 +7,7 @@
 #' @param parameters A set of numeric parameters for the First Principles Model in the format: c(theta, r)
 #' @param Emax The total cumulative intake at the end of the meal.
 #'
-#' @return Numeric value indicating the cumulative intake at specified time.
+#' @return Numeric value indicating the cumulative intake at specified time given the specified parameters.
 #'
 #' @examples
 #' #Get cumulative intake at minute three:
@@ -31,6 +31,7 @@
 #' @export
 FPM_Intake <- function(time, parameters, Emax)
 {
+
   # parameters = c(theta, r)
   E_t = (Emax * (exp((time * (Emax * parameters[2] + parameters[1]))/Emax) -
                    1))/((exp((time * (Emax * parameters[2] + parameters[1]))/Emax) +

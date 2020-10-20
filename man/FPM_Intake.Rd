@@ -14,7 +14,7 @@ FPM_Intake(time, parameters, Emax)
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
 \value{
-Numeric value indicating the cumulative intake at specified time.
+Numeric value indicating the cumulative intake at specified time given the specified parameters.
 }
 \description{
 This function estimates cumulative intake at a given time since start of meal using

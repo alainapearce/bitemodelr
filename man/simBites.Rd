@@ -8,7 +8,7 @@ simBites(
   nBites,
   Emax,
   parameters,
-  time_fn = FPM_Time,
+  model_str = "FPM",
   id = NA,
   procNoise = TRUE,
   biteSize_sd = NA,
@@ -22,7 +22,8 @@ simBites(
 
 \item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).}
 
-\item{time_fn}{(suggested) A string that is the name of the time function you want to use to estimate bite timing: either Kissileff_Time or FPM_Time; default is FPM_Time.}
+\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
+Default is 'FPM'.}
 
 \item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
 
@@ -33,7 +34,7 @@ simBites(
 \item{idVar}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 }
 \value{
-NEED TO EDIT
+A bite dataset with bite timing, bite size, and cumulative intake for each bite
 }
 \description{
 This function generates a bite data set that incluneds cumulative intake for *n* bites
@@ -51,7 +52,5 @@ cumulative intake models.
 \dontrun{
 }
 
-}
-\seealso{
-See also \code{\link{simCumulativeIntake}} to simualte a cumulative intake curve accross participatns.
+
 }

@@ -19,7 +19,7 @@ FPM_n2ll(data, par, timeVar, intakeVar, Emax)
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
 \value{
-NEED TO EDIT
+A numeric value representing the -2 log-likelihood for the FPM model with given
 }
 \description{
 This function calculates the -2 loglikelihood for specific function for

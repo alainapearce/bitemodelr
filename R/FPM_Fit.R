@@ -11,7 +11,14 @@
 #' @inheritParams FPM_Intake
 #'
 #'
-#' @return NEED TO EDIT
+#' @return A list with of values from optim fit
+#' \itemize{
+#'   \item{par}{fitted parameters theta (par[1]) and r (par[2])}
+#'   \item{ value}{-2 log-likelihood corresponding to the fitted parameters}
+#'   \item{counts}{the number of itterations to achieve fit}
+#'   \item{convergence}{code for convergence status; see optim}
+#'   \item{message}{a string with additional information, generally NULL}
+#' }
 #'
 #' @examples
 #'

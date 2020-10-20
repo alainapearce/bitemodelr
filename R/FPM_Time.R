@@ -7,7 +7,7 @@
 #' @inheritParams FPM_Intake
 #' @inheritParams FPM_Intake
 #' @inheritParams Kissileff_Time
-#' @return Numeric value indicating the time since start of meal for given cumulative.
+#' @return Numeric value indicating the time since start of meal for given cumulative intake and parameters.
 #'
 #' @examples
 #' #Get the time when 15 grams have been consumed:
@@ -45,7 +45,7 @@ FPM_Time <- function(intake, parameters, Emax, message = TRUE) {
   #check to see if r limit is exceeded
   if (parameters[2] < rlimit) {
     if (isTRUE(message))  {
-      stop("Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.")
+      message("Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.")
     }
   }
 

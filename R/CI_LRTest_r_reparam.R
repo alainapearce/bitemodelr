@@ -4,16 +4,15 @@
 #' This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value. r re-parameterized to be e^r = ln(r)
 #'
 #' @inheritParams Kissileff_n2ll
-#' @inheritParams FPM_n2ll
-#' @param n2ll_fn Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)
-#' @inheritParams Kissileff_n2ll
-#' @inheritParams Kissileff_n2ll
 #' @inheritParams simBites
-#' @inheritParams LRT_CIbounds
-#' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.
-#' @inheritParams LRT_CIbounds
+#' @inheritParams Kissileff_n2ll
+#' @inheritParams Kissileff_n2ll
+#' @inheritParams CI_LRTtest
+#' @inheritParams CI_LRTtest
+#' @inheritParams CI_LRTtest
+#' @inheritParams CI_LRTtest
 #'
-#' @return A numeric value for the likelihood ratio test
+#' @return The likelihood ratio test for the CI bound and value (upper v lower) requested
 #'
 #' @examples
 #'
@@ -23,7 +22,7 @@
 #' @export
 #'
 CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
-                                min_n2ll, paramIndex, bound) {
+                                min_n2ll, paramIndex, conf = 95, bound) {
 
   # check input arguments
   if (model_str == "FPM") {
@@ -57,8 +56,12 @@ CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar
     stop("string entered for timeVar does not match any variables in data")
   }
 
+  # get critical value for given confidence
+  chi_p = 1-(conf/100)
+  chi_crit = qchisq(chi_p, df = 1, lower.tail = FALSE)
+
   # calculate log-likelihood ratio
-  target = min_n2ll + 3.84
+  target = min_n2ll + chi_crit
 
   # run fit function
   # re-paramaterized r (note, it is converted to original scale in FPM_n2ll)
@@ -77,11 +80,15 @@ CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar
 
     par[2] = log(par[2])
 
-    # get lrt
-    if (bound == "lower") {
+    #get lrt
+    if (bound == 'lower' | bound == 'Lower' ){
+      ##lower
       lrt <- (target - fit)^2 + par[paramIndex]
-    } else if (bound == "upper") {
+    } else if (bound == 'upper' | bound == 'Upper' ) {
+      ##upper
       lrt <- (target - fit)^2 - par[paramIndex]
+    } else {
+      lrt <- NA
     }
 
   } else {
@@ -89,5 +96,4 @@ CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar
   }
 
   return(lrt)
-
 }

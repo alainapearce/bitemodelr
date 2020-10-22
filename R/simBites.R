@@ -212,7 +212,7 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
       } else {
 
         ##need to figure out the sometimes error for not same length
-        if(length(simTime_procNoise) != length(grams.cumulative_noise)){
+        if(length(simTime_procNoise) != length(bites)){
           grams.cumulative_noise
         }
 

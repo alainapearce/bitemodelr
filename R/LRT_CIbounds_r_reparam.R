@@ -4,12 +4,12 @@
 #'
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams simBites
-#' @param min_n2ll This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.
-#' @param paramCI list of strings with the names of the parameters to compute CIs for. Default assumes First Principles Model for both parameters: c('theta'. 'r')
+#' @inheritParams CI_LRTest
+#' @inheritParams LRT_CIbounds
 #' @inheritParams simBites
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
-#' @param bound A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'
+#' @inheritParams CI_LRTest
 #'
 #' @return A list with all information for the specified confidence bounds, model, and parameters
 #'    \item{parFit_names}{A vector of strings with the names of parameters (from entry paramCI)}
@@ -31,7 +31,7 @@
 #'
 #' @export
 LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
-                                   model_str = 'FPM', timeVar, intakeVar, bound = "both") {
+                                   model_str = 'FPM', timeVar, intakeVar, conf = 95) {
 
   if (model_str == "FPM") {
     n2ll_fn <- substitute(FPM_2nll)
@@ -78,62 +78,65 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
     for (p in 1:length(paramCI)) {
 
       #set up the parameter names
-      # identify the index for the parameter
+      # identify the index for the parameter that corresponds to optim par output
       if (paramCI[p] == "theta" | paramCI[p] == "Theta") {
         parIndex <- 1
       } else if (paramCI[p] == "r" | paramCI[p] == "R") {
         parIndex <- 2
       }
 
-      # run the LRT optimization for CI bounds
-      #lower CI
-      if (bound == "both" | bound == "lower") {
-        BiteMod_CIlower <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest, data = data, model_str = model_str,timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = "lower")
 
-        # re-parameterized r fit
+      ##lower
+      BiteMod_CIlower <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest,
+                                      data = data, model_str = model_str,timeVar = timeVar,
+                                      intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
+                                      conf = conf, bound = "lower")
 
-        # check if e^r is zero
-        if (round(BiteMod_CIlower$par[2], 3) == 0) {
-          BiteMod_CIlower$par[2] = BiteMod_CIlower$par[2] + 0.001
-        }
+      # re-parameterized r fit
 
-        # transform r back to original scale
-        BiteMod_CIlower$par[2] = log(BiteMod_CIlower$par[2])
-
-        CIlist$parCI_lower[parIndex] <- BiteMod_CIlower$par[parIndex]
-
-        #calculate -2 loglikelihood for fit
-        lower_n2ll = FPM_n2ll(data = data, par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]),
-                              Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
-
-        CIlist$parCI_lower_n2ll[parIndex] = lower_n2ll
-        CIlist$parCI_lower_chisq[parIndex] = lower_n2ll - min_n2ll[l]
-        CIlist$parCI_lower_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
+      # check if e^r is zero
+      if (round(BiteMod_CIlower$par[2], 3) == 0) {
+        BiteMod_CIlower$par[2] = BiteMod_CIlower$par[2] + 0.001
       }
 
-      if (bound == "both" | bound == "upper") {
-        ## re-parameterized r fit
-        BiteMod_CIupper <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest, data = data, model_str = model_str,timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, bound = "upper")
+      # transform r back to original scale
+      BiteMod_CIlower$par[2] = log(BiteMod_CIlower$par[2])
 
-        #calculate -2 loglikelihood for fit
-        # check if e^r is zero
-        if (round(BiteMod_CIupper$par[2], 3) == 0) {
-          BiteMod_CIupper$par[2] = BiteMod_CIupper$par[2] + 0.001
-        }
+      CIlist$parCI_lower[parIndex] <- BiteMod_CIlower$par[parIndex]
 
-        # transform r back to orignial scale
-        BiteMod_CIupper$par[2] = log(BiteMod_CIupper$par[2])
+      #calculate -2 loglikelihood for fit
+      lower_n2ll = FPM_n2ll(data = data, par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]),
+                            Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
 
-        CIlist$parCI_upper[parIndex] <- BiteMod_CIupper$par[parIndex]
+      CIlist$parCI_lower_n2ll[parIndex] = lower_n2ll
+      CIlist$parCI_lower_chisq[parIndex] = lower_n2ll - min_n2ll[l]
+      CIlist$parCI_lower_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
 
-        upper_n2ll = FPM_n2ll(data = data, par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]),
-                              Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
 
-        CIlist$parCI_upper_n2ll[parIndex] = upper_n2ll
-        CIlist$parCI_upper_chisq[parIndex] = upper_n2ll - min_n2ll[l]
-        CIlist$parCI_upper_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
+      ##Upper
+      ## re-parameterized r fit
+      BiteMod_CIupper <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest,
+                                      data = data, model_str = model_str,timeVar = timeVar,
+                                      intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
+                                      conf = conf, bound = "upper")
 
+      #calculate -2 loglikelihood for fit
+      # check if e^r is zero
+      if (round(BiteMod_CIupper$par[2], 3) == 0) {
+        BiteMod_CIupper$par[2] = BiteMod_CIupper$par[2] + 0.001
       }
+
+      # transform r back to orignial scale
+      BiteMod_CIupper$par[2] = log(BiteMod_CIupper$par[2])
+
+      CIlist$parCI_upper[parIndex] <- BiteMod_CIupper$par[parIndex]
+
+      upper_n2ll = FPM_n2ll(data = data, par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]),
+                            Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
+
+      CIlist$parCI_upper_n2ll[parIndex] = upper_n2ll
+      CIlist$parCI_upper_chisq[parIndex] = upper_n2ll - min_n2ll[l]
+      CIlist$parCI_upper_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
 
       # Add information to dataset
       CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]
@@ -141,7 +144,7 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
       CIlist$parFit_names[parIndex] = paramCI[p]
 
     }
-    # determine whether to ouput a list array for multiple fit values or
+    # determine whether to output a list array for multiple fit values or
     # not
     if (length(min_n2ll) > 1 & l != 1) {
       BiteMod_CIlist = list(BiteMod_CIlist, CIlist)

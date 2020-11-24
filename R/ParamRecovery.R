@@ -18,8 +18,7 @@
 #' initail bite timing.
 #' @param measureNoise (optional) A string indicating they type of measurement noise to add. The options include:
 #' 'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered);
-#' or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial
-#' parameterization and before parameter recovery. Default is no measurement error.
+#' or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.
 #' @param pNoise_biteSizeSD (optional) This allows you to enter the standard deviation of individuals bites sizes and
 #' will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal
 #' distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise
@@ -53,7 +52,7 @@
 #' \dontrun{
 #' }
 #'
-#' @seealso This function relies on \code{\link{simBites}} and \code{\link{IntakeModelParams}}.
+#' @seealso This function relies on \code{\link{n2LL_FPM}} and \code{\link{n2LL_Kissileff}}.
 #'
 #' @export
 
@@ -78,13 +77,23 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
   fnIntake_name <- as.character(substitute(intake_fn))
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = is.null(parameters)
+  if (isTRUE(param_arg)) {
     if (fnTime_name == "FPM_Time") {
       parameters <- c(10, 0.1)
     } else if (fnTime_name == "Kissileff_Time") {
       parameters <- c(10, 1, -1)
     } else {
       stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
+    }
+  }
+
+  #check conf input
+  if (!is.na(paramCI[1])){
+    if (length(conf) > 1){
+      if (length(conf) != length(paramCI)){
+        stop('If enter a vector for conf, length must match the number of parameters entered in paramCI.')
+      }
     }
   }
 
@@ -113,9 +122,7 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     paramRecov$theta <- NA
     paramRecov$initial_r <- rep(parameters[2], nrows)
     paramRecov$r <- NA
-    paramRecov$true_n2ll <- NA
-    paramRecov$fit_n2ll <- NA
-    paramRecov$fit_chisq_n2ll <- NA
+
 
     # set default parameters to use as starting values in recovery
     parametersDefault <- c(10, 0.1)
@@ -127,15 +134,17 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     paramRecov$linear <- NA
     paramRecov$initial_quad <- rep(parameters[3], nrows)
     paramRecov$quad <- NA
-    paramRecov$true_n2ll <- NA
-    paramRecov$fit_n2ll <- NA
-    paramRecov$fit_chisq_n2ll <- NA
 
     # set default parameters to use as starting values in recovery
     parametersDefault <- c(10, 1, -0.1)
   } else {
     stop("Entered time function not found. Must enter either FPM_Time or Kissileff_Time.")
   }
+
+  paramRecov$true_n2ll <- NA
+  paramRecov$fit_n2ll <- NA
+  paramRecov$fit_chisq <- NA
+  paramRecov$fit_chisq.p <- NA
 
   # check if CI will be returned
   if (!is.na(paramCI[1])) {
@@ -145,33 +154,41 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     CIvar_start <- length(names(paramRecov)) + 1
 
     for (p in 1:length(paramCI)) {
+      if(length(conf) == 1){
+        #same CI for all each parameter in paramCI
+        CI = conf
+      } else {
+        #different CI for each parameter in paramCI
+        CI = conf[p]
+      }
+
       nVar <- length(names(paramRecov))
 
       ##upper
       paramRecov[nVar+1] <- NA
-      names(paramRecov)[nVar + 1] <- paste0('u', conf, 'CI', '_', paramCI[p])
+      names(paramRecov)[nVar + 1] <- paste0('u', CI, 'CI', '_', paramCI[p])
 
       paramRecov[nVar+2] <- NA
-      names(paramRecov)[nVar + 2] <- paste0('u', conf, 'CI', '_', paramCI[p], '_n2ll')
+      names(paramRecov)[nVar + 2] <- paste0('u', CI, 'CI', '_', paramCI[p], '_n2ll')
 
       paramRecov[nVar+3] <- NA
-      names(paramRecov)[nVar + 3] <- paste0('u', conf, 'CI', '_', paramCI[p], '_chisq')
+      names(paramRecov)[nVar + 3] <- paste0('u', CI, 'CI', '_', paramCI[p], '_chisq')
 
       paramRecov[nVar+4] <- NA
-      names(paramRecov)[nVar + 4] <- paste0('u', conf, 'CI', '_', paramCI[p], '_chisq.p')
+      names(paramRecov)[nVar + 4] <- paste0('u', CI, 'CI', '_', paramCI[p], '_chisq.p')
 
       ##lower
       paramRecov[nVar+5] <- NA
-      names(paramRecov)[nVar + 5] <- paste0('l', conf, 'CI', '_', paramCI[p])
+      names(paramRecov)[nVar + 5] <- paste0('l', CI, 'CI', '_', paramCI[p])
 
       paramRecov[nVar+6] <- NA
-      names(paramRecov)[nVar + 6] <- paste0('l', conf, 'CI', '_', paramCI[p], '_n2ll')
+      names(paramRecov)[nVar + 6] <- paste0('l', CI, 'CI', '_', paramCI[p], '_n2ll')
 
       paramRecov[nVar+7] <- NA
-      names(paramRecov)[nVar + 7] <- paste0('l', conf, 'CI', '_', paramCI[p], '_chisq')
+      names(paramRecov)[nVar + 7] <- paste0('l', CI, 'CI', '_', paramCI[p], '_chisq')
 
       paramRecov[nVar+8] <- NA
-      names(paramRecov)[nVar + 8] <- paste0('l', conf, 'CI', '_', paramCI[p], '_chisq.p')
+      names(paramRecov)[nVar + 8] <- paste0('l', CI, 'CI', '_', paramCI[p], '_chisq.p')
     }
   }
 
@@ -363,9 +380,9 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
 
     #calculate 'true' -2 log-likelihood
     if(model_str == 'FPM'){
-      true_n2ll = FPM_n2ll(data = simDat, parameters = parameters, timeVar = param_timeVar, intakeVar = param_intakeVar, Emax = Emax)
+      true_n2ll = FPM_n2ll(data = simDat, par = parameters, timeVar = param_timeVar, intakeVar = param_intakeVar, Emax = Emax)
     } else if(model_str == 'Kissileff'){
-      true_n2ll = Kissileff_n2ll(data = simDat, parameters = parameters, timeVar = param_timeVar, intakeVar = param_intakeVar)
+      true_n2ll = Kissileff_n2ll(data = simDat, par = parameters, timeVar = param_timeVar, intakeVar = param_intakeVar)
     }
 
     # recover parameters
@@ -373,7 +390,8 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
                                   timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
 
     #calculate chi-square for fitted params
-    fit_chiTest = chisq.test(paramSim$value - true_n2ll)
+    fit_chiTest = true_n2ll - paramSim$value
+    fit_chiTest.p = 1-stats::pchisq(true_n2ll - paramSim$value, df = 1)
 
     # add recovered parameters to dataset
     if (fnFit_name == "FPM_Fit") {
@@ -395,7 +413,8 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     #add fit tests
     paramRecov$true_n2ll[b] <- true_n2ll
     paramRecov$fit_n2ll[b] <- paramSim$value
-    paramRecov$fit_chisq_n2ll[b] <- fit_chiTest
+    paramRecov$fit_chisq[b] <- fit_chiTest
+    paramRecov$fit_chisq.p[b] <- fit_chiTest.p
 
     # Get CI bounds if paramCI was used as an argument
     if (!is.na(paramCI[1])) {
@@ -404,116 +423,136 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
                                    model_str = model_str, timeVar = param_timeVar,
                                    intakeVar = param_intakeVar, conf = conf)
 
-      # add to dataset by looping through parameters in paramCI
+      # get index of parameter so that can pull the same one -- CI script is written so tha t the output parameters are always in the same order so that it can be used independently
       for (p in 1:length(paramCI)) {
+        if (fnFit_name == "FPM_Fit") {
+          # identify the index for the parameterthat corresponds to optim par output
+          if (paramCI[p] == "theta" | paramCI[p] == "Theta") {
+            parIndex <- 1
+          } else if (paramCI[p] == "r" | paramCI[p] == "R") {
+            parIndex <- 2
+          }
 
-        #get start column for each parameter
-        ncol = CIvar_start + 8*(p-1)
+        } else if (fnFit_name == "Kissileff_Fit") {
 
-        paramRecov[b, ncol] <- paramCI_list$parCI_upper[1]
-        paramRecov[b, ncol + 1] <- paramCI_list$parCI_upper_n2ll[1]
-        paramRecov[b, ncol + 2] <- paramCI_list$parCI_upper_chisq[1]
-        paramRecov[b, ncol + 3] <- paramCI_list$parCI_upper_chisq.p[1]
+          # get the parameter index that corresponds to optim par output
+          if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] ==
+              "Intercept" | paramCI[p] == "intercept") {
+            parIndex <- 1
+          } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" |
+                     paramCI[p] == "lin" | paramCI[p] == "Lin") {
+            parIndex <- 2
+          } else if (paramCI[p] == "quad" | paramCI[p] == "Quad" |
+                     paramCI[p] == "quadratic" | paramCI[p] == "Quadratic") {
+            parIndex <- 3
+          }
+        }
 
-        paramRecov[b, ncol + 4] <- paramCI_list$parCI_lower[1]
-        paramRecov[b, ncol + 5] <- paramCI_list$parCI_lower_n2ll[1]
-        paramRecov[b, ncol + 6] <- paramCI_list$parCI_lower[1]
-        paramRecov[b, ncol + 7] <- paramCI_list$parCI_lower_chisq.p[1]
+          #get start column for each parameter - note: CIvar_start defined in CI dataframe set up above
+          ncol = CIvar_start + 8*(p-1)
+
+          paramRecov[b, ncol] <- paramCI_list$parCI_upper[parIndex]
+          paramRecov[b, ncol + 1] <- paramCI_list$parCI_upper_n2ll[parIndex]
+          paramRecov[b, ncol + 2] <- paramCI_list$parCI_upper_chisq[parIndex]
+          paramRecov[b, ncol + 3] <- paramCI_list$parCI_upper_chisq.p[parIndex]
+
+          paramRecov[b, ncol + 4] <- paramCI_list$parCI_lower[parIndex]
+          paramRecov[b, ncol + 5] <- paramCI_list$parCI_lower_n2ll[parIndex]
+          paramRecov[b, ncol + 6] <- paramCI_list$parCI_lower[parIndex]
+          paramRecov[b, ncol + 7] <- paramCI_list$parCI_lower_chisq.p[parIndex]
+        }
       }
-    }
 
-    #rmse calculation
-    if (!is.na(rmse)) {
-      #use 'True' varnames -- before any measurement error added, if any
-      if(rmse == 'both' | rmse == 'timing'){
-        rmse_timing <- RMSEcalc(simDat, parameters = parameters_fit, timeVar = param_timeVarTrue, intakeVar = param_intakeVarTrue, model_str = model_str, error_outcome = 'timing', Emax = Emax)
+      #rmse calculation
+      if (!is.na(rmse)) {
+        #use 'True' varnames -- before any measurement error added, if any
+        if(rmse == 'both' | rmse == 'timing'){
+          rmse_timing <- RMSEcalc(simDat, parameters = parameters_fit, timeVar = param_timeVarTrue, intakeVar = param_intakeVarTrue, model_str = model_str, error_outcome = 'timing', Emax = Emax)
+        }
+
+        if(rmse == 'both' | rmse == 'intake'){
+          rmse_intake <- RMSEcalc(simDat, parameters = parameters_fit, timeVar = param_timeVarTrue, intakeVar = param_intakeVarTrue, model_str = model_str, error_outcome = 'intake', Emax = Emax)
+        }
+
+        # add to dataset
+        rmes_timeName = utils::hasName(paramRecov, "rmse_timing")
+        if (isTRUE(rmes_timeName)) {
+          paramRecov$rmse_timing[b] <- rmse_timing$rmse
+          paramRecov$rmse_timing_nNA[b] <- rmse_timing$nNA
+        }
+
+        rmes_intakeName = utils::hasName(paramRecov, "rmse_intake")
+        if (isTRUE(rmes_intakeName)) {
+          paramRecov$rmse_intake[b] <- rmse_intake$rmse
+          paramRecov$rmse_intake_nNA[b] <- rmse_intake$nNA
+        }
       }
 
-      if(rmse == 'both' | rmse == 'intake'){
-        rmse_intake <- RMSEcalc(simDat, parameters = parameters_fit, timeVar = param_timeVarTrue, intakeVar = param_intakeVarTrue, model_str = model_str, error_outcome = 'intake', Emax = Emax)
-      }
+      # if want to output bite data, add to measurement error to initDat and use fit parameters to recover estimated intake from bite timing
+      if (isTRUE(keepBites)) {
 
-      # add to dataset
-      if (hasName(paramRecov, "rmse_timing")) {
-        paramRecov$rmse_timing[b] <- rmse_timing$rmse
-        paramRecov$rmse_timing_nNA[b] <- rmse_timing$nNA
-      }
+        # add adjusted variables to initDat (which has correct varnames with procNoise info)
+        ##Bite size
+        if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
+          if (mNoise_biteSizeCat == "mean") {
+            initDat$CumulativeGrams_recParam_AdjMean = simDat$CumulativeGrams_recParam_Adj
+            initDat$BiteGrams_recParam_AdjMean = simDat$BiteGrams_recParam_Adj
+          } else {
+            initDat$CumulativeGrams_recParam_AdjCat = simDat$CumulativeGrams_recParam_Adj
+            initDat$BiteGrams_recParam_AdjCat = simDat$BiteGrams_recParam_Adj
+          }
+        }
 
-      if (hasName(paramRecov, "rmse_intake")) {
-        paramRecov$rmse_intake[b] <- rmse_intake$rmse
-        paramRecov$rmse_intake_nNA[b] <- rmse_intake$nNA
-      }
-    }
+        ##Bite Timing
+        if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteTiming' | measureNoise == 'bitetiming') {
+          initDat$EstimatedTime_recParam_Adj = simDat$EstimatedTime_recParam_Adj
 
-    # if want to output bite data, add to measurement error to initDat and use fit parameters to recover estimated intake from bite timing
-    if (isTRUE(keepBites)) {
+          if (!is.na(mNoise_biteTimeSD)) {
+            n = length(names(initDat))
+            names(initDat)[n] <- paste0("EstimatedTime_recParam_Adjsd", round(mNoise_biteTimeSD, 2))
+          }
 
-      # add adjusted variables to initDat (which has correct varnames with procNoise info)
-      ##Bite size
-      if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
-        if (mNoise_biteSizeCat == "mean") {
-          initDat$CumulativeGrams_recParam_AdjMean = simDat$CumulativeGrams_recParam_Adj
-          initDat$BiteGrams_recParam_AdjMean = simDat$BiteGrams_recParam_Adj
+          # get original bite timing (Bite Timing Measurement error) to estimate cumulative intake
+          bite.time_fit <- simDat[, "EstimatedTime_recParam_Adj"]
+
         } else {
-          initDat$CumulativeGrams_recParam_AdjCat = simDat$CumulativeGrams_recParam_Adj
-          initDat$BiteGrams_recParam_AdjCat = simDat$BiteGrams_recParam_Adj
-        }
-      }
-
-      ##Bite Timing
-      if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteTiming' | measureNoise == 'bitetiming') {
-        initDat$EstimatedTime_recParam_Adj = simDat$EstimatedTime_recParam_Adj
-
-        if (!is.na(mNoise_biteTimeSD)) {
-          n = length(names(initDat))
-          names(initDat)[n] <- paste0("EstimatedTime_recParam_Adjsd", round(mNoise_biteTimeSD, 2))
+          # get original bite timing (no Bite Timing Measurement error) to estimate cumulative intake
+          bite.time_fit <- simDat[, "EstimatedTime"]
         }
 
-        # get original bite timing (Bite Timing Measurement error) to estimate cumulative intake
-        bite.time_fit <- simDat[, "EstimatedTime_recParam_Adj"]
+        # get long param list
+        param_fit_long <- rep(list(parameters_fit), nBites[b])
 
-      } else {
-        # get original bite timing (no Bite Timing Measurement error) to estimate cumulative intake
-        bite.time_fit <- simDat[, "EstimatedTime"]
-      }
+        # get cumulative grams based on timing
+        if (fnIntake_name == "FPM_Intake") {
+          Emax_calc = max(simDat[, param_intakeVar])
+          grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit, parameters = param_fit_long, Emax = rep(Emax_calc, nBites))
+        } else if (fnIntake_name == "Kissileff_Intake") {
+          grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit, parameters = param_fit_long)
+        }
 
-      # get long param list
-      param_fit_long <- rep(list(parameters_fit), nBites[b])
+        initDat$CumulativeGrams_fit = grams.cumulative_fit
 
-      # get cumulative grams based on timing
-      if (fnIntake_name == "FPM_Time") {
-        grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit, parameters = param_fit_long,
-                                       Emax = rep(init_dat$Emax, nBites_sim))
-      } else if (fnIntake_name == "Kissileff_Time") {
-        grams.cumulative_fit <- mapply(intake_fn, time = bite.time_fit, parameters = param_fit_long)
-      }
+        # get bite size
+        initDat$BiteGrams_fit = c(grams.cumulative_fit[1], diff(grams.cumulative_fit, difference = 1))
 
-      initDat$CumulativeGrams_fit = grams.cumulative_fit
-
-      # get bite size
-      initDat$BiteGrams_fit = c(grams.cumulative_fit[1], diff(grams.cumulative_fit, difference = 1))
-
-      if (b == 1) {
-        simDat_paramRecov_long <- initDat
-      } else {
-        simDat_paramRecov_long <- rbind(simDat_paramRecov_long,
-                                        initDat)
+        if (b == 1) {
+          simDat_paramRecov_long <- initDat
+        } else {
+          simDat_paramRecov_long <- rbind(simDat_paramRecov_long,
+                                          initDat)
+        }
       }
     }
-  }
 
-  # add simulation output to list
-  if (isTRUE(keepBites)) {
-    sim_output <- list(biteDat_paramRecov = simDat_paramRecov_long,
-                       paramDat = paramRecov)
-  } else {
-    sim_output <- paramRecov
-  }
+    # add simulation output to list
+    if (isTRUE(keepBites)) {
+      sim_output <- list(biteDat_paramRecov = simDat_paramRecov_long,
+                         paramDat = paramRecov)
+    } else {
+      sim_output <- paramRecov
+    }
 
-  # return output
-  if (length(nBites) > 1) {
-    return(nBites_ouputList)
-  } else {
+    # return output
     return(sim_output)
   }
-}

@@ -3,7 +3,7 @@
 #' This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
 #'
 #' @param data The dataset with 'True' bite timing and cumulative intake.
-#' @param par Fitted parameters for which error is being tested
+#' @param parameters Fitted parameters for which error is being tested
 #' @param timeVar The variable name for the 'True' bite timing in dataset
 #' @param intakeVar The variable name for the 'True' cumulative intake in dataset
 #' @inheritParams ParamRecovery
@@ -24,19 +24,23 @@
 RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', error_outcome = 'timing', Emax) {
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = methods::hasArg(parameters)
+  if (isFALSE(param_arg)) {
     stop("Must enter the fitted parameters")
   }
 
   # check input arguments for variable names
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -55,7 +59,8 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
     }
 
     #check for Emax
-    if(!hasArg(Emax)){
+    Emax_arg = methods::hasArg(Emax)
+    if(isFALSE(Emax_arg)){
       stop("Must set Emax to the total intake in order to use the First Principles Model")
     }
 

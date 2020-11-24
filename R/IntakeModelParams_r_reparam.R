@@ -27,17 +27,20 @@
 #'
 #' @export
 IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM',
-                              idVar = NA) {
+                                        idVar = NA) {
 
   # check input arguments
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -72,7 +75,8 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
   fn_name <- as.character(substitute(fit_fn))
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = methods::hasArg(parameters)
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_Fit") {
       parameters <- c(10, 0.1)
     }
@@ -105,16 +109,16 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
 
     #Call the fit function for each id using mapply
 
-      BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
-                            timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector)
+    BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
+                          timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector)
 
-      ## Need to figure out this part convert to long dataset - correct dset
-      BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4,
-      ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
-      BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
-      names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
-                                   "counts_gradiant", row.names(BiteMod_fit)[4])
-      BiteMod_fit_long$method <- fn_name
+    ## Need to figure out this part convert to long dataset - correct dset
+    BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4,
+    ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
+    BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
+    names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
+                                 "counts_gradiant", row.names(BiteMod_fit)[4])
+    BiteMod_fit_long$method <- fn_name
 
     return(BiteMod_fit_long)
 
@@ -123,25 +127,26 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
     emax <- max(data[, intakeVar])
 
     #get parameter fits
-      if (class(fit_fn) == "name") {
-        BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-                                             timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
-      } else {
-        BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-                              Emax = emax)
-      }
+    if (class(fit_fn) == "name") {
+      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
+                                           timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
+    } else {
+      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
+                            Emax = emax)
+    }
 
-      if (hasArg(idVar)) {
-        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4])
-        BiteMod_fit_dat$method <- fn_name
-      } else {
-        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4])
-        BiteMod_fit_dat$method <- fn_name
-      }
+    idVar_arg = methods::hasArg(idVar)
+    if (isTRUE(idVar_arg)) {
+      BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
+      names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
+                                  "counts_gradiant", names(BiteMod_fit)[4])
+      BiteMod_fit_dat$method <- fn_name
+    } else {
+      BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
+      names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
+                                  "counts_gradiant", names(BiteMod_fit)[4])
+      BiteMod_fit_dat$method <- fn_name
+    }
 
     return(BiteMod_fit_dat)
   }

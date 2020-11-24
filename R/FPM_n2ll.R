@@ -66,14 +66,17 @@ FPM_n2ll <- function(data, par, timeVar, intakeVar, Emax) {
   names(data)[length(names(data))] <- estimated_name
 
   # calculate the error/residual between predicted and actual intake
-  data$resid <- data[, intakeVar] - data[, estimated_name]
+  data$resid <-data[, intakeVar] - data[, estimated_name]
 
   # get sigma
+  # sigma <- sum(data$resid^2)/length(data$resid)
+
+  #add a small number to set a sort of minimum
   sigma <- sum(data$resid^2)/length(data$resid)
 
   # ll equation
-  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 * sigma^2)) * (sum(data$resid^2))
+  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + ((-1/(2 * sigma^2)) * (sum(data$resid^2)))
 
-  # retun -2ll
+  # rerun -2ll
   return(-2 * ll)
 }

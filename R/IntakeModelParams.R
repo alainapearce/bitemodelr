@@ -30,14 +30,16 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
                               idVar = NA) {
 
   # check input arguments
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -72,7 +74,9 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
   fn_name <- as.character(substitute(fit_fn))
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = methods::hasArg(parameters)
+
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_Fit") {
       parameters <- c(10, 0.1)
     } else if (fn_name == "Kissileff_Fit") {
@@ -154,7 +158,9 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
                               Emax = emax)
       }
 
-      if (hasArg(idVar)) {
+      idVar_arg = methods::hasArg(idVar)
+
+      if (isTRUE(idVar_arg)) {
         BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
         names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
                                     "counts_gradiant", names(BiteMod_fit)[4])
@@ -175,7 +181,8 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
         BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar)
       }
 
-      if (hasArg(idVar)) {
+      idVar_param = methods::hasArg(idVar)
+      if (isTRUE(idVar_param)) {
         BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
         names(BiteMod_fit_dat) <- c("id", "int", "linear", "quad",
                                     names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4])

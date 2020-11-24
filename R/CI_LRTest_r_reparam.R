@@ -7,10 +7,10 @@
 #' @inheritParams simBites
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
-#' @inheritParams CI_LRTtest
-#' @inheritParams CI_LRTtest
-#' @inheritParams CI_LRTtest
-#' @inheritParams CI_LRTtest
+#' @inheritParams CI_LRTest
+#' @inheritParams CI_LRTest
+#' @inheritParams CI_LRTest
+#' @inheritParams CI_LRTest
 #'
 #' @return The likelihood ratio test for the CI bound and value (upper v lower) requested
 #'
@@ -35,21 +35,24 @@ CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar
   }
 
   # check parameters
-  if (!hasArg(par)) {
+  param_arg = methods::hasArg(par)
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_n2ll") {
       par <- c(10, 0.1)
     }
   }
 
   # check input arguments for variable names
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -58,7 +61,7 @@ CI_LRTest_r_reparam <- function(data, par, model_str = 'FPM', timeVar, intakeVar
 
   # get critical value for given confidence
   chi_p = 1-(conf/100)
-  chi_crit = qchisq(chi_p, df = 1, lower.tail = FALSE)
+  chi_crit = stats::qchisq(chi_p, df = 1, lower.tail = FALSE)
 
   # calculate log-likelihood ratio
   target = min_n2ll + chi_crit

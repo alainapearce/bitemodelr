@@ -8,7 +8,7 @@
 #' @inheritParams Kissileff_n2ll
 #' @param min_n2ll This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.
 #' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.
-#' @param conf Numeric value for the percent confidence desired. Default is 95.
+#' @param conf Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.
 #' @param bound A string with the boundary value desired: 'upper' or 'lower'
 #'
 #' @return The likelihood ratio test for the CI bound and value (upper v lower) requested
@@ -35,7 +35,8 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
   }
 
   # check parameters
-  if (!hasArg(par)) {
+  param_arg = methods::hasArg(par)
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_n2ll") {
       par <- c(10, 0.1)
     } else if (fn_name == "Kissileff_n2ll") {
@@ -46,14 +47,18 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
   }
 
   # check input arguments for variable names
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -62,7 +67,10 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
 
   # get critical value for given confidence
   chi_p = 1-(conf/100)
-  chi_crit = qchisq(chi_p, df = 1, lower.tail = FALSE)
+  chi_crit = stats::qchisq(chi_p, df = 1, lower.tail = FALSE)
+
+  # debug/trying with critical values entered
+  # chi_crit = conf
 
   # calculate log-likelihood ratio
   target = min_n2ll + chi_crit
@@ -72,7 +80,7 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
 
     if (class(n2ll_fn) == 'name') {
       fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
-      } else {
+    } else {
       fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
     }
 
@@ -99,6 +107,6 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
     lrt <- NA
   }
 
-  return(lrt_output)
+  return(lrt)
 
 }

@@ -12,6 +12,7 @@ CI_LRTest(
   intakeVar,
   min_n2ll,
   paramIndex,
+  conf = 95,
   bound
 )
 }
@@ -32,12 +33,12 @@ Default is 'FPM'.}
 
 \item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.}
 
-\item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
+\item{conf}{Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.}
 
-\item{n2ll_fn}{Name of the function for the -2LL calculation for given model (i.e., FPM_n2ll or Kissileff_n2ll)}
+\item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
 }
 \value{
-A numeric value for the likelihood ratio test
+The likelihood ratio test for the CI bound and value (upper v lower) requested
 }
 \description{
 This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.

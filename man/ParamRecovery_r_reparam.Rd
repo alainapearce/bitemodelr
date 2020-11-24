@@ -9,7 +9,6 @@ ParamRecovery_r_reparam(
   Emax,
   parameters,
   model_str = "FPM",
-  nSims = 1,
   procNoise = TRUE,
   measureNoise = FALSE,
   pNoise_biteSizeSD = NA,
@@ -17,12 +16,12 @@ ParamRecovery_r_reparam(
   mNoise_biteSizeCat = "mean",
   keepBites = FALSE,
   paramCI = NA,
-  bound = "both",
+  conf = 95,
   rmse = NA
 )
 }
 \arguments{
-\item{nBites}{A vector of values reflecting the number of bites to use. Default is to complete 1 simulation for each value.}
+\item{nBites}{A vector of values reflecting the number of bites to use. Parameters will be recovered for each value entered.}
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 
@@ -30,8 +29,6 @@ ParamRecovery_r_reparam(
 
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}
-
-\item{nSims}{The number of iterations to use for each unique combination (e.g., nBites * nSims). Default is 1.}
 
 \item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering
 bite size (and thus estimated timing). Default value is TRUE; if FALSE will use average bite size to estimate
@@ -68,7 +65,7 @@ the recovered model parameters. Default is FALSE.}
 \item{paramCI}{(optional) A list of strings with the names of the parameters to compute CIs for. Optional. If none
 specified, no CI will be computed. Default is to no compute CIs.}
 
-\item{bound}{A string indicating which confidence bound to return: 'upper, 'lower', or 'both'. Default = 'both'}
+\item{conf}{Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.}
 
 \item{rmse}{(optional) A string indicating which measure to compute root mean square error for. Options include:
 'timing' for bite timing, 'intake' for cumulative intake', 'both' to compute for both timing and intake.

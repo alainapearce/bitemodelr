@@ -46,21 +46,26 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
   fn_name <- as.character(substitute(fit_fn))
 
   # check parameters
-  if (!hasArg(par)) {
+  param_arg = methods::hasArg(par)
+
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_n2ll") {
       par <- c(10, 0.1)
     }
   }
 
   # check input arguments for variable names
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
@@ -77,6 +82,14 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
   for (l in 1:length(min_n2ll)) {
     for (p in 1:length(paramCI)) {
 
+      if(length(conf) == 1){
+        #same CI for all each parameter in paramCI
+        CI = conf
+      } else {
+        #different CI for each parameter in paramCI
+        CI = conf[p]
+      }
+
       #set up the parameter names
       # identify the index for the parameter that corresponds to optim par output
       if (paramCI[p] == "theta" | paramCI[p] == "Theta") {
@@ -90,7 +103,7 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
       BiteMod_CIlower <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest,
                                       data = data, model_str = model_str,timeVar = timeVar,
                                       intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
-                                      conf = conf, bound = "lower")
+                                      conf = CI, bound = "lower")
 
       # re-parameterized r fit
 
@@ -110,7 +123,7 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
 
       CIlist$parCI_lower_n2ll[parIndex] = lower_n2ll
       CIlist$parCI_lower_chisq[parIndex] = lower_n2ll - min_n2ll[l]
-      CIlist$parCI_lower_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
+      CIlist$parCI_lower_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
 
 
       ##Upper
@@ -118,7 +131,7 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
       BiteMod_CIupper <- stats::optim(par = c(parameters[1],  exp(parameters[2])), fn = CI_LRTest,
                                       data = data, model_str = model_str,timeVar = timeVar,
                                       intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
-                                      conf = conf, bound = "upper")
+                                      conf = CI, bound = "upper")
 
       #calculate -2 loglikelihood for fit
       # check if e^r is zero
@@ -136,7 +149,7 @@ LRT_CIbounds_r_reparam <- function(data, parameters, min_n2ll, paramCI = c("thet
 
       CIlist$parCI_upper_n2ll[parIndex] = upper_n2ll
       CIlist$parCI_upper_chisq[parIndex] = upper_n2ll - min_n2ll[l]
-      CIlist$parCI_upper_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
+      CIlist$parCI_upper_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
 
       # Add information to dataset
       CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]

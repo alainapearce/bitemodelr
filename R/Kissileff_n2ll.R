@@ -38,11 +38,13 @@ Kissileff_n2ll <- function(data, par, timeVar, intakeVar)
   data$resid <- data[, intakeVar] - data[, estimated_name]
 
   # calculate sigma
-  sigma <- sum(data$resid^2)/length(data$resid)
+  # sigma <- sum(data$resid^2)/length(data$resid)
+
+  #add a small number to set a sort of minimum
+  sigma <- sum(data$resid^2)/length(data$resid)+0.001
 
   # ll equation
-  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 *
-                                                                   sigma^2)) * (sum(data$resid^2))
+  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 * sigma^2)) * (sum(data$resid^2))
 
   # return -2ll
   return(-2 * ll)

@@ -15,7 +15,7 @@
 #' @param parameters (suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).
 #' @param model_str The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 #' Default is 'FPM'.
-#' @param idVar (optional) A string or numeric value for ID to be added to the simulated bite data.
+#' @param id (optional) A string or numeric value for ID to be added to the simulated bite data.
 #' @param procNoise (optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.
 #' @param biteSize_sd (optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.
 #'@param maxDur (optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the First Principles model - will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Do not need for the Kissileff model.
@@ -53,7 +53,8 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
   fnIntake_name <- as.character(substitute(intake_fn))
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = methods::hasArg(parameters)
+  if (isFALSE(param_arg)) {
     if (fnTime_name == "FPM_Time" | fnTime_name == "FPMincorrect_Time") {
       parameters <- c(10, 0.1)
     } else if (fnTime_name == "Kissileff_Time") {
@@ -113,12 +114,12 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
       # = 0, mean = average bite size, and sd = biteSize_sd
       if (exists("changeIntake")) {
         grams.bite_noise_init <- truncnorm::rtruncnorm(nBites,
-                                                       a = 0, mean = (newEmax/nBites), sd = procNoise_biteSD)
+                                                       a = 0, mean = (newEmax/nBites), sd = biteSize_sd)
         grams.bite_noise <- (grams.bite_noise_init/sum(grams.bite_noise_init)) *
           newEmax
       } else {
         grams.bite_noise_init <- truncnorm::rtruncnorm(nBites,
-                                                       a = 0, mean = (Emax/nBites), sd = procNoise_biteSD)
+                                                       a = 0, mean = (Emax/nBites), sd = biteSize_sd)
         grams.bite_noise <- (grams.bite_noise_init/sum(grams.bite_noise_init)) *
           Emax
       }
@@ -170,22 +171,40 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
       simTime_procNoise <- mapply(time_fn, intake = grams.cumulative_noise,
                                   parameters = params_long, message = FALSE)
 
-      #check for NAs
-      if(sum(is.na(simTime_procNoise)) > 0){
+      #check for NAs or NULL values - if null may be list not vector
+      if(is.list(simTime_procNoise) || sum(is.na(simTime_procNoise)) > 0){
         for (b in 1:length(simTime_procNoise)){
-          if(is.na(simTime_procNoise[b])){
-            if(b == 1){
-              #solve for smallest cumulative intake that will meet the criteria: linear^2 - 4*(int - intake)*quadratic > 0
-              #need to add 0.001 because wont solve for exact solution for linear^2 - 4*(int - intake)*quadratic = 0
-              grams.cumulative_noise[b] <- parameters[1] - (parameters[2]^2/(4*parameters[3])) + 0.0001
-              simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b],
-                                                                parameters = parameters, message = FALSE))
-            } else {
-              grams.cumulative_noise[b] <- (grams.cumulative_noise[b+1] - grams.cumulative_noise[b-1])/2
-              simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b],
-                                                                parameters = parameters, message = FALSE))
+          if(is.list(simTime_procNoise)){
+            if(is.na(simTime_procNoise[[b]]) || is.null(simTime_procNoise[[b]])){
+
+              if(b == 1){
+                #solve for smallest cumulative intake that will meet the criteria: linear^2 - 4*(int - intake)*quadratic > 0
+                #need to add 0.001 because wont solve for exact solution for linear^2 - 4*(int - intake)*quadratic = 0
+                grams.cumulative_noise[b] <- parameters[1] - (parameters[2]^2/(4*parameters[3])) + 0.0001
+                simTime_procNoise[[b]] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
+              } else {
+                grams.cumulative_noise[b] <- (grams.cumulative_noise[b+1] - grams.cumulative_noise[b-1])/2
+                simTime_procNoise[[b]] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
+              }
+            }
+          } else {
+            if(is.na(simTime_procNoise[b]) || is.null(simTime_procNoise[b])){
+              if(b == 1){
+                #solve for smallest cumulative intake that will meet the criteria: linear^2 - 4*(int - intake)*quadratic > 0
+                #need to add 0.001 because wont solve for exact solution for linear^2 - 4*(int - intake)*quadratic = 0
+                grams.cumulative_noise[b] <- parameters[1] - (parameters[2]^2/(4*parameters[3])) + 0.0001
+                simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
+              } else {
+                grams.cumulative_noise[b] <- (grams.cumulative_noise[b+1] - grams.cumulative_noise[b-1])/2
+                simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
+              }
             }
           }
+        }
+
+        #unlist if needed
+        if(is.list(simTime_procNoise)){
+          simTime_procNoise = base::unlist(simTime_procNoise)
         }
       }
     } else {
@@ -210,16 +229,11 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
         names(sim_dat) <- c("id", "Bite", "EstimatedTime_procNoise",
                             "CumulativeGrams_procNoise", "BiteGrams_procNoise")
       } else {
-
-        ##need to figure out the sometimes error for not same length
-        if(length(simTime_procNoise) != length(bites)){
-          grams.cumulative_noise
-        }
-
         sim_dat <- data.frame(bites, simTime_procNoise, grams.cumulative_noise,
                               grams.bite_noise)
         names(sim_dat) <- c("Bite", "EstimatedTime_procNoise",
                             "CumulativeGrams_procNoise", "BiteGrams_procNoise")
+
       }
     }
 

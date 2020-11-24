@@ -15,9 +15,6 @@ Kissileff_Fit(data, parameters, timeVar, intakeVar)
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
-
-\item{CI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for
-for parameters. Default is FALSE}
 }
 \value{
 A list with of values from optim fit

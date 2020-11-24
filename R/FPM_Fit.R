@@ -51,6 +51,16 @@ FPM_Fit <- function(data, parameters, timeVar, intakeVar, Emax)
   fit <- stats::optim(par = c(parameters[1], parameters[2]), fn = FPM_n2ll, data = data, Emax = Emax,
                       time = timeVar, intake = intakeVar)
 
+  fit_check <- stats::optim(par = c(fit$par[1], fit$par[2]), fn = FPM_n2ll, data = data, Emax = Emax,
+                       time = timeVar, intake = intakeVar)
+
+  while(fit$par[1] != fit_check$par[1] || fit$par[2] != fit_check$par[2]){
+    fit <- fit_check
+
+    fit_check <- stats::optim(par = c(fit$par[1], fit$par[2]), fn = FPM_n2ll, data = data, Emax = Emax,
+                         time = timeVar, intake = intakeVar)
+  }
+
   #return fit
   return(fit)
 }

@@ -17,7 +17,7 @@ RMSEcalc(
 \arguments{
 \item{data}{The dataset with 'True' bite timing and cumulative intake.}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).}
+\item{parameters}{Fitted parameters for which error is being tested}
 
 \item{timeVar}{The variable name for the 'True' bite timing in dataset}
 
@@ -29,8 +29,6 @@ Default is 'FPM'.}
 \item{error_outcome}{Which variable to use to calculate error - 'Time' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.}
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
-
-\item{par}{Fitted parameters for which error is being tested}
 }
 \value{
 A list with two values

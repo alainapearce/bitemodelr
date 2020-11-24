@@ -32,7 +32,7 @@
 FPMincorrect_Intake <- function(time, parameters, Emax)
 {
 
-  E_t = (Emax/(Emax*parameters[2]+parameters[1]))*log((Emax*((intake*parameters[2])+1))/(Emax - intake))
+  E_t = (Emax*parameters[1]*(exp((time(Emax*parameters[2] + parameters[1]))/(Emax))-1))/(parameters[1]*(exp((time(Emax*parameters[2] + parameters[1]))/(Emax))) + Emax*parameters[2])
 
   return(E_t)
 }

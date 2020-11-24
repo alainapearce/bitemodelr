@@ -4,7 +4,7 @@
 #'
 #' @param nSample number of samples to be randomly pulled from multivariate normal distribution, default <- 100
 #' @param model_str The base model to use--'FPM' for the first principles model, 'Kissileff' for the quadratic model, or 'Both' if you want to return both sets of parameters. Default is 'FPM'.
-#' @param write.date A logical indicator for wether to write data to a file. Default is TRUE.
+#' @param write.dat A logical indicator for wether to write data to a file. Default is TRUE.
 #' @param data_str (optional) A string you want to use to name output dataset - the model used and number of samples will automatically be part of the name. Default is 'simDat' which results in the dataset name(s) if you use 100 samples: FPM(model)_simDat_rmvnDat100.csv. If a
 #' @param scaleFactor (optional) A scaling factor to adjust the standard deviation of the multivariate normal distribution. Will be applied to all sampled variables. E.g., a value of 0.5 will scale the standard deviation by half and the variance by a quarter using pre- (S) and post-matrix (S transpose - ST) multiplication of the covariance matrix (C) with the scaling factor on the diagonal (S x C x ST)
 #'
@@ -21,6 +21,8 @@
 
 rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_str = 'simDat', scaleFactor = NA){
   # set.seed(2468)
+
+  utils::data(SimDat_Fogel2017)
 
   TotalSamples <- 0
   while(TotalSamples < nSample){
@@ -39,7 +41,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
                                0, scaleFactor, 0, 0,
                                0, 0, scaleFactor, 0,
                                0, 0, 0, scaleFactor), byrow = TRUE, nrow=4)
-        covMatrix = cov(SimDat_Fogel2017[c(2, 7, 10:11)])
+        covMatrix = stats::cov(SimDat_Fogel2017[c(2, 7, 10:11)])
 
         covMatrixScaled = scaleMatrix%*%covMatrix%*%t(scaleMatrix)
         row.names(covMatrixScaled) = row.names(covMatrix)
@@ -47,13 +49,13 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
         rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:11)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:11)]), Sigma = cov(SimDat_Fogel2017[c(2, 7, 10:11)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:11)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:11)]), empirical = TRUE))
       }
 
 
-      rmvn_dat$r_check <- (-1*rmvn_dat$theta)/rmvn_dat$TotalIntake_g
+      rmvn_dat$r_check <- (-1*rmvn_dat$theta)/round(rmvn_dat$TotalIntake_g, 2)
 
-      rmvn_datKeep <- rmvn_dat[rmvn_dat$r_check < rmvn_dat$r, ]
+      rmvn_datKeep <- rmvn_dat[rmvn_dat$r > rmvn_dat$r_check, ]
       rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$r >= min(SimDat_Fogel2017$r) & rmvn_datKeep$r <= max(SimDat_Fogel2017$r), ]
       rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$theta >= min(SimDat_Fogel2017$theta) & rmvn_datKeep$theta <= max(SimDat_Fogel2017$theta), ]
 
@@ -65,7 +67,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
                                0, 0, scaleFactor, 0, 0,
                                0, 0, 0, scaleFactor, 0,
                                0, 0, 0, 0, scaleFactor), byrow = TRUE, nrow=5)
-        covMatrix = cov(SimDat_Fogel2017[c(2, 7, 12:14)])
+        covMatrix = stats::cov(SimDat_Fogel2017[c(2, 7, 12:14)])
 
         covMatrixScaled = scaleMatrix%*%covMatrix%*%t(scaleMatrix)
         row.names(covMatrixScaled) = row.names(covMatrix)
@@ -74,7 +76,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
         rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
 
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = cov(SimDat_Fogel2017[c(2, 7, 12:14)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 12:14)]), empirical = TRUE))
 
       }
 
@@ -94,7 +96,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
                                0, 0, 0, 0, 0, scaleFactor, 0,
                                0, 0, 0, 0, 0, 0, scaleFactor), byrow = TRUE, nrow=7)
 
-        covMatrix = cov(SimDat_Fogel2017[c(2, 7, 10:14)])
+        covMatrix = stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)])
 
         covMatrixScaled = scaleMatrix%*%covMatrix%*%t(scaleMatrix)
         row.names(covMatrixScaled) = row.names(covMatrix)
@@ -102,7 +104,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
         rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:14)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = cov(SimDat_Fogel2017[c(2, 7, 10:14)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)]), empirical = TRUE))
       }
 
       #FPM checks
@@ -178,19 +180,26 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
   for(r in 1:nSample){
 
     if (model_str == 'FPM') {
-      SimDat_rmvn$MealDur_Emax[r] <- do.call(FPM_Time, list(intake = SimDat_rmvn$TotalIntake_g[r],
-                                                            parameters = c(rmvn_datKeep$theta[r], rmvn_datKeep$r[r]), Emax = rmvn_datKeep$TotalIntake_g[r], message = FALSE))
+      SimDat_rmvn$MealDur_Emax[r] <- do.call(FPM_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$theta[r], SimDat_rmvn$r[r]), Emax = SimDat_rmvn$TotalIntake_g[r], message = FALSE))
     } else if (model_str == 'Kissileff'){
-      params_long <- rep(list(c(rmvn_datKeep$int[r], rmvn_datKeep$linear[r], rmvn_datKeep$quad[r])), round(rmvn_datKeep$nBites[r]))
-      SimDat_rmvn$MealDur_Emax[r] <- do.call(FPM_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(rmvn_datKeep$int[r], rmvn_datKeep$linear[r], rmvn_datKeep$quad[r]), message = FALSE))
+      SimDat_rmvn$MealDur_Emax[r] <- do.call(Kissileff_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$int[r], SimDat_rmvn$linear[r], SimDat_rmvn$quad[r]), message = FALSE))
     }
+
   }
 
   if(isTRUE(write.dat)){
     if(!is.na(scaleFactor)){
-      write.csv(SimDat_rmvn[1:ncol(SimDat_rmvn)-1], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      if (model_str == 'FPM') {
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-3), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      } else if (model_str == 'Kissileff'){
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-2), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      }
     } else {
-      write.csv(SimDat_rmvn[1:ncol(SimDat_rmvn)-1], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      if (model_str == 'FPM') {
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-3), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      } else if (model_str == 'Kissileff'){
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-2), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      }
     }
 
   }

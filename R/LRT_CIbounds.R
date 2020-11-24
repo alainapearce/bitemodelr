@@ -46,7 +46,9 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
   fn_name <- as.character(substitute(fit_fn))
 
   # check parameters
-  if (!hasArg(parameters)) {
+  param_arg = methods::hasArg(parameters)
+
+  if (isFALSE(param_arg)) {
     if (fn_name == "FPM_Fit") {
       parameters <- c(10, 0.1)
     } else if (fn_name == "Kissileff_Fit") {
@@ -57,26 +59,23 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
   }
 
   # check input arguments for variable names
-  if (!hasArg(intakeVar)) {
+  intakeVar_arg = methods::hasArg(intakeVar)
+  if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
   } else if (!(intakeVar %in% names(data))) {
     stop("string entered for intakeVar does not match any variables in data")
   }
 
-  if (!hasArg(timeVar)) {
+  timeVar_arg = methods::hasArg(timeVar)
+  if (isFALSE(timeVar_arg)) {
     stop("no TimeVar found. Set timeVar to name of variable that
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
     stop("string entered for timeVar does not match any variables in data")
   }
 
-  CIlist <- list(parFit_names = rep(NA, length(paramCI)), parFit_values = rep(NA, length(paramCI)),
-                 parFit_min_n2ll = rep(NA, length(paramCI)), parCI_upper = rep(NA, length(paramCI)),
-                 parCI_lower = rep(NA, length(paramCI)), parCI_upper_n2ll = rep(NA, length(paramCI)),
-                 parCI_lower_n2ll = rep(NA, length(paramCI)), parCI_upper_chisq = rep(NA, length(paramCI)),
-                 parCI_lower_chisq = rep(NA, length(paramCI)), parCI_lower_chisq.p = rep(NA, length(paramCI)),
-                 parCI_upper_chisq.p = rep(NA, length(paramCI)))
+  CIlist <- list(parFit_names = rep(NA, length(paramCI)), parFit_values = rep(NA, length(paramCI)), parFit_min_n2ll = rep(NA, length(paramCI)), parCI_upper = rep(NA, length(paramCI)), parCI_lower = rep(NA, length(paramCI)), parCI_upper_n2ll = rep(NA, length(paramCI)), parCI_lower_n2ll = rep(NA, length(paramCI)), parCI_upper_chisq = rep(NA, length(paramCI)), parCI_lower_chisq = rep(NA, length(paramCI)), parCI_lower_chisq.p = rep(NA, length(paramCI)), parCI_upper_chisq.p = rep(NA, length(paramCI)))
 
   for (l in 1:length(min_n2ll)) {
     for (p in 1:length(paramCI)) {
@@ -107,19 +106,61 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
         stop("Entered fit function not found. Must enter either FPM_Fit or Kissileff_Fit.")
       }
 
-      BiteMod_CIlower <- stats::optim(par = c(parameters), fn = CI_LRTest,
-                                 data = data, model_str = model_str, timeVar = timeVar,
-                                 intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
-                                 conf = conf, bound = 'lower')
+      if(length(conf) == 1){
+        #same CI for all each parameter in paramCI
+        CI = conf
+      } else {
+        #different CI for each parameter in paramCI
+        CI = conf[p]
+      }
 
+      #add par info
+      CIlist$parFit_values[parIndex] = parameters[parIndex]
+      CIlist$parFit_names[parIndex] = paramCI[p]
+
+      ##Lower bound
+      BiteMod_CIlower <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+
+      if(model_str == 'FPM'){
+        BiteMod_CIlower_check <- stats::optim(par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+
+        while(BiteMod_CIlower$par[parIndex] != BiteMod_CIlower_check$par[parIndex]){
+          BiteMod_CIlower <- BiteMod_CIlower_check
+
+          BiteMod_CIlower_check <- stats::optim(par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+        }
+      } else if (model_str == 'Kissileff'){
+        BiteMod_CIlower_check <- stats::optim(par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+
+        while(BiteMod_CIlower$par[parIndex] != BiteMod_CIlower_check$par[parIndex]){
+          BiteMod_CIlower <- BiteMod_CIlower_check
+
+          BiteMod_CIlower_check <- stats::optim(par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2],  BiteMod_CIlower$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+        }
+      }
 
       CIlist$parCI_lower[parIndex] <- BiteMod_CIlower$par[parIndex]
 
       #upper bound
-      BiteMod_CIupper <- stats::optim(par = c(parameters), fn = CI_LRTest,
-                                      data = data, model_str = s, timeVar = timeVar,
-                                      intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,
-                                      conf = conf, bound = 'upper')
+      BiteMod_CIupper <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,  intakeVar = intakeVar, min_n2ll = min_n2ll[l],paramIndex = parIndex, conf = CI, bound = 'upper')
+
+      if(model_str == 'FPM'){
+        BiteMod_CIupper_check <- stats::optim(par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'upper')
+
+        while(BiteMod_CIupper$par[parIndex] != BiteMod_CIupper_check$par[parIndex]){
+          BiteMod_CIupper <- BiteMod_CIupper_check
+
+          BiteMod_CIupper_check <- stats::optim(par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'upper')
+        }
+      } else if (model_str == 'Kissileff'){
+        BiteMod_CIupper_check <- stats::optim(par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'upper')
+
+        while(BiteMod_CIupper$par[parIndex] != BiteMod_CIupper_check$par[parIndex]){
+          BiteMod_CIupper <- BiteMod_CIupper_check
+
+          BiteMod_CIupper_check <- stats::optim(par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2],  BiteMod_CIupper$par[2]), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'upper')
+        }
+      }
 
       CIlist$parCI_upper[parIndex] <- BiteMod_CIupper$par[parIndex]
 
@@ -133,7 +174,7 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
 
         CIlist$parCI_lower_n2ll[parIndex] = lower_n2ll
         CIlist$parCI_lower_chisq[parIndex] = lower_n2ll - min_n2ll[l]
-        CIlist$parCI_lower_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
+        CIlist$parCI_lower_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
 
         ##upper
         upper_n2ll = FPM_n2ll(data = data, par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2]),
@@ -141,35 +182,31 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
 
         CIlist$parCI_upper_n2ll[parIndex] = upper_n2ll
         CIlist$parCI_upper_chisq[parIndex] = upper_n2ll - min_n2ll[l]
-        CIlist$parCI_upper_chisq.p[parIndex] = 1-pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
+        CIlist$parCI_upper_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
 
       } else if (fn_name == "Kissileff_Fit") {
 
         # calculate -2 loglikelihood for fit
 
         ##lower
-        lower_n2ll = Kissileff_n2ll(data = data, par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2]),
-                                    timeVar = timeVar, intakeVar = intakeVar)
+        lower_n2ll = Kissileff_n2ll(data = data, par = c(BiteMod_CIlower$par[1], BiteMod_CIlower$par[2], BiteMod_CIlower$par[3]),timeVar = timeVar, intakeVar = intakeVar)
 
         CIlist$parCI_lower_n2ll[parIndex] = lower_n2ll
         CIlist$parCI_lower_chisq[parIndex] = lower_n2ll - min_n2ll[l]
-        CIlist$parCI_lower_chisq.p[parIndex] = 1 - pchisq(CIlist$parCI_lower_chisq[parIndex],  df = 1)
+        CIlist$parCI_lower_chisq.p[parIndex] = 1 - stats::pchisq(CIlist$parCI_lower_chisq[l],  df = 1)
 
         ##upper
-        upper_n2ll = Kissileff_n2ll(data = data, par = c(BiteMod_CIlower$par[1],BiteMod_CIlower$par[2]),
-                                    timeVar = timeVar, intakeVar = intakeVar)
+        upper_n2ll = Kissileff_n2ll(data = data, par = c(BiteMod_CIupper$par[1], BiteMod_CIupper$par[2], BiteMod_CIupper$par[3]), timeVar = timeVar, intakeVar = intakeVar)
 
-        CIlist$parCI_upper_n2ll[parIndex] = upper_n2ll
-        CIlist$parCI_upper_chisq[parIndex] = upper_n2ll - min_n2ll[l]
-        CIlist$parCI_upper_chisq.p[parIndex] = 1 - pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
+        CIlist$parCI_upper_n2ll[l] = upper_n2ll
+        CIlist$parCI_upper_chisq[l] = upper_n2ll - min_n2ll[l]
+        CIlist$parCI_upper_chisq.p[l] = 1 - stats::pchisq(CIlist$parCI_upper_chisq[l], df = 1)
       }
 
       # Add information to dataset
       CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]
-      CIlist$parFit_values[parIndex] = parameters[parIndex]
-      CIlist$parFit_names[parIndex] = paramCI[p]
-
     }
+
     # determine whether to output a list array for multiple fit values or
     # not
     if (length(min_n2ll) > 1 & l != 1) {

@@ -16,7 +16,9 @@ Imports:
     mc2d,
     truncnorm,
     MASS,
-    faux
+    faux,
+    methods,
+    utils
 Remotes:
     debruine/faux
 Suggests: 

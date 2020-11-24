@@ -22,7 +22,7 @@
 simBitesLogit = function(mealdur, nBites, Emax, id){
 
   #get randomly generated values from logistic distribution
-  randlogistic = sort(rtrunc(rlogis, nBites, 0))
+  randlogistic = sort(mc2d::rtrunc(stats::rlogis, nBites, 0))
   rand_time = (randlogistic/max(randlogistic))*mealdur
   sampled_time = jitter(rand_time, factor = 2)
 
@@ -43,7 +43,8 @@ simBitesLogit = function(mealdur, nBites, Emax, id){
   grams.bite_avg = rep(Emax/nBites, nBites)
   grams.cumulative_avg = cumsum(grams.bite_avg)
 
-  if(hasArg(id)){
+  id_arg = methods::hasArg(id)
+  if(isTRUE(id_arg)){
     sim_dat = data.frame(rep(id, length(nBites)), bites, sampled_time, grams.cumulative_avg)
     names(sim_dat) = c('id', 'Bite', 'Time', 'CumulativeGrams_avgBite')
   } else {

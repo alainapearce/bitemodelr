@@ -44,6 +44,8 @@
 #' @param rmse (optional) A string indicating which measure to compute root mean square error for. Options include:
 #' 'timing' for bite timing, 'intake' for cumulative intake', 'both' to compute for both timing and intake.
 #' If not specified, rmse is not computed. Default is to not compute rmse.
+#' @inheritParams Kissileff_Fit
+#' @inheritParams CI_LRTest
 #'
 #' @return Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
 #'
@@ -56,7 +58,7 @@
 #'
 #' @export
 
-ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise = TRUE, measureNoise = FALSE, pNoise_biteSizeSD = NA, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean", keepBites = FALSE, paramCI = NA, conf = 95, rmse = NA) {
+ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise = TRUE, measureNoise = FALSE, pNoise_biteSizeSD = NA, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean", keepBites = FALSE, paramCI = NA, conf = 95, rmse = NA, hessian = FALSE, fixParam = FALSE) {
 
   # get entered of default function names as characters
   if (model_str == 'FPM'){
@@ -123,6 +125,11 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     paramRecov$initial_r <- rep(parameters[2], nrows)
     paramRecov$r <- NA
 
+    #hessian implimentation
+    if (isTRUE(hessian)){
+      paramRecov$theta_se <- NA
+      paramRecov$r_se <- NA
+    }
 
     # set default parameters to use as starting values in recovery
     parametersDefault <- c(10, 0.1)
@@ -134,6 +141,13 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     paramRecov$linear <- NA
     paramRecov$initial_quad <- rep(parameters[3], nrows)
     paramRecov$quad <- NA
+
+    #hessian implementation
+    if (isTRUE(hessian)){
+      paramRecov$int_se <- NA
+      paramRecov$linear_se <- NA
+      paramRecov$quad_se <- NA
+    }
 
     # set default parameters to use as starting values in recovery
     parametersDefault <- c(10, 1, -0.1)
@@ -297,8 +311,7 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
           simDat$EstimatedTimeAdj <- jitter(simDat[, "EstimatedTime"])
 
           # check to see if intake decreases at any point
-          Check_biteTime_adj <- c(simDat$EstimatedTimeAdj[1], diff(simDat$EstimatedTimeAdj,
-                                                                   difference = 1))
+          Check_biteTime_adj <- c(simDat$EstimatedTimeAdj[1], diff(simDat$EstimatedTimeAdj, difference = 1))
 
           # if there is a place were cumulative intake decreased, set to the
           # average of the t-1 and t+1 cumulative intake
@@ -361,6 +374,9 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     ##Bite size
     if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
       param_intakeVar <- "CumulativeGrams_recParam_Adj"
+
+      #for RMSE if needed
+      param_intakeVarTrue <- "CumulativeGrams"
     } else {
       param_intakeVar <- "CumulativeGrams"
 
@@ -371,6 +387,10 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     ##Bite Timing
     if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteTiming' | measureNoise == 'bitetiming') {
       param_timeVar <- "EstimatedTime_recParam_Adj"
+
+      #for RMSE if needed
+      param_timeVarTrue <- "EstimatedTime"
+
     } else {
       param_timeVar <- "EstimatedTime"
 
@@ -386,8 +406,7 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     }
 
     # recover parameters
-    paramSim <- IntakeModelParams(simDat, parameters = parametersDefault,
-                                  timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
+    paramSim <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str, hessian = hessian)
 
     #calculate chi-square for fitted params
     fit_chiTest = true_n2ll - paramSim$value
@@ -399,6 +418,12 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
       paramRecov$r[b] <- paramSim$r
       paramRecov$theta[b] <- paramSim$theta
 
+      #hessian implementation
+      if (isTRUE(hessian)){
+        paramRecov$r_se[b] <- paramSim$r_se
+        paramRecov$theta_se[b] <- paramSim$theta_se
+      }
+
       parameters_fit = c(paramSim$theta, paramSim$r)
 
     } else if (fnFit_name == "Kissileff_Fit") {
@@ -406,6 +431,13 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
       paramRecov$int[b] <- paramSim$int
       paramRecov$linear[b] <- paramSim$linear
       paramRecov$quad[b] <- paramSim$quad
+
+      #hessian implimentation
+      if (isTRUE(hessian)){
+        paramRecov$int_se[b] <- paramSim$int_se
+        paramRecov$linear_se[b] <- paramSim$linear_se
+        paramRecov$quad_se[b] <- paramSim$quad_se
+      }
 
       parameters_fit = c(paramSim$int, paramSim$linear, paramSim$quad)
     }
@@ -421,7 +453,8 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
       paramCI_list <- LRT_CIbounds(simDat, parameters = parameters_fit,
                                    min_n2ll = paramSim$value, paramCI = paramCI,
                                    model_str = model_str, timeVar = param_timeVar,
-                                   intakeVar = param_intakeVar, conf = conf)
+                                   intakeVar = param_intakeVar, conf = conf,
+                                   fixParam = fixParam)
 
       # get index of parameter so that can pull the same one -- CI script is written so tha t the output parameters are always in the same order so that it can be used independently
       for (p in 1:length(paramCI)) {

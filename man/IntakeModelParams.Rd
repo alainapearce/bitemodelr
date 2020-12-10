@@ -10,7 +10,8 @@ IntakeModelParams(
   timeVar,
   intakeVar,
   model_str = "FPM",
-  idVar = NA
+  idVar = NA,
+  hessian = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ Default is 'FPM'.}
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 fitted values will be returned.}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
 }
 \value{
 A dataframe with fitted parameter values and all optim outputs

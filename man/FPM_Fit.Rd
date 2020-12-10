@@ -4,7 +4,7 @@
 \alias{FPM_Fit}
 \title{FPM_Fit: Fits parameters for the First Principles Model}
 \usage{
-FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
+FPM_Fit(data, parameters, timeVar, intakeVar, Emax, hessian = FALSE)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -17,6 +17,8 @@ FPM_Fit(data, parameters, timeVar, intakeVar, Emax)
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
 }
 \value{
 A list with of values from optim fit

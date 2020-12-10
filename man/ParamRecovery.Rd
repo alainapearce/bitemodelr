@@ -17,7 +17,9 @@ ParamRecovery(
   keepBites = FALSE,
   paramCI = NA,
   conf = 95,
-  rmse = NA
+  rmse = NA,
+  hessian = FALSE,
+  fixParam = FALSE
 )
 }
 \arguments{
@@ -36,8 +38,7 @@ initail bite timing.}
 
 \item{measureNoise}{(optional) A string indicating they type of measurement noise to add. The options include:
 'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered);
-or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial
-parameterization and before parameter recovery. Default is no measurement error.}
+or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
 
 \item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and
 will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal
@@ -70,6 +71,10 @@ specified, no CI will be computed. Default is to no compute CIs.}
 \item{rmse}{(optional) A string indicating which measure to compute root mean square error for. Options include:
 'timing' for bite timing, 'intake' for cumulative intake', 'both' to compute for both timing and intake.
 If not specified, rmse is not computed. Default is to not compute rmse.}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
+
+\item{fixParam}{(optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.}
 }
 \value{
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
@@ -91,5 +96,5 @@ is added after and there is no adjustment to fit the model. The parameters will 
 
 }
 \seealso{
-This function relies on \code{\link{simBites}} and \code{\link{IntakeModelParams}}.
+This function relies on \code{\link{n2LL_FPM}} and \code{\link{n2LL_Kissileff}}.
 }

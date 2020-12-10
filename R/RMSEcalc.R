@@ -95,20 +95,40 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, message = FALSE)
     }
 
-    #number of NAs
-    nNA <- sum(is.na(predValue))
+    #check for NAs or NULL values - if null may be list not vector
+    if(is.list(predValue)){
+      #number of NAs
+      nNA <- length(predValue) - length(base::unlist(predValue)) + sum(base::is.na(base::unlist(predValue)))
 
-    #replace NA values
-    if(nNA > 0){
       for (b in 1:length(predValue)){
-        if(is.na(predValue[b])){
-          #1st half timepoints vs 2nd half timepoints
+        if(base::is.na(predValue[[b]]) || base::is.null(predValue[[b]])){
           if (b/length(predValue) < 0.5){
             #set time to zero
-            predValue[b] <- 0
+            predValue[[b]] <- 0
           } else {
             #replace with max predicted timing
-            predValue[b] <- max(data[, timeVar])
+            predValue[[b]] <- max(data[, timeVar])
+          }
+        }
+      }
+      predValue = base::unlist(predValue)
+
+    } else {
+      #number of NAs
+      nNA <- sum(base::is.na(predValue)) + sum(base::is.null(predValue))
+
+      #replace NA values
+      if(nNA > 0){
+        for (b in 1:length(predValue)){
+          if(base::is.na(predValue[b]) || base::is.null(predValue[b])){
+            #1st half timepoints vs 2nd half timepoints
+            if (b/length(predValue) < 0.5){
+              #set time to zero
+              predValue[b] <- 0
+            } else {
+              #replace with max predicted timing
+              predValue[b] <- max(data[, timeVar])
+            }
           }
         }
       }
@@ -116,30 +136,51 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
 
     #RMSE
     rmse <- RMSE(data[, timeVar], predValue)
+
   } else if (error_outcome == 'intake'){
     #predicted values for cumulative intake
     if (model_str == 'FPM') {
-      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, Emax = Emax_long, message = FALSE)
+      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, Emax = Emax_long)
     } else if (model_str == 'Kissileff') {
-      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, message = FALSE)
+      predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long)
     }
 
-    #number of NAs
-    nNA <- sum(is.na(predValue))
+    #check for NAs or NULL values - if null may be list not vector
+    if(is.list(predValue)){
+      #number of NAs
+      nNA <- length(predValue) - length(base::unlist(predValue)) + sum(base::is.na(base::unlist(predValue)))
 
-    #replace NA values
-    if(nNA > 0){
       for (b in 1:length(predValue)){
-        if(is.na(predValue[b])){
-          #early timepoints -- less than half through
+        if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]])){
+          #1st half timepoints vs 2nd half timepoints
           if (b/length(predValue) < 0.5){
-            predValue[b] <- 0
+            predValue[[b]] <- 0
           } else {
-            predValue[b] <- Emax
+            predValue[[b]] <- Emax
+          }
+        }
+      }
+      predValue = base::unlist(predValue)
+
+    } else {
+      #number of NAs
+      nNA <- sum(base::is.na(predValue)) + sum(base::is.null(predValue))
+
+      #replace NA values
+      if(nNA > 0){
+        for (b in 1:length(predValue)){
+          if(is.na(predValue[b])){
+            #1st half timepoints vs 2nd half timepoints
+            if (b/length(predValue) < 0.5){
+              predValue[b] <- 0
+            } else {
+              predValue[b] <- Emax
+            }
           }
         }
       }
     }
+
     #RMSE
     rmse <- RMSE(data[, intakeVar], predValue)
   }

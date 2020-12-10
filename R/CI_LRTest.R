@@ -5,11 +5,13 @@
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams simBites
 #' @inheritParams Kissileff_n2ll
+#' @param parValues (option) Fitted parameter values to use as reference - only required for the Brent optimization when fixParam is set to TRUE
 #' @inheritParams Kissileff_n2ll
 #' @param min_n2ll This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.
 #' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.
 #' @param conf Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.
 #' @param bound A string with the boundary value desired: 'upper' or 'lower'
+#' @param fixParam (optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.
 #'
 #' @return The likelihood ratio test for the CI bound and value (upper v lower) requested
 #'
@@ -20,8 +22,8 @@
 #'
 #' @export
 #'
-CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
-                      min_n2ll, paramIndex, conf = 95, bound) {
+CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVar,
+                      min_n2ll, paramIndex, conf = 95, bound, fixParam = FALSE) {
 
   # check input arguments
   if (model_str == "FPM") {
@@ -36,14 +38,50 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
 
   # check parameters
   param_arg = methods::hasArg(par)
-  if (isFALSE(param_arg)) {
-    if (fn_name == "FPM_n2ll") {
-      par <- c(10, 0.1)
-    } else if (fn_name == "Kissileff_n2ll") {
-      par <- c(10, 1, -1)
-    } else {
-      stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
+
+  if (isFALSE(fixParam)){
+    if (isFALSE(param_arg)) {
+      if (fn_name == "FPM_n2ll") {
+        par <- c(10, 0.1)
+      } else if (fn_name == "Kissileff_n2ll") {
+        par <- c(10, 1, -1)
+      } else {
+        stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
+      }
     }
+  } else if (isTRUE(fixParam)){
+    if (isFALSE(param_arg)) {
+      if (fn_name == "FPM_n2ll") {
+        if (paramIndex == 1){
+          par <- 10
+        } else {
+          par <- 0.1
+        }
+
+      } else if (fn_name == "Kissileff_n2ll") {
+        if (paramIndex == 1){
+          par <- 10
+        } else if (paramIndex == 2) {
+          par <- 1
+        } else if (paramIndex == 3) {
+          par <- -1
+        }
+      } else {
+        stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
+      }
+    }
+
+    paramVal_arg = methods::hasArg(parValues)
+    if (isFALSE(paramVal_arg)) {
+      if (fn_name == "FPM_n2ll") {
+        parValues <- c(10, 0.1)
+      } else if (fn_name == "Kissileff_n2ll") {
+        parValues <- c(10, 1, -1)
+      } else {
+        stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
+      }
+    }
+
   }
 
   # check input arguments for variable names
@@ -69,27 +107,53 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
   chi_p = 1-(conf/100)
   chi_crit = stats::qchisq(chi_p, df = 1, lower.tail = FALSE)
 
-  # debug/trying with critical values entered
-  # chi_crit = conf
-
   # calculate log-likelihood ratio
   target = min_n2ll + chi_crit
+
+  # update par in parameters list for function
+  if (isTRUE(fixParam)){
+    parameters <- parValues
+    parameters[paramIndex] <- par
+  }
 
   # run fit function
   if (fn_name == "FPM_n2ll") {
 
     if (class(n2ll_fn) == 'name') {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
+      if (isFALSE(fixParam)){
+        fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
+      } else if (isTRUE(fixParam)){
+        fit <- do.call(fn_name, list(data, parameters, timeVar, intakeVar, Emax = max(data[3])))
+      }
+
     } else {
-      fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+      if (isFALSE(fixParam)){
+        fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
+
+      } else if (isTRUE(fixParam)){
+        fit <- n2ll_fn(data, parameters, timeVar, intakeVar, Emax = max(data[3]))
+      }
+
     }
 
   } else if (fn_name == "Kissileff_n2ll") {
 
     if (class(n2ll_fn) == "name") {
-      fit <- do.call(fn_name, list(data, par, timeVar, intakeVar))
+      if (isFALSE(fixParam)){
+        fit <- do.call(fn_name, list(data, par, timeVar, intakeVar))
+
+      } else if (isTRUE(fixParam)){
+        fit <- do.call(fn_name, list(data, parameters, timeVar, intakeVar))
+      }
+
     } else {
-      fit <- n2ll_fn(data, par, timeVar, intakeVar)
+      if (isFALSE(fixParam)){
+        fit <- n2ll_fn(data, par, timeVar, intakeVar)
+
+      } else if (isTRUE(fixParam)){
+        fit <- n2ll_fn(data, parameters, timeVar, intakeVar)
+      }
+
     }
 
   } else {
@@ -99,10 +163,25 @@ CI_LRTest <- function(data, par, model_str = 'FPM', timeVar, intakeVar,
   #get lrt
   if (bound == 'lower' | bound == 'Lower' ){
     ##lower
-    lrt <- (target - fit)^2 + par[paramIndex]
+    if (isFALSE(fixParam)){
+      lrt <- (target - fit)^2 + par[paramIndex]
+
+    } else if (isTRUE(fixParam)){
+      lrt <- (target - fit)^2 + par
+    }
+
+
   } else if (bound == 'upper' | bound == 'Upper' ) {
     ##upper
-    lrt <- (target - fit)^2 - par[paramIndex]
+    if (isFALSE(fixParam)){
+      lrt <- (target - fit)^2 - par[paramIndex]
+
+    } else if (isTRUE(fixParam)){
+      lrt <- (target - fit)^2 - par
+
+    }
+
+
   } else {
     lrt <- NA
   }

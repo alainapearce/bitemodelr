@@ -36,8 +36,7 @@ initail bite timing.}
 
 \item{measureNoise}{(optional) A string indicating they type of measurement noise to add. The options include:
 'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered);
-or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial
-parameterization and before parameter recovery. Default is no measurement error.}
+or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
 
 \item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and
 will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal

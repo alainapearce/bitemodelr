@@ -81,8 +81,16 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
         message("The entered Emax is not reached by end of meal (maxDur). Bites are estimated based on cumulative intake at the end of the meal time. This means participant will not have reached Emax")
       }
 
-    } else {
-      message("maxDur is only needed for the First Principles Model")
+    } else if (fnTime_name == "Kissileff_Time") {
+      Emax_Time <- sapply(Emax, Kissileff_Time, parameters = c(parameters))
+
+      if (round(Emax_Time, 2) > maxDur) {
+        # indicates need to change Emax because Emax not reached withing maxDur
+        # for meal
+        changeIntake = "Y"
+        newEmax <- sapply(maxDur, Kissileff_Intake, parameters = c(parameters))
+        message("The entered Emax is not reached by end of meal (maxDur). Bites are estimated based on cumulative intake at the end of the meal time. This means participant will not have reached Emax")
+      }
     }
   }
 

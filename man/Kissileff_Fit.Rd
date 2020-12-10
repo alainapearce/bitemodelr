@@ -4,7 +4,7 @@
 \alias{Kissileff_Fit}
 \title{Kissileff_Fit: Fits beta coeffiecents for Kissileff's quadratic model}
 \usage{
-Kissileff_Fit(data, parameters, timeVar, intakeVar)
+Kissileff_Fit(data, parameters, timeVar, intakeVar, hessian = FALSE)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -15,6 +15,8 @@ Kissileff_Fit(data, parameters, timeVar, intakeVar)
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
 }
 \value{
 A list with of values from optim fit

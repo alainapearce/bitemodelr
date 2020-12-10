@@ -12,7 +12,8 @@ LRT_CIbounds(
   model_str = "FPM",
   timeVar,
   intakeVar,
-  conf = 95
+  conf = 95,
+  fixParam = FALSE
 )
 }
 \arguments{
@@ -33,6 +34,8 @@ Default is 'FPM'.}
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{conf}{Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.}
+
+\item{fixParam}{(optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.}
 }
 \value{
 A list with all information for the specified confidence bounds, model, and parameters

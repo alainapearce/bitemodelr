@@ -374,29 +374,22 @@ ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise
     ##Bite size
     if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
       param_intakeVar <- "CumulativeGrams_recParam_Adj"
-
-      #for RMSE if needed
-      param_intakeVarTrue <- "CumulativeGrams"
     } else {
       param_intakeVar <- "CumulativeGrams"
-
-      #for RMSE if needed
-      param_intakeVarTrue <- "CumulativeGrams"
     }
+
+    #for RMSE if needed
+    param_intakeVarTrue <- "CumulativeGrams"
 
     ##Bite Timing
     if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteTiming' | measureNoise == 'bitetiming') {
       param_timeVar <- "EstimatedTime_recParam_Adj"
-
-      #for RMSE if needed
-      param_timeVarTrue <- "EstimatedTime"
-
     } else {
       param_timeVar <- "EstimatedTime"
-
-      #for RMSE if needed
-      param_timeVarTrue <- "EstimatedTime"
     }
+
+    #for RMSE if needed
+    param_timeVarTrue <- "EstimatedTime"
 
     #calculate 'true' -2 log-likelihood
     if(model_str == 'FPM'){

@@ -30,16 +30,16 @@
 #' @export
 Kissileff_Fit <- function(data, parameters, timeVar, intakeVar, hessian = FALSE)
 {
-
   # use optim to optimize parameters for data given the Kissileff quadratic model
-  fit <- stats::optim(par = c(parameters), fn = Kissileff_n2ll, data = data, time = timeVar, intake = intakeVar, hessian = hessian)
+  fit <- stats::optim(par = c(parameters), fn = Kissileff_n2ll, data = data,
+                      timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
 
-  fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, time = timeVar, intake = intakeVar, hessian = hessian)
+  fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
 
   while(fit$par[1] != fit_check$par[1] || fit$par[2] != fit_check$par[2] || fit$par[3] != fit_check$par[3]){
     fit <- fit_check
 
-    fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, time = timeVar, intake = intakeVar, hessian = hessian)
+    fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
   }
 
   #calculate standard errors

@@ -49,9 +49,16 @@ FPM_Time <- function(intake, parameters, Emax, message = TRUE) {
     }
   }
 
-  #get time at which intake is achieved given the FPM equation
-  T_e = (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake *
-                                                                   parameters[2])/parameters[1]) + 1))/(Emax - intake))
+  log_term <- Emax * (((intake * parameters[2])/parameters[1]) + 1)
+
+  if (log_term > 0){
+    #get time at which intake is achieved given the FPM equation
+    T_e <- (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake *
+                                                                           parameters[2])/parameters[1]) + 1))/(Emax - intake))
+  } else {
+    T_e <- NA
+  }
+
 
   #return time
   return(T_e)

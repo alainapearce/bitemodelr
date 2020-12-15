@@ -22,8 +22,7 @@
 #'
 #' @export
 #'
-CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVar,
-                      min_n2ll, paramIndex, conf = 95, bound, fixParam = FALSE) {
+CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVar, min_n2ll, paramIndex, conf = 95, bound, fixParam = FALSE) {
 
   # check input arguments
   if (model_str == "FPM") {
@@ -49,7 +48,9 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
         stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
       }
     }
-  } else if (isTRUE(fixParam)){
+  }
+
+  if (isTRUE(fixParam)){
     if (isFALSE(param_arg)) {
       if (fn_name == "FPM_n2ll") {
         if (paramIndex == 1){
@@ -57,7 +58,6 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
         } else {
           par <- 0.1
         }
-
       } else if (fn_name == "Kissileff_n2ll") {
         if (paramIndex == 1){
           par <- 10
@@ -72,6 +72,7 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
     }
 
     paramVal_arg = methods::hasArg(parValues)
+
     if (isFALSE(paramVal_arg)) {
       if (fn_name == "FPM_n2ll") {
         parValues <- c(10, 0.1)
@@ -81,8 +82,8 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
         stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
       }
     }
-
   }
+
 
   # check input arguments for variable names
   intakeVar_arg = methods::hasArg(intakeVar)
@@ -120,20 +121,17 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
   if (fn_name == "FPM_n2ll") {
 
     if (class(n2ll_fn) == 'name') {
-      if (isFALSE(fixParam)){
+      if(isFALSE(fixParam)){
         fit <- do.call(fn_name, list(data, par, timeVar, intakeVar, Emax = max(data[3])))
       } else if (isTRUE(fixParam)){
         fit <- do.call(fn_name, list(data, parameters, timeVar, intakeVar, Emax = max(data[3])))
       }
-
     } else {
-      if (isFALSE(fixParam)){
+      if(isFALSE(fixParam)){
         fit <- n2ll_fn(data, par, timeVar, intakeVar, Emax = max(data[3]))
-
       } else if (isTRUE(fixParam)){
         fit <- n2ll_fn(data, parameters, timeVar, intakeVar, Emax = max(data[3]))
       }
-
     }
 
   } else if (fn_name == "Kissileff_n2ll") {
@@ -141,19 +139,15 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
     if (class(n2ll_fn) == "name") {
       if (isFALSE(fixParam)){
         fit <- do.call(fn_name, list(data, par, timeVar, intakeVar))
-
       } else if (isTRUE(fixParam)){
         fit <- do.call(fn_name, list(data, parameters, timeVar, intakeVar))
       }
-
     } else {
       if (isFALSE(fixParam)){
         fit <- n2ll_fn(data, par, timeVar, intakeVar)
-
       } else if (isTRUE(fixParam)){
         fit <- n2ll_fn(data, parameters, timeVar, intakeVar)
       }
-
     }
 
   } else {
@@ -165,22 +159,17 @@ CI_LRTest <- function(data, par, parValues, model_str = 'FPM', timeVar, intakeVa
     ##lower
     if (isFALSE(fixParam)){
       lrt <- (target - fit)^2 + par[paramIndex]
-
     } else if (isTRUE(fixParam)){
       lrt <- (target - fit)^2 + par
     }
-
 
   } else if (bound == 'upper' | bound == 'Upper' ) {
     ##upper
     if (isFALSE(fixParam)){
       lrt <- (target - fit)^2 - par[paramIndex]
-
     } else if (isTRUE(fixParam)){
       lrt <- (target - fit)^2 - par
-
     }
-
 
   } else {
     lrt <- NA

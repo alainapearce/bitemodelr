@@ -2,18 +2,20 @@
 % Please edit documentation in R/CI_LRTest_r_reparam.R
 \name{CI_LRTest_r_reparam}
 \alias{CI_LRTest_r_reparam}
-\title{CI_LRTest_r_reparam: Wrapper of model fit functions that calculates the likelihood ratio test with r re-parameterized to be e^r = ln(r)}
+\title{CI_LRTest: Wrapper of model fit functions that calculates the likelihood ratio test}
 \usage{
 CI_LRTest_r_reparam(
   data,
   par,
+  parValues,
   model_str = "FPM",
   timeVar,
   intakeVar,
   min_n2ll,
   paramIndex,
   conf = 95,
-  bound
+  bound,
+  fixParam = FALSE
 )
 }
 \arguments{
@@ -21,6 +23,8 @@ CI_LRTest_r_reparam(
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{par}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)}
+
+\item{parValues}{(option) Fitted parameter values to use as reference - only required for the Brent optimization when fixParam is set to TRUE}
 
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}
@@ -36,12 +40,14 @@ Default is 'FPM'.}
 \item{conf}{Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
+
+\item{fixParam}{(optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.}
 }
 \value{
 The likelihood ratio test for the CI bound and value (upper v lower) requested
 }
 \description{
-This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value. r re-parameterized to be e^r = ln(r)
+This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
 }
 \examples{
 

@@ -101,7 +101,6 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
             upper_lim <- abs(parameters[p])*3
             lower_lim <- abs(parameters[p])*-3
           }
-
         }
 
       } else if (fn_name == "Kissileff_Fit") {
@@ -116,7 +115,6 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
         if (paramCI[p] == "int" | paramCI[p] == "Int" | paramCI[p] ==
             "Intercept" | paramCI[p] == "intercept") {
           parIndex <- 1
-
         } else if (paramCI[p] == "linear" | paramCI[p] == "Linear" |
                    paramCI[p] == "lin" | paramCI[p] == "Lin") {
           parIndex <- 2
@@ -144,30 +142,20 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
 
       for(b in 1:2){
 
-        print(bounds[b])
-
         if (isFALSE(fixParam)){
-          BiteMod_CIbound <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, conf = CI, bound = bounds[b])
+          BiteMod_CIbound <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
 
+          #update starting parameters
           if(model_str == 'FPM'){
             check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
           } else if (model_str == 'Kissileff'){
             check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
           }
 
-        } else if (isTRUE(fixParam)){
-          BiteMod_CIbound <- stats::optim(par = parameters[parIndex], fn = CI_LRTest, data = data, parValues = c(parameters), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower', fixParam = fixParam)
-
-          check_params <- parameters
-          check_params[parIndex] <- BiteMod_CIbound$par
-        }
-
-        #check to see if par is stable
-        if (isFALSE(fixParam)){
-          BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, conf = CI, bound = bounds[b])
+          #see if get same values twice
+          BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
 
           while(BiteMod_CIbound$par[parIndex] != BiteMod_CIbound_check$par[parIndex]){
-
             BiteMod_CIbound <- BiteMod_CIbound_check
 
             if(model_str == 'FPM'){
@@ -176,11 +164,25 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
               check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
             }
 
-            BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, conf = CI, bound = bounds[b])
+            BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
 
           }
 
+          #final parameter values
+          if(model_str == 'FPM'){
+            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
+          } else if (model_str == 'Kissileff'){
+            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
+          }
+
         } else if (isTRUE(fixParam)){
+          BiteMod_CIbound <- stats::optim(par = parameters[parIndex], fn = CI_LRTest, data = data, parValues = c(parameters), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
+
+          #update starting values
+          check_params <- parameters
+          check_params[parIndex] <- BiteMod_CIbound$par
+
+          #check if get same values twice
           BiteMod_CIbound_check <- stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
 
           while(BiteMod_CIbound$par != BiteMod_CIbound$par){
@@ -191,53 +193,37 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
 
             BiteMod_CIbound_check <- stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
           }
+
+          #final parameter values
+          final_params <- parameters
+          final_params[parIndex] <- BiteMod_CIbound$par
         }
 
-        if(model_str == 'FPM'){
+        #model specific -2 log-likelinood and chi-square calculations
+        if (fn_name == "FPM_Fit") {
+          #calculate -2 loglikelihood for fit
+          bound_n2ll = FPM_n2ll(data = data, par = c(final_params), Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
 
-          #calculate log-likelihood
-          if (isFALSE(fixParam)){
-            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
-
-            bound_n2ll = FPM_n2ll(data = data, par = final_params, Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
-          } else if (isTRUE(fixParam)){
-            final_params <- parameters
-            final_params[parIndex] <- BiteMod_CIbound$par
-
-            bound_n2ll = FPM_n2ll(data = data, par = c(final_params), Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
-          }
-
-        } else if (model_str == 'Kissileff'){
-
-          #calculate log-likelihood
-          if (isFALSE(fixParam)){
-            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
-
-            bound_n2ll = Kissileff_n2ll(data = data, par = final_params, timeVar = timeVar, intakeVar = intakeVar)
-
-          } else if (isTRUE(fixParam)){
-            final_params <- parameters
-            final_params[parIndex] <- BiteMod_CIbound$par
-
-            bound_n2ll = Kissileff_n2ll(data = data, par = c(final_params), timeVar = timeVar, intakeVar = intakeVar)
-          }
+        } else if (fn_name == "Kissileff_Fit") {
+          # calculate -2 loglikelihood for fit
+          bound_n2ll = Kissileff_n2ll(data = data, par = c(final_params), timeVar = timeVar, intakeVar = intakeVar)
         }
 
-        #add to database
-        CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]
-
-        if (bounds[b] == 'upper'){
-          CIlist$parCI_upper[parIndex] <- BiteMod_CIbound$par[parIndex]
-          CIlist$parCI_upper_n2ll[parIndex] = bound_n2ll
-          CIlist$parCI_upper_chisq[parIndex] = bound_n2ll - min_n2ll[l]
-          CIlist$parCI_upper_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
-        } else if (bounds[b] == 'lower'){
+        if (bounds[b] == 'lower'){
           CIlist$parCI_lower[parIndex] <- BiteMod_CIbound$par[parIndex]
           CIlist$parCI_lower_n2ll[parIndex] = bound_n2ll
           CIlist$parCI_lower_chisq[parIndex] = bound_n2ll - min_n2ll[l]
           CIlist$parCI_lower_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
+        } else if (bounds[b] == 'upper'){
+          CIlist$parCI_upper[parIndex] <- BiteMod_CIbound$par[parIndex]
+          CIlist$parCI_upper_n2ll[parIndex] = bound_n2ll
+          CIlist$parCI_upper_chisq[parIndex] = bound_n2ll - min_n2ll[l]
+          CIlist$parCI_upper_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
+
         }
 
+        # Add information to dataset
+        CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]
       }
     }
 

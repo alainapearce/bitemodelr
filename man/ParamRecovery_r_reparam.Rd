@@ -2,7 +2,7 @@
 % Please edit documentation in R/ParamRecovery_r_reparam.R
 \name{ParamRecovery_r_reparam}
 \alias{ParamRecovery_r_reparam}
-\title{ParamRecovery_r_reparam: This function recovers parameters for cumulative intake model and the bite data provided with r re-parameterized to be e^r = ln(r)}
+\title{ParamRecovery: This function recovers parameters for cumulative intake model and the bite data provided}
 \usage{
 ParamRecovery_r_reparam(
   nBites,
@@ -17,7 +17,9 @@ ParamRecovery_r_reparam(
   keepBites = FALSE,
   paramCI = NA,
   conf = 95,
-  rmse = NA
+  rmse = NA,
+  hessian = FALSE,
+  fixParam = FALSE
 )
 }
 \arguments{
@@ -69,6 +71,10 @@ specified, no CI will be computed. Default is to no compute CIs.}
 \item{rmse}{(optional) A string indicating which measure to compute root mean square error for. Options include:
 'timing' for bite timing, 'intake' for cumulative intake', 'both' to compute for both timing and intake.
 If not specified, rmse is not computed. Default is to not compute rmse.}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
+
+\item{fixParam}{(optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.}
 }
 \value{
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
@@ -90,5 +96,5 @@ is added after and there is no adjustment to fit the model. The parameters will 
 
 }
 \seealso{
-This function relies on \code{\link{simBites}} and \code{\link{IntakeModelParams}}.
+This function relies on \code{\link{n2LL_FPM}} and \code{\link{n2LL_Kissileff}}.
 }

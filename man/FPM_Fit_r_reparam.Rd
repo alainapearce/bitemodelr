@@ -2,9 +2,9 @@
 % Please edit documentation in R/FPM_Fit_r_reparam.R
 \name{FPM_Fit_r_reparam}
 \alias{FPM_Fit_r_reparam}
-\title{FPM_Fit_r_reparam: Fits parameters for the First Principles Model with r re-parameterized to be e^r = ln(r)}
+\title{FPM_Fit: Fits parameters for the First Principles Model}
 \usage{
-FPM_Fit_r_reparam(data, parameters, timeVar, intakeVar, Emax)
+FPM_Fit_r_reparam(data, parameters, timeVar, intakeVar, Emax, hessian = FALSE)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -17,6 +17,8 @@ FPM_Fit_r_reparam(data, parameters, timeVar, intakeVar, Emax)
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
+
+\item{hessian}{(optional) A logical indicator for using the hessian matrix to calculate standard errors of recovered parameter estimates. Default is FALSE.}
 }
 \value{
 A list with of values from optim fit
@@ -31,7 +33,7 @@ A list with of values from optim fit
 \description{
 This function fits theta and r for the First Principles Model of the
 the cumulative intake curves from Thomas et al., (2017) using
-optim {stats}. r re-parameterized to be e^r = ln(r)
+optim {stats}.
 }
 \examples{
 

@@ -1,4 +1,4 @@
-#' IntakeModelParams_r_reparam: Fits model parameters for cumulative intake curves with r re-parameterized to be e^r = ln(r)
+#' IntakeModelParams: Fits model parameters for cumulative intake curves
 #'
 #' This function provides fitted model parameters for the cumulative
 #' intake curve for each participant/unique ID in a data set. The parameters
@@ -15,6 +15,7 @@
 #' @param idVar (optional) A string that is the name of the ID variable in data. Optional: only include if
 #' data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
 #' fitted values will be returned.
+#' @inheritParams Kissileff_Fit
 #'
 #' @return A dataframe with fitted parameter values and all optim outputs
 #'
@@ -27,11 +28,10 @@
 #'
 #' @export
 IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM',
-                                        idVar = NA) {
+                                        idVar = NA, hessian = FALSE) {
 
   # check input arguments
   intakeVar_arg = methods::hasArg(intakeVar)
-
   if (isFALSE(intakeVar_arg)) {
     stop("no intakeVar found. Set intakeVar to name of variable that
       contains cumulative intake for your data")
@@ -76,9 +76,12 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
 
   # check parameters
   param_arg = methods::hasArg(parameters)
+
   if (isFALSE(param_arg)) {
-    if (fn_name == "FPM_Fit") {
+    if (fn_name == "FPM_Fit_r_reparam") {
       parameters <- c(10, 0.1)
+    } else {
+      stop("Entered fit function not found. Must enter either FPM_Fit_r_reparam")
     }
   }
 
@@ -108,16 +111,30 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
     params_long <- rep(list(parameters), nrow(byid_list))
 
     #Call the fit function for each id using mapply
-
     BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
-                          timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector)
+                          timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector,
+                          hessian = hessian)
 
-    ## Need to figure out this part convert to long dataset - correct dset
-    BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4,
-    ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
+    #non-hessian
+    if (isFALSE(hessian)){
+      BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4, ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
+    } else if (isTRUE(hessian)){
+      # hessian implementation
+      BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[c(1:4,7), ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
+    }
+
     BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
-    names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
-                                 "counts_gradiant", row.names(BiteMod_fit)[4])
+
+    #non-hessian
+    if (isFALSE(hessian)){
+      names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
+                                   "counts_gradiant", row.names(BiteMod_fit)[4])
+    } else if (isTRUE(hessian)){
+      # hessian implementation
+      names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
+                                   "counts_gradiant", row.names(BiteMod_fit)[4], 'theta_se', 'r_se')
+    }
+
     BiteMod_fit_long$method <- fn_name
 
     return(BiteMod_fit_long)
@@ -129,24 +146,48 @@ IntakeModelParams_r_reparam <- function(data, parameters, timeVar, intakeVar, mo
     #get parameter fits
     if (class(fit_fn) == "name") {
       BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-                                           timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
+                                           timeVar = timeVar, intakeVar = intakeVar, Emax = emax, hessian = hessian))
     } else {
       BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-                            Emax = emax)
+                            Emax = emax, hessian = hessian)
     }
 
     idVar_arg = methods::hasArg(idVar)
+
     if (isTRUE(idVar_arg)) {
-      BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
-      names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
-                                  "counts_gradiant", names(BiteMod_fit)[4])
+
+      #non-hessian
+      if (isFALSE(hessian)){
+
+        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
+        names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
+                                    "counts_gradiant", names(BiteMod_fit)[4])
+
+      } else if (isTRUE(hessian)){
+        # hessian implementation
+        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+        names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+      }
+
       BiteMod_fit_dat$method <- fn_name
     } else {
-      BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
-      names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
-                                  "counts_gradiant", names(BiteMod_fit)[4])
+
+      #non-hessian
+      if (isFALSE(hessian)){
+
+        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
+        names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
+                                    "counts_gradiant", names(BiteMod_fit)[4])
+
+      } else if (isTRUE(hessian)){
+        # hessian implementation
+        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+        names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],  "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+      }
+
       BiteMod_fit_dat$method <- fn_name
     }
+
 
     return(BiteMod_fit_dat)
   }

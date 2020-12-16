@@ -5,6 +5,7 @@
 \title{ParamRecovery: This function recovers parameters for cumulative intake model and the bite data provided}
 \usage{
 ParamRecovery(
+  BiteDat,
   nBites,
   Emax,
   parameters,

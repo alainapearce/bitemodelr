@@ -143,7 +143,7 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
       for(b in 1:2){
 
         if (isFALSE(fixParam)){
-          BiteMod_CIbound <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+          BiteMod_CIbound <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
 
           #update starting parameters
           if(model_str == 'FPM'){
@@ -164,7 +164,7 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
               check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
             }
 
-            BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = 'lower')
+            BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
 
           }
 

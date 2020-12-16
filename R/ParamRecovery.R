@@ -58,7 +58,7 @@
 #'
 #' @export
 
-ParamRecovery <- function(nBites, Emax, parameters, model_str = 'FPM', procNoise = TRUE, measureNoise = FALSE, pNoise_biteSizeSD = NA, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean", keepBites = FALSE, paramCI = NA, conf = 95, rmse = NA, hessian = FALSE, fixParam = FALSE) {
+ParamRecovery <- function(BiteDat, nBites, Emax, parameters, model_str = 'FPM', procNoise = TRUE, measureNoise = FALSE, pNoise_biteSizeSD = NA, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean", keepBites = FALSE, paramCI = NA, conf = 95, rmse = NA, hessian = FALSE, fixParam = FALSE) {
 
   # get entered of default function names as characters
   if (model_str == 'FPM'){

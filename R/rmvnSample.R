@@ -104,7 +104,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
         rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:14)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)]), empirical = TRUE))
       }
 
       #FPM checks
@@ -137,24 +137,36 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
         message_long <- rep(FALSE, round(rmvn_datKeep$nBites[r]))
 
         # get long list of parameters
-        if (model_str == 'FPM') {
+        if (model_str == 'FPM' || model_str == 'Both' || model_str == 'both') {
           params_long <- rep(list(c(rmvn_datKeep$theta[r], rmvn_datKeep$r[r])), round(rmvn_datKeep$nBites[r]))
-          simTime <- mapply(FPM_Time, intake = grams.cumulative_avg,
-                            parameters = params_long, Emax = rmvn_datKeep$TotalIntake_g[r], message = message_long)
-        } else if (model_str == 'Kissileff'){
+          simTime_FPM <- mapply(FPM_Time, intake = grams.cumulative_avg,
+                                parameters = params_long, Emax = rmvn_datKeep$TotalIntake_g[r], message = message_long)
+
+          if(length(unlist(simTime_FPM)) != round(rmvn_datKeep$nBites[r])){
+            rmvn_datKeep$time_calc[r] <- 'N'
+          }
+
+          n_negTime_FPM = sum(unlist(simTime_FPM) < 0)
+
+          if (n_negTime_FPM > 0 || is.na(n_negTime_FPM)){
+            rmvn_datKeep$time_calc[r] <- 'N'
+          }
+        }
+
+        if (model_str == 'Kissileff' || model_str == 'Both' || model_str == 'both'){
           params_long <- rep(list(c(rmvn_datKeep$int[r], rmvn_datKeep$linear[r], rmvn_datKeep$quad[r])), round(rmvn_datKeep$nBites[r]))
-          simTime <- mapply(Kissileff_Time, intake <- grams.cumulative_avg,
-                            parameters <- params_long, message <- message_long)
-        }
+          simTime_Kissileff <- mapply(Kissileff_Time, intake <- grams.cumulative_avg,
+                                      parameters <- params_long, message <- message_long)
 
-        if(length(unlist(simTime)) != round(rmvn_datKeep$nBites[r])){
-          rmvn_datKeep$time_calc[r] <- 'N'
-        }
+          if(length(unlist(simTime_Kissileff)) != round(rmvn_datKeep$nBites[r])){
+            rmvn_datKeep$time_calc[r] <- 'N'
+          }
 
-        n_negTime = sum(unlist(simTime) < 0)
+          n_negTime_Kissileff = sum(unlist(simTime_Kissileff) < 0)
 
-        if (n_negTime > 0){
-          rmvn_datKeep$time_calc[r] <- 'N'
+          if (n_negTime_Kissileff > 0 || is.na(n_negTime_FPM)){
+            rmvn_datKeep$time_calc[r] <- 'N'
+          }
         }
       }
 
@@ -183,8 +195,12 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
       SimDat_rmvn$MealDur_Emax[r] <- do.call(FPM_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$theta[r], SimDat_rmvn$r[r]), Emax = SimDat_rmvn$TotalIntake_g[r], message = FALSE))
     } else if (model_str == 'Kissileff'){
       SimDat_rmvn$MealDur_Emax[r] <- do.call(Kissileff_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$int[r], SimDat_rmvn$linear[r], SimDat_rmvn$quad[r]), message = FALSE))
-    }
+    } else if (model_str == 'Both' || model_str == 'both'){
+      SimDat_rmvn$MealDur_Emax_FPM[r] <- do.call(FPM_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$theta[r], SimDat_rmvn$r[r]), Emax = SimDat_rmvn$TotalIntake_g[r], message = FALSE))
 
+      SimDat_rmvn$MealDur_Emax_Kissileff[r] <- do.call(Kissileff_Time, list(intake = SimDat_rmvn$TotalIntake_g[r], parameters = c(SimDat_rmvn$int[r], SimDat_rmvn$linear[r], SimDat_rmvn$quad[r]), message = FALSE))
+
+    }
   }
 
   if(isTRUE(write.dat)){
@@ -193,12 +209,16 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
         utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-3), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
       } else if (model_str == 'Kissileff'){
         utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-2), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      } else if (model_str == 'Both' || model_str == 'both'){
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-5), (ncol(SimDat_rmvn) -1):ncol(SimDat_rmvn))], paste0('Data/', model_str, '_scaled', scaleFactor, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
       }
     } else {
       if (model_str == 'FPM') {
         utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-3), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
       } else if (model_str == 'Kissileff'){
         utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-2), ncol(SimDat_rmvn))], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
+      } else if (model_str == 'Both' || model_str == 'both'){
+        utils::write.csv(SimDat_rmvn[c(1:(ncol(SimDat_rmvn)-5), (ncol(SimDat_rmvn) -1):ncol(SimDat_rmvn))], paste0('Data/', model_str, '_', data_str, '_rmvnDat', nSample, '.csv'), row.names = FALSE)
       }
     }
 

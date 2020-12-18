@@ -21,37 +21,53 @@
 
 simBitesLogit = function(mealdur, nBites, Emax, id){
 
-  #get randomly generated values from logistic distribution
-  randlogistic = sort(mc2d::rtrunc(stats::rlogis, nBites, 0))
-  rand_time = (randlogistic/max(randlogistic))*mealdur
-  sampled_time = jitter(rand_time, factor = 2)
+  lengthEqual <- all(sapply(list(length(mealdur),length(nBites),length(Emax),length(id)), function(x) x == length(id)))
 
-  #make sure starting value is 0 or greater for first bite
-  if(sampled_time[1]<0){
-    sampled_time[1] = 0
-  }
-
-  #make sure the jitter didn't extend the meal duraiton
-  if(sampled_time[nBites] > mealdur){
-    sampled_time[nBites] = mealdur
-  }
-
-  #get bite numbers
-  bites = seq(1, nBites, by = 1)
-
-  #get cummulative intake
-  grams.bite_avg = rep(Emax/nBites, nBites)
-  grams.cumulative_avg = cumsum(grams.bite_avg)
-
-  id_arg = methods::hasArg(id)
-  if(isTRUE(id_arg)){
-    sim_dat = data.frame(rep(id, length(nBites)), bites, sampled_time, grams.cumulative_avg)
-    names(sim_dat) = c('id', 'Bite', 'Time', 'CumulativeGrams_avgBite')
+  if (isTRUE(lengthEqual)){
+    data <- data.frame(id, mealdur, nBites, Emax)
   } else {
-    sim_dat = data.frame(bites, sampled_time, grams.cumulative_avg)
-    names(sim_dat) = c('Bite', 'Time', 'CumulativeGrams_avgBite')
+    stop('All entered vectors must have the same length')
   }
 
+  for(p in 1:nrow(data)){
+    #get randomly generated values from logistic distribution
+    randlogistic <- round(sort(truncdist::rtrunc(data[p, 'nBites'], spec = 'logis', a = 0, location = 0, scale = 7)))
+    rand_time <- (randlogistic/max(randlogistic))*data[p, 'mealdur']
+    sampled_time <- jitter(rand_time, factor = 2)
+
+    #make sure starting value is 0 or greater for first bite
+    if(sampled_time[1]<0){
+      sampled_time[1] <- 0
+    }
+
+    #make sure the jitter didn't extend the meal duraiton
+    if(sampled_time[data[p, 'nBites']] > data[p, 'mealdur']){
+      sampled_time[data[p, 'nBites']] <- data[p, 'mealdur']
+    }
+
+    #get bite numbers
+    bites <- seq(1, data[p, 'nBites'], by = 1)
+
+    #get cummulative intake
+    grams.bite_avg <- rep(data[p, 'Emax'] /data[p, 'nBites'], data[p, 'nBites'])
+    grams.cumulative_avg <- cumsum(grams.bite_avg)
+
+    id_arg <- methods::hasArg(id)
+    if(isTRUE(id_arg)){
+      sim_dat <- data.frame(rep(data[p, 'id'], data[p, 'nBites']), bites, sampled_time, grams.cumulative_avg)
+      names(sim_dat) <- c('id', 'Bite', 'Time', 'CumulativeGrams_avgBite')
+    } else {
+      sim_dat <- data.frame(bites, sampled_time, grams.cumulative_avg)
+      names(sim_dat) <- c('Bite', 'Time', 'CumulativeGrams_avgBite')
+    }
+
+    if (p == 1){
+      sim_dat_long <- sim_dat
+    } else {
+      sim_dat_long <- rbind(sim_dat_long, sim_dat)
+    }
+
+  }
   #set up output_dat
-  return(sim_dat)
+  return(sim_dat_long)
 }

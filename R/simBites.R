@@ -191,7 +191,18 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
                 grams.cumulative_noise[b] <- parameters[1] - (parameters[2]^2/(4*parameters[3])) + 0.0001
                 simTime_procNoise[[b]] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
               } else {
-                grams.cumulative_noise[b] <- (grams.cumulative_noise[b+1] - grams.cumulative_noise[b-1])/2
+
+                #check to see if previous value is greater than future values
+                checkDecrease <- data.frame(decrease = grams.cumulative_noise[b-1] > grams.cumulative_noise, b = seq(1, length(grams.cumulative_noise)))
+                if (sum(checkDecrease$decrease[b:nrow(checkDecrease)]) > 1){
+                  next_b <- max(checkDecrease[checkDecrease$decrease == TRUE, ]$b) + 1
+                  nsteps <- sum(checkDecrease$decrease) + 1
+                } else {
+                  next_b <- b + 1
+                  nsteps <- 2
+                }
+
+                grams.cumulative_noise[b] <-  grams.cumulative_noise[b-1] + (grams.cumulative_noise[next_b] - grams.cumulative_noise[b-1])/nsteps
                 simTime_procNoise[[b]] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
               }
             }
@@ -203,7 +214,20 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
                 grams.cumulative_noise[b] <- parameters[1] - (parameters[2]^2/(4*parameters[3])) + 0.0001
                 simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
               } else {
-                grams.cumulative_noise[b] <- (grams.cumulative_noise[b+1] - grams.cumulative_noise[b-1])/2
+
+                #check to see if previous value is greater than future values
+                checkDecrease <- data.frame(decrease = grams.cumulative_noise[b-1] > grams.cumulative_noise, b = seq(1, length(grams.cumulative_noise)))
+
+                #if more than current value is less than previous
+                if (sum(checkDecrease$decrease[b:nrow(checkDecrease)]) > 1){
+                  next_b <- max(checkDecrease[checkDecrease$decrease == TRUE, ]$b) + 1
+                  nsteps <- sum(checkDecrease$decrease) + 1
+                } else {
+                  next_b <- b + 1
+                  nsteps <- 2
+                }
+
+                grams.cumulative_noise[b] <-  grams.cumulative_noise[b-1] + (grams.cumulative_noise[next_b] - grams.cumulative_noise[b-1])/nsteps
                 simTime_procNoise[b] <- do.call(fnTime_name, list(intake = grams.cumulative_noise[b], parameters = parameters, message = FALSE))
               }
             }

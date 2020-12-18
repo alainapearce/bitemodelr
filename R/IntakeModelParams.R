@@ -28,7 +28,7 @@
 #'
 #' @export
 IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM',
-                              idVar = NA, hessian = FALSE) {
+                                     idVar = NA, hessian = FALSE) {
 
   # check input arguments
   intakeVar_arg = methods::hasArg(intakeVar)
@@ -45,6 +45,21 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
       contains timing of each bite for your data")
   } else if (!(timeVar %in% names(data))) {
     stop("string entered for timeVar does not match any variables in data")
+  }
+
+  #check idVar
+  if (!is.na(idVar)) {
+
+    #stop if idVar does not exist in dataframe
+    if (!(idVar %in% names(data))) {
+      stop("string entered for idVar does not match any variables in data")
+    }
+
+    #get number of ids in idVar
+    nID = length(unique(data[, idVar]))
+  } else {
+    #if idVar = NA (default), set to zero
+    nID = 0
   }
 
   # get name of function that was passed
@@ -72,101 +87,205 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
     }
   }
 
-  emax <- max(data[, intakeVar])
+  # check for ID and if there is more than 1 unique ID
+  if (nID > 1) {
+    #get list of ids
+    id <- factor(data[, idVar])
 
-  #get parameter fits
-  if (fn_name == "FPM_Fit") {
+    #factor idVar in dataframe
+    data[, idVar] = factor(data[, idVar])
 
-    if (class(fit_fn) == "name") {
-      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-                                           timeVar = timeVar, intakeVar = intakeVar, Emax = emax, hessian = hessian))
-    } else {
-      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-                            Emax = emax, hessian = hessian)
+    #get a list with entries being a dataframe for each id level
+    bydatafrmae_list <- sapply(levels(id), function(x) {
+      rowInd = data[, idVar] == x
+      list(data[rowInd, ])
+    })
+
+    byid_list <- t(sapply(levels(id), function(x) {
+      rowInd = data[, idVar] == x
+      data[rowInd, ]
+    }))
+
+    #expand Emax to a vector length = number of unique IDs
+    emax_vector <- sapply(byid_list[, intakeVar], max)
+
+    #expand parameter vector to a list length = number of unique IDs
+    if (model_str == 'FPM'){
+      parameters_dat <- data.frame(matrix(parameters, ncol = 2))
+    } else if (model_str == 'Kissileff'){
+      parameters_dat <- data.frame(matrix(parameters, ncol = 3))
     }
 
-    idVar_arg = methods::hasArg(idVar)
+    if (nrow(parameters_dat) == length(unique(data[, idVar]))){
+      params_long <- parameters_dat
+    } else {
+      if (nrow(parameters_dat) == 1){
+        params_long <- rep(list(parameters_dat), nrow(byid_list))
+      } else {
+        stop('Must enter a set of parameter values for each ID or enter 1 set of parameter values that will be applied to all ID values')
+      }
+    }
 
-    if (isTRUE(idVar_arg)) {
+    #Call the fit function for each id using mapply
+    if (fn_name == "FPM_Fit") {
+
+      BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
+                            timeVar = timeVar, intakeVar = intakeVar, Emax = emax_vector,
+                            hessian = hessian)
 
       #non-hessian
       if (isFALSE(hessian)){
-
-        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4])
-
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4, ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
       } else if (isTRUE(hessian)){
         # hessian implementation
-        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[c(1:4,7)]))))
-        names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[c(1:4,7), ])), nrow = ncol(BiteMod_fit), byrow = TRUE))
       }
 
-      BiteMod_fit_dat$method <- fn_name
-    } else {
+      BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
 
       #non-hessian
       if (isFALSE(hessian)){
-
-        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4])
-
+        names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
+                                     "counts_gradiant", row.names(BiteMod_fit)[4])
       } else if (isTRUE(hessian)){
         # hessian implementation
-        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[c(1:4,7)]))))
-        names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],  "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+        names(BiteMod_fit_long) <- c(idVar, "theta", "r", row.names(BiteMod_fit)[2:3],
+                                     "counts_gradiant", row.names(BiteMod_fit)[4], 'theta_se', 'r_se')
       }
 
-      BiteMod_fit_dat$method <- fn_name
-    }
+      BiteMod_fit_long$method <- fn_name
 
-  } else if (fn_name == "Kissileff_Fit") {
+    } else if (fn_name == "Kissileff_Fit") {
 
-    if (class(fit_fn) == "name") {
-      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
-                                           timeVar = timeVar, intakeVar = intakeVar, hessian = hessian))
-    } else {
-      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar, hessian = hessian)
-    }
-
-    idVar_param = methods::hasArg(idVar)
-    if (isTRUE(idVar_param)) {
+      BiteMod_fit <- mapply(fit_fn, data = bydatafrmae_list, parameters = params_long,
+                            timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
 
       #non-hessian
       if (isFALSE(hessian)){
-
-        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("id", "int", "linear", "quad", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4])
-
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[1:4,])), nrow = ncol(BiteMod_fit), byrow = TRUE))
       } else if (isTRUE(hessian)){
         # hessian implementation
-        BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[c(1:4,7)]))))
-        names(BiteMod_fit_dat) <- c("id", "int", "linear", "quad", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4], "int_se", "linear_se", "quad_se")
+        BiteMod_fit_long <- data.frame(matrix(t(unlist(BiteMod_fit[c(1:4,7),])), nrow = ncol(BiteMod_fit), byrow = TRUE))
       }
 
-      BiteMod_fit_dat$method <- fn_name
-    } else {
+
+      BiteMod_fit_long = data.frame(levels(id), BiteMod_fit_long)
 
       #non-hessian
       if (isFALSE(hessian)){
-
-        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
-        names(BiteMod_fit_dat) <- c("int", "linear", "quad", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4])
+        names(BiteMod_fit_long) <- c(idVar, "int", "linear", "quad", row.names(BiteMod_fit)[2:3], "counts_gradiant", row.names(BiteMod_fit)[4])
 
       } else if (isTRUE(hessian)){
         # hessian implementation
-        BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[c(1:4,7)]))))
-        names(BiteMod_fit_dat) <- c("int", "linear", "quad", names(BiteMod_fit)[2:3],
-                                    "counts_gradiant", names(BiteMod_fit)[4], "int_se", "linear_se", "quad_se")
+        names(BiteMod_fit_long) <- c(idVar, "int", "linear", "quad", row.names(BiteMod_fit)[2:3], "counts_gradiant", row.names(BiteMod_fit)[4], "int_se", "linear_se", "quad_se")
       }
 
-      BiteMod_fit_dat$method <- fn_name
+      BiteMod_fit_long$method <- fn_name
+
+    } else {
+      stop("Entered fit function not found. Must enter either FPM_Fit or Kissileff_Fit.")
     }
+    return(BiteMod_fit_long)
 
   } else {
-    stop("Entered fit function not found. Must enter either FPM_Fit or Kissileff_Fit.")
+    #if only have 1 id/no idVar
+    emax <- max(data[, intakeVar])
+
+    #get parameter fits
+    if (fn_name == "FPM_Fit") {
+
+      if (class(fit_fn) == "name") {
+        BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
+                                             timeVar = timeVar, intakeVar = intakeVar, Emax = emax, hessian = hessian))
+      } else {
+        BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
+                              Emax = emax, hessian = hessian)
+      }
+
+      idVar_arg = methods::hasArg(idVar)
+
+      if (isTRUE(idVar_arg)) {
+
+        #non-hessian
+        if (isFALSE(hessian)){
+
+          BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
+          names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3],
+                                      "counts_gradiant", names(BiteMod_fit)[4])
+
+        } else if (isTRUE(hessian)){
+          # hessian implementation
+          BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+          names(BiteMod_fit_dat) <- c("id", "theta", "r", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+        }
+
+        BiteMod_fit_dat$method <- fn_name
+      } else {
+
+        #non-hessian
+        if (isFALSE(hessian)){
+
+          BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
+          names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],
+                                      "counts_gradiant", names(BiteMod_fit)[4])
+
+        } else if (isTRUE(hessian)){
+          # hessian implementation
+          BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+          names(BiteMod_fit_dat) <- c("theta", "r", names(BiteMod_fit)[2:3],  "counts_gradiant", names(BiteMod_fit)[4], 'theta_se', 'r_se')
+        }
+
+        BiteMod_fit_dat$method <- fn_name
+      }
+
+    } else if (fn_name == "Kissileff_Fit") {
+
+      if (class(fit_fn) == "name") {
+        BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters,
+                                             timeVar = timeVar, intakeVar = intakeVar, hessian = hessian))
+      } else {
+        BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar, hessian = hessian)
+      }
+
+      idVar_param = methods::hasArg(idVar)
+      if (isTRUE(idVar_param)) {
+
+        #non-hessian
+        if (isFALSE(hessian)){
+
+          BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[1:4]))))
+          names(BiteMod_fit_dat) <- c("id", "int", "linear", "quad", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4])
+
+        } else if (isTRUE(hessian)){
+          # hessian implementation
+          BiteMod_fit_dat <- data.frame(data[1, idVar], t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+          names(BiteMod_fit_dat) <- c("id", "int", "linear", "quad", names(BiteMod_fit)[2:3], "counts_gradiant", names(BiteMod_fit)[4], "int_se", "linear_se", "quad_se")
+        }
+
+        BiteMod_fit_dat$method <- fn_name
+      } else {
+
+        #non-hessian
+        if (isFALSE(hessian)){
+
+          BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[1:4]))))
+          names(BiteMod_fit_dat) <- c("int", "linear", "quad", names(BiteMod_fit)[2:3],
+                                      "counts_gradiant", names(BiteMod_fit)[4])
+
+        } else if (isTRUE(hessian)){
+          # hessian implementation
+          BiteMod_fit_dat <- data.frame(t(c(unlist(BiteMod_fit[c(1:4,7)]))))
+          names(BiteMod_fit_dat) <- c("int", "linear", "quad", names(BiteMod_fit)[2:3],
+                                      "counts_gradiant", names(BiteMod_fit)[4], "int_se", "linear_se", "quad_se")
+        }
+
+        BiteMod_fit_dat$method <- fn_name
+      }
+
+    } else {
+      stop("Entered fit function not found. Must enter either FPM_Fit or Kissileff_Fit.")
+    }
+
+    return(BiteMod_fit_dat)
   }
-  return(BiteMod_fit_dat)
 }

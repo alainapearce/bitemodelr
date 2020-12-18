@@ -26,7 +26,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
   TotalSamples <- 0
   while(TotalSamples < nSample){
-    rowsNeed <- 100 - TotalSamples
+    rowsNeed <- nSample - TotalSamples
 
     if(rowsNeed < 10){
       newsample <- 10

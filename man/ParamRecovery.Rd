@@ -24,6 +24,8 @@ ParamRecovery(
 )
 }
 \arguments{
+\item{BiteDat}{A dataset with Bites, bite sizes, cumulative intake, and bite timing.}
+
 \item{nBites}{A vector of values reflecting the number of bites to use. Parameters will be recovered for each value entered.}
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
@@ -33,31 +35,17 @@ ParamRecovery(
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}
 
-\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering
-bite size (and thus estimated timing). Default value is TRUE; if FALSE will use average bite size to estimate
-initail bite timing.}
+\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
 
 \item{measureNoise}{(optional) A string indicating they type of measurement noise to add. The options include:
-'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered);
-or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
+'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered); or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
 
-\item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and
-will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal
-distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise
-must be set to TRUE, otherwise this argument will be ignored.}
+\item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 
-\item{mNoise_biteTimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will
-replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution
-with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this
-argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for
-timepoint t is not less than timepoint t-1.}
+\item{mNoise_biteTimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
 
 \item{mNoise_biteSizeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
-entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if
-want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will
-be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite
-size for that category. This will replace the default measureNoise routine (all bites = average bite size).
-measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
+entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
 
 \item{keepBites}{(optional) This is a logical indicator for whether to return the simulated bite dataset with
 elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumulative

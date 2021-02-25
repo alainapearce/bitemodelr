@@ -79,7 +79,13 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
   CIlist <- list(parFit_names = rep(NA, length(paramCI)), parFit_values = rep(NA, length(paramCI)), parFit_min_n2ll = rep(NA, length(paramCI)), parCI_upper = rep(NA, length(paramCI)), parCI_lower = rep(NA, length(paramCI)), parCI_upper_n2ll = rep(NA, length(paramCI)), parCI_lower_n2ll = rep(NA, length(paramCI)), parCI_upper_chisq = rep(NA, length(paramCI)), parCI_lower_chisq = rep(NA, length(paramCI)), parCI_lower_chisq.p = rep(NA, length(paramCI)), parCI_upper_chisq.p = rep(NA, length(paramCI)))
 
   for (l in 1:length(min_n2ll)) {
+
+    # Add information to dataset
+    CIlist$parFit_min_n2ll <- rep(min_n2ll[l], length(paramCI))
+
     for (p in 1:length(paramCI)) {
+
+      # print(paramCI[p])
 
       #set up the parameter names
       if (fn_name == "FPM_Fit") {
@@ -142,88 +148,154 @@ LRT_CIbounds <- function(data, parameters, min_n2ll, paramCI = c("theta", "r"),
 
       for(b in 1:2){
 
+        # print(bounds[b])
+
         if (isFALSE(fixParam)){
-          BiteMod_CIbound <- stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
+          BiteMod_CIbound <- tryCatch({
+            stats::optim(par = c(parameters), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])},
+            error = function(e) {conditionMessage(e)})
 
-          #update starting parameters
-          if(model_str == 'FPM'){
-            check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
-          } else if (model_str == 'Kissileff'){
-            check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
-          }
-
-          #see if get same values twice
-          BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
-
-          while(BiteMod_CIbound$par[parIndex] != BiteMod_CIbound_check$par[parIndex]){
-            BiteMod_CIbound <- BiteMod_CIbound_check
-
+          #if get optim list instead of error
+          if(is.list(BiteMod_CIbound)){
+            #update starting parameters
             if(model_str == 'FPM'){
               check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
             } else if (model_str == 'Kissileff'){
               check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
             }
 
-            BiteMod_CIbound_check <- stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])
+            #see if get same values twice
+            BiteMod_CIbound_check <- tryCatch({
+              stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])},
+              error = function(e) {conditionMessage(e)})
 
+            #if get optim list instead of error
+            if(is.list(BiteMod_CIbound_check)){
+              #while loop counter
+              wcount <- 0
+
+              #loop until the same parameter is returned twice OR it looped 10 times (indicating very flat likelihood well)
+              while(wcount <=10 && BiteMod_CIbound$par[parIndex] != BiteMod_CIbound_check$par[parIndex]){
+                BiteMod_CIbound <- BiteMod_CIbound_check
+
+                if(model_str == 'FPM'){
+                  check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
+                } else if (model_str == 'Kissileff'){
+                  check_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
+                }
+
+                BiteMod_CIbound_check <- tryCatch({
+                  stats::optim(par = c(check_params), fn = CI_LRTest, data = data, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b])},
+                  error = function(e) {conditionMessage(e)})
+
+                #if get optim list instead of error
+                if(is.list(BiteMod_CIbound_check)){
+
+                  #update while loop counter
+                  wcount <- wcount + 1
+                } else {
+                  #did not converge so use last good
+                  wcount <- 11
+                }
+              }
+            }
+
+            #final parameter values
+            if(model_str == 'FPM'){
+              final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
+            } else if (model_str == 'Kissileff'){
+              final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
+            }
+          } else {
+            BiteMod_CIbound$par[parIndex] <- 'Fail'
+            final_params <- NA
           }
-
-          #final parameter values
-          if(model_str == 'FPM'){
-            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2])
-          } else if (model_str == 'Kissileff'){
-            final_params <- c(BiteMod_CIbound$par[1], BiteMod_CIbound$par[2], BiteMod_CIbound$par[3])
-          }
-
         } else if (isTRUE(fixParam)){
-          BiteMod_CIbound <- stats::optim(par = parameters[parIndex], fn = CI_LRTest, data = data, parValues = c(parameters), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
 
-          #update starting values
-          check_params <- parameters
-          check_params[parIndex] <- BiteMod_CIbound$par
+          BiteMod_CIbound <- tryCatch({
+            stats::optim(par = parameters[parIndex], fn = CI_LRTest, data = data, parValues = c(parameters), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)},
+            error = function(e) {conditionMessage(e)})
 
-          #check if get same values twice
-          BiteMod_CIbound_check <- stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
+          #if get optim list instead of error
+          if(is.list(BiteMod_CIbound)){
 
-          while(BiteMod_CIbound$par != BiteMod_CIbound$par){
-            BiteMod_CIbound <- BiteMod_CIbound_check
-
+            #update starting values
             check_params <- parameters
             check_params[parIndex] <- BiteMod_CIbound$par
 
-            BiteMod_CIbound_check <- stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)
-          }
+            #check if get same values twice
+            BiteMod_CIbound_check <- tryCatch({
+              stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex,conf = CI, bound = bounds[b], fixParam = fixParam)},
+              error = function(e) {conditionMessage(e)})
 
-          #final parameter values
-          final_params <- parameters
-          final_params[parIndex] <- BiteMod_CIbound$par
+            #if get optim list instead of error
+            if(is.list(BiteMod_CIbound)){
+              #while loop counter
+              wcount <- 0
+
+              #loop until the same parameter is returned twice OR it looped 10 times (indicating very flat likelihood well)
+              while(wcount <=10 && BiteMod_CIbound$par != BiteMod_CIbound$par){
+                BiteMod_CIbound <- BiteMod_CIbound_check
+
+                check_params <- parameters
+                check_params[parIndex] <- BiteMod_CIbound$par
+
+                BiteMod_CIbound_check <- tryCatch({
+                  stats::optim(par = BiteMod_CIbound$par, fn = CI_LRTest, data = data, parValues = c(check_params), method = 'Brent', upper = upper_lim, lower = lower_lim, model_str = model_str, timeVar = timeVar,intakeVar = intakeVar, min_n2ll = min_n2ll[l], paramIndex = parIndex, conf = CI, bound = bounds[b], fixParam = fixParam)},
+                  error = function(e) {conditionMessage(e)})
+
+                #if get optim list instead of error
+                if(is.list(BiteMod_CIbound_check)){
+
+                  #update while loop counter
+                  wcount <- wcount + 1
+                } else {
+                  #did not converge so use last good
+                  wcount <- 11
+                }
+              }
+            }
+
+            #final parameter values
+            final_params <- parameters
+            final_params[parIndex] <- BiteMod_CIbound$par
+          } else {
+            BiteMod_CIbound$par[parIndex] <- 'Fail'
+            final_params <- NA
+          }
         }
 
         #model specific -2 log-likelinood and chi-square calculations
-        if (fn_name == "FPM_Fit") {
-          #calculate -2 loglikelihood for fit
-          bound_n2ll = FPM_n2ll(data = data, par = c(final_params), Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
+        if (!is.na(final_params[1])){
+          if (fn_name == "FPM_Fit") {
+            #calculate -2 loglikelihood for fit
+            bound_n2ll = FPM_n2ll(data = data, par = c(final_params), Emax = max(data[3]), timeVar = timeVar, intakeVar = intakeVar)
 
-        } else if (fn_name == "Kissileff_Fit") {
-          # calculate -2 loglikelihood for fit
-          bound_n2ll = Kissileff_n2ll(data = data, par = c(final_params), timeVar = timeVar, intakeVar = intakeVar)
+          } else if (fn_name == "Kissileff_Fit") {
+            # calculate -2 loglikelihood for fit
+            bound_n2ll = Kissileff_n2ll(data = data, par = c(final_params), timeVar = timeVar, intakeVar = intakeVar)
+          }
+
+          bound_chisq <- bound_n2ll - min_n2ll[l]
+          bound_chisq.p <- 1-stats::pchisq(bound_chisq, df = 1)
+
+        } else {
+          bound_n2ll <- NA
+          bound_chisq <- NA
+          bound_chisq.p <- NA
         }
 
         if (bounds[b] == 'lower'){
           CIlist$parCI_lower[parIndex] <- BiteMod_CIbound$par[parIndex]
           CIlist$parCI_lower_n2ll[parIndex] = bound_n2ll
-          CIlist$parCI_lower_chisq[parIndex] = bound_n2ll - min_n2ll[l]
-          CIlist$parCI_lower_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_lower_chisq[parIndex], df = 1)
+          CIlist$parCI_lower_chisq[parIndex] = bound_chisq
+          CIlist$parCI_lower_chisq.p[parIndex] = bound_chisq.p
         } else if (bounds[b] == 'upper'){
           CIlist$parCI_upper[parIndex] <- BiteMod_CIbound$par[parIndex]
           CIlist$parCI_upper_n2ll[parIndex] = bound_n2ll
-          CIlist$parCI_upper_chisq[parIndex] = bound_n2ll - min_n2ll[l]
-          CIlist$parCI_upper_chisq.p[parIndex] = 1-stats::pchisq(CIlist$parCI_upper_chisq[parIndex], df = 1)
-
+          CIlist$parCI_upper_chisq[parIndex] = bound_chisq
+          CIlist$parCI_upper_chisq.p[parIndex] = bound_chisq.p
         }
-
-        # Add information to dataset
-        CIlist$parFit_min_n2ll[parIndex] <- min_n2ll[l]
       }
     }
 

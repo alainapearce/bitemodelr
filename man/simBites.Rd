@@ -11,7 +11,7 @@ simBites(
   model_str = "FPM",
   id = NA,
   procNoise = TRUE,
-  biteSize_sd = NA,
+  pNoise_biteSizeSD = NA,
   maxDur = NA
 )
 }
@@ -29,7 +29,7 @@ Default is 'FPM'.}
 
 \item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
 
-\item{biteSize_sd}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
+\item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 
 \item{maxDur}{(optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the First Principles model - will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Do not need for the Kissileff model.}
 }

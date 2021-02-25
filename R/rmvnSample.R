@@ -82,7 +82,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
       rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(SimDat_Fogel2017$int) & rmvn_dat$int <= max(SimDat_Fogel2017$int), ]
       rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(SimDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$linear), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$quad), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(SimDat_Fogel2017$quad), ]
 
 
     } else if (model_str == "both" | model_str == "Both"){
@@ -117,7 +117,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
       #Kisslieff checks
       rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(SimDat_Fogel2017$int) & rmvn_dat$int <= max(SimDat_Fogel2017$int), ]
       rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(SimDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$linear), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$quad), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(SimDat_Fogel2017$quad), ]
     }
 
     rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$nBites >= min(SimDat_Fogel2017$nBites) & rmvn_datKeep$nBites <= max(SimDat_Fogel2017$nBites), ]
@@ -164,7 +164,7 @@ rmvnSample = function(nSample = 100, model_str = "FPM", write.dat = TRUE, data_s
 
           n_negTime_Kissileff = sum(unlist(simTime_Kissileff) < 0)
 
-          if (n_negTime_Kissileff > 0 || is.na(n_negTime_FPM)){
+          if (n_negTime_Kissileff > 0 || is.na(n_negTime_Kissileff)){
             rmvn_datKeep$time_calc[r] <- 'N'
           }
         }

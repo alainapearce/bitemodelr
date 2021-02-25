@@ -95,13 +95,19 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, message = FALSE)
     }
 
+
     #check for NAs or NULL values - if null may be list not vector
     if(is.list(predValue)){
+
       #number of NAs
       nNA <- length(predValue) - length(base::unlist(predValue)) + sum(base::is.na(base::unlist(predValue)))
 
+      #check for negative values
+      nNeg <- sum(base::unlist(predValue) < 0)
+
+      #check for NA/NULL or values <0
       for (b in 1:length(predValue)){
-        if(base::is.na(predValue[[b]]) || base::is.null(predValue[[b]])){
+        if(base::is.na(predValue[[b]]) || base::is.null(predValue[[b]]) || predValue[[b]] < 0){
           if (b/length(predValue) < 0.5){
             #set time to zero
             predValue[[b]] <- 0
@@ -117,8 +123,14 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       #number of NAs
       nNA <- sum(base::is.na(predValue)) + sum(base::is.null(predValue))
 
+      #check for negative values
+      nNeg <- sum(predValue < 0)
+
+      #make negative values NA so they are replaced below
+      predValue <- ifelse(predValue < 0, NA, predValue)
+
       #replace NA values
-      if(nNA > 0){
+      if(nNA > 0 || nNeg > 0){
         for (b in 1:length(predValue)){
           if(base::is.na(predValue[b]) || base::is.null(predValue[b])){
             #1st half timepoints vs 2nd half timepoints
@@ -150,8 +162,11 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       #number of NAs
       nNA <- length(predValue) - length(base::unlist(predValue)) + sum(base::is.na(base::unlist(predValue)))
 
+      #check for negative values
+      nNeg <- sum(base::unlist(predValue) < 0)
+
       for (b in 1:length(predValue)){
-        if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]])){
+        if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]] || predValue < 0)){
           #1st half timepoints vs 2nd half timepoints
           if (b/length(predValue) < 0.5){
             predValue[[b]] <- 0
@@ -166,8 +181,14 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       #number of NAs
       nNA <- sum(base::is.na(predValue)) + sum(base::is.null(predValue))
 
+      #check for negative values
+      nNeg <- sum(predValue < 0)
+
+      #make negative values NA so they are replaced below
+      predValue <- ifelse(predValue < 0, NA, predValue)
+
       #replace NA values
-      if(nNA > 0){
+      if(nNA > 0 || nNeg > 0){
         for (b in 1:length(predValue)){
           if(is.na(predValue[b])){
             #1st half timepoints vs 2nd half timepoints
@@ -186,6 +207,6 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
   }
 
   #return
-  output = data.frame(rmse = rmse, nNA = nNA)
+  output = data.frame(rmse = rmse, nNA = nNA, nNeg = nNeg)
   return(output)
 }

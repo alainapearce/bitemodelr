@@ -35,14 +35,45 @@ simBitesLogit = function(mealdur, nBites, Emax, id){
     rand_time <- (randlogistic/max(randlogistic))*data[p, 'mealdur']
     sampled_time <- jitter(rand_time, factor = 2)
 
-    #make sure starting value is 0 or greater for first bite
-    if(sampled_time[1]<0){
-      sampled_time[1] <- 0
-    }
+    #sort so in order from earlier to later
+    sampled_time <- sort(sampled_time)
 
     #make sure the jitter didn't extend the meal duraiton
-    if(sampled_time[data[p, 'nBites']] > data[p, 'mealdur']){
-      sampled_time[data[p, 'nBites']] <- data[p, 'mealdur']
+    nTimePoints <- data[p, 'nBites']
+    if(sampled_time[nTimePoints] > data[p, 'mealdur']){
+      sampled_time[nTimePoints] <- data[p, 'mealdur']
+
+      #if second to last timepoint > meal dur, set to half way between third to last and last
+      if (sampled_time[nTimePoints] < sampled_time[nTimePoints-1]){
+        sampled_time[nTimePoints-1] <- (sampled_time[nTimePoints] - sampled_time[nTimePoints-2])/2
+      }
+    }
+
+    #make sure starting value is 0 or greater for first bite
+    nNeg <- sum(sampled_time < 0)
+
+    if(nNeg > 0){
+      for (b in 1:length(sampled_time)){
+        if (sampled_time[b] < 0){
+          if (b == 1){
+            sampled_time[1] <- 0
+          } else {
+            #check to see if previous value is greater than future values
+            checkDecrease <- data.frame(decrease = sampled_time[b-1] > sampled_time, b = seq(1, length(sampled_time)))
+
+            #if more than current value is less than previous
+            if (sum(checkDecrease$decrease[b:nrow(checkDecrease)]) > 1){
+              next_b <- max(checkDecrease[checkDecrease$decrease == TRUE, ]$b) + 1
+              nsteps <- sum(checkDecrease$decrease) + 1
+            } else {
+              next_b <- b + 1
+              nsteps <- 2
+            }
+
+            sampled_time[b] <-  sampled_time[b-1] + (sampled_time[next_b] - sampled_time[b-1])/nsteps
+          }
+        }
+      }
     }
 
     #get bite numbers

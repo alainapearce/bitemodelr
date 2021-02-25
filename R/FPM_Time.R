@@ -39,7 +39,7 @@ FPM_Time <- function(intake, parameters, Emax, message = TRUE) {
     intake <- intake * 0.9999
   }
 
-  #calculate the r limit to determine if model is not sovlable
+  #calculate the r limit to determine if model is not solvable
   rlimit = -1 * parameters[1]/intake
 
   #check to see if r limit is exceeded

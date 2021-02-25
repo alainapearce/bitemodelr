@@ -38,7 +38,7 @@ Kissileff_Time <- function(intake, parameters, message = TRUE) {
     t2 <- (-parameters[2] - sqrt(parameters[2]^2 - 4 * (parameters[1] -
                                                           intake) * parameters[3]))/(2 * parameters[3])
 
-    # determine if parabala opens upward or downward to determine which
+    # determine if parabola opens upward or downward to determine which
     # time value is needed
 
     if (parameters[3] < 0) {

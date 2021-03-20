@@ -38,10 +38,12 @@ FPM_Fit <- function(data, parameters, timeVar, intakeVar, Emax, hessian = FALSE)
 
   fit_check <- stats::optim(par = c(fit$par[1], fit$par[2]), fn = FPM_n2ll, data = data, Emax = Emax, time = timeVar, intake = intakeVar, hessian = hessian)
 
-  while(fit$par[1] != fit_check$par[1] || fit$par[2] != fit_check$par[2]){
+  wcount <- 0
+  while(wcount <=10 && fit$par != fit_check$par){
     fit <- fit_check
 
     fit_check <- stats::optim(par = c(fit$par[1], fit$par[2]), fn = FPM_n2ll, data = data, Emax = Emax, time = timeVar, intake = intakeVar, hessian = hessian)
+    wcount <- wcount + 1
   }
 
   #calculate standard errors

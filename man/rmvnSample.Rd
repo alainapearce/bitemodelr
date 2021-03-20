@@ -17,7 +17,7 @@ rmvnSample(
 
 \item{model_str}{The base model to use--'FPM' for the first principles model, 'Kissileff' for the quadratic model, or 'Both' if you want to return both sets of parameters. Default is 'FPM'.}
 
-\item{write.dat}{A logical indicator for wether to write data to a file. Default is TRUE.}
+\item{write.dat}{A logical indicator for whether to write data to a file. Default is TRUE.}
 
 \item{data_str}{(optional) A string you want to use to name output dataset - the model used and number of samples will automatically be part of the name. Default is 'simDat' which results in the dataset name(s) if you use 100 samples: FPM(model)_simDat_rmvnDat100.csv. If a}
 

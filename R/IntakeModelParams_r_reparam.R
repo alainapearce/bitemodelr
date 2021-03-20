@@ -6,9 +6,7 @@
 #' or the First Principles Model (Thomas et al., 2017). The models are fit using optim {stats}.
 #'
 #' @inheritParams Kissileff_Fit
-#' @param parameters (optional) A set of numeric parameters to serve as the starting parameters for the optimization.
-#'  Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Fit
-#'  needs 2 starting parameters (default is c(10, .10)).
+#' @inheritParams simBites
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams simBites

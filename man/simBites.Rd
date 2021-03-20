@@ -12,7 +12,8 @@ simBites(
   id = NA,
   procNoise = TRUE,
   pNoise_biteSizeSD = NA,
-  maxDur = NA
+  maxDur = NA,
+  NAmessage = FALSE
 )
 }
 \arguments{
@@ -20,7 +21,7 @@ simBites(
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).}
+\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and FPM_Time needs theta and r entered in that order (default is c(10, .10)).}
 
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}
@@ -32,6 +33,8 @@ Default is 'FPM'.}
 \item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 
 \item{maxDur}{(optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the First Principles model - will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Do not need for the Kissileff model.}
+
+\item{NAmessage}{Indicate whether to write out message is there are NA values for bite timing. Default is FALSE.}
 }
 \value{
 A bite dataset with bite timing, bite size, and cumulative intake for each bite

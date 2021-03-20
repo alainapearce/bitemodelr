@@ -4,7 +4,7 @@
 #'
 #' @param nSample number of samples to be randomly pulled from multivariate normal distribution, default <- 100
 #' @param model_str The base model to use--'FPM' for the first principles model, 'Kissileff' for the quadratic model, or 'Both' if you want to return both sets of parameters. Default is 'FPM'.
-#' @param write.dat A logical indicator for wether to write data to a file. Default is TRUE.
+#' @param write.dat A logical indicator for whether to write data to a file. Default is TRUE.
 #' @param data_str (optional) A string you want to use to name output dataset - the model used and number of samples will automatically be part of the name. Default is 'simDat' which results in the dataset name(s) if you use 100 samples: FPM(model)_simDat_rmvnDat100.csv. If a
 #' @param scaleFactor (optional) A scaling factor to adjust the standard deviation of the multivariate normal distribution. Will be applied to all sampled variables. E.g., a value of 0.5 will scale the standard deviation by half and the variance by a quarter using pre- (S) and post-matrix (S transpose - ST) multiplication of the covariance matrix (C) with the scaling factor on the diagonal (S x C x ST)
 #'

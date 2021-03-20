@@ -39,27 +39,27 @@ FPM_Time <- function(intake, parameters, Emax, message = TRUE) {
     intake <- intake * 0.9999
   }
 
-  #calculate the r limit to determine if model is not solvable
-  rlimit = -1 * parameters[1]/intake
+  # calculate the r limit to determine if model is not solvable
+  rlimit <- -1 * parameters[1] / intake
 
-  #check to see if r limit is exceeded
+  # check to see if r limit is exceeded
   if (parameters[2] < rlimit) {
-    if (isTRUE(message))  {
+    if (isTRUE(message)) {
       message("Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.")
     }
   }
 
-  log_term <- Emax * (((intake * parameters[2])/parameters[1]) + 1)
+  log_term <- (Emax * (((intake * parameters[2]) / parameters[1]) + 1))/(Emax - intake)
 
-  if (log_term > 0){
-    #get time at which intake is achieved given the FPM equation
-    T_e <- (Emax/(Emax * parameters[2] + parameters[1])) * log((Emax * (((intake *
-                                                                           parameters[2])/parameters[1]) + 1))/(Emax - intake))
+  if (log_term > 0) {
+    # get time at which intake is achieved given the FPM equation
+    T_e <- (Emax / (Emax * parameters[2] + parameters[1])) * log((Emax * (((intake *
+      parameters[2]) / parameters[1]) + 1)) / (Emax - intake))
   } else {
     T_e <- NA
   }
 
 
-  #return time
+  # return time
   return(T_e)
 }

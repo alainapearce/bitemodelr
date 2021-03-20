@@ -12,13 +12,14 @@
 #'
 #' @inheritParams biteProcNoise
 #' @inheritParams biteProcNoise
-#' @param parameters (suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).
+#' @param parameters (suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and FPM_Time needs theta and r entered in that order (default is c(10, .10)).
 #' @param model_str The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 #' Default is 'FPM'.
 #' @param id (optional) A string or numeric value for ID to be added to the simulated bite data.
 #' @param procNoise (optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.
 #' @inheritParams biteProcNoise
 #' @param maxDur (optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the First Principles model - will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Do not need for the Kissileff model.
+#' @param NAmessage Indicate whether to write out message is there are NA values for bite timing. Default is FALSE.
 #'
 #' @return A bite dataset with bite timing, bite size, and cumulative intake for each bite
 #'
@@ -30,7 +31,8 @@
 #'
 #' @export
 simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
-                     procNoise = TRUE, pNoise_biteSizeSD = NA, maxDur = NA) {
+                     procNoise = TRUE, pNoise_biteSizeSD = NA, maxDur = NA,
+                     NAmessage = FALSE) {
 
 
   # get name of function that was passed
@@ -93,20 +95,21 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
     }
   }
 
-  #determine minimum bite size with positive time based on model parameters
+  #check model feasibility for Kissileff
   if (fnTime_name == "Kissileff_Time"){
     vertex.X <- -parameters[2]/(2*parameters[3])
 
     vertex.Y <- parameters[1] - (parameters[2]^2/(4*parameters[3]))
 
+    #determine minimum bite size with positive time based on model parameters
     if (parameters[3] < 0){
       if (vertex.X > 0 && vertex.Y > 0){
         #min intake occurs at t = 0
-        minE <- parameters[1]
+        minE <- parameters
       } else {
         message('not a feasible set of parameters for Kissileff quadratic model')
         convergeFail <- TRUE
-        fail_message <- 'Kissileff non-feasible: -c and non-positive vertex'
+        fail_message <- 'Kissileff non-feasible: neg quadratic slope and non-positive vertex'
       }
     } else {
       if (vertex.X >= 0 && vertex.Y >= 0){
@@ -126,6 +129,17 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
         } else {
           minE <- 0
         }
+      }
+    }
+
+    #check if Emax > vertex if have negative quadratic
+    if (parameters[3] < 0){
+      if (vertex.X > 0 && vertex.Y > 0){
+        if (Emax > vertex.Y)
+        #min intake occurs at t = 0
+        message('not a feasible set of parameters for Kissileff quadratic model')
+        convergeFail <- TRUE
+        fail_message <- 'Kissileff non-feasible: Emax exceeds vertex (neg quadratic slope)'
       }
     }
 
@@ -187,7 +201,7 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
         if (fnTime_name == "Kissileff_Time"){
           procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative_avg, nBites = nBites, Emax = newEmax, minE = minE, pNoise_biteSizeSD = pNoise_biteSizeSD)
         } else {
-          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative_avg, Bites = nBites, Emax = newEmax, pNoise_biteSizeSD = pNoise_biteSizeSD)
+          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative_avg, nBites = nBites, Emax = newEmax, pNoise_biteSizeSD = pNoise_biteSizeSD)
         }
       } else {
         if (fnTime_name == "Kissileff_Time"){
@@ -212,8 +226,11 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
         #check for NAs or NULL or negative values - if null may be list not vector
         if(is.list(simTime_procNoise) || sum(is.na(simTime_procNoise)) > 0 || sum(simTime_procNoise < 0) > 0){
 
-          message('still see negative or NA time values')
+          if(isTRUE(NAmessage)){
+            message('still see negative or NA time values')
+          }
         }
+
         # unlist if needed
         if(is.list(simTime_procNoise)){
           null_index <- which(sapply(simTime_procNoise, is.null))
@@ -272,7 +289,9 @@ simBites <- function(nBites, Emax, parameters, model_str = 'FPM', id = NA,
 
       #check for NAs or NULL or negative values - if null may be list not vector
       if(is.list(simTime_avg) || sum(is.na(simTime_avg)) > 0 || sum(simTime_avg < 0) > 0){
-        message('still see negative or NA time values')
+        if(isTRUE(NAmessage)){
+          message('still see negative or NA time values')
+        }
       }
 
       # unlist if needed

@@ -36,10 +36,13 @@ Kissileff_Fit <- function(data, parameters, timeVar, intakeVar, hessian = FALSE)
 
   fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
 
-  while(fit$par[1] != fit_check$par[1] || fit$par[2] != fit_check$par[2] || fit$par[3] != fit_check$par[3]){
+  wcount <- 0
+
+  while(wcount <=10 && fit$par != fit_check$par){
     fit <- fit_check
 
     fit_check <- stats::optim(par = c(fit$par[1], fit$par[2], fit$par[3]), fn = Kissileff_n2ll, data = data, timeVar = timeVar, intakeVar = intakeVar, hessian = hessian)
+    wcount <- wcount + 1
   }
 
   #calculate standard errors

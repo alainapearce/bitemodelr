@@ -20,7 +20,7 @@ n2LL_grid(
 \arguments{
 \item{data}{A bite dataset containing cumulative intake and timing for each bite}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Time needs 2 starting parameters (default is c(10, .10)).}
+\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and FPM_Time needs theta and r entered in that order (default is c(10, .10)).}
 
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}

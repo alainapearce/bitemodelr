@@ -236,7 +236,6 @@ ParamRecovery <- function(BiteDat, nBites, Emax, parameters, model_str = 'FPM', 
 
     ## Add measurement error
     if (!isFALSE(measureNoise)) {
-
       simDat <- biteMeasureNoise(BiteDat = simDat, nBites = nBites, Emax = Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = measureNoise,  mNoise_biteTimeSD = mNoise_biteTimeSD, mNoise_biteSizeCat = mNoise_biteSizeCat)
 
     }

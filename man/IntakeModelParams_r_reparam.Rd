@@ -18,9 +18,7 @@ IntakeModelParams_r_reparam(
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{(optional) A set of numeric parameters to serve as the starting parameters for the optimization.
-Length depends on fit_fn entered: Kissileff_Fit needs 3 starting parameters (default is c(10, 1, -1)) and FPM_Fit
-needs 2 starting parameters (default is c(10, .10)).}
+\item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 

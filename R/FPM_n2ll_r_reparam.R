@@ -4,7 +4,7 @@
 #' the First Principles Model of the the cumulative intake curve (Thomas et al., 2017)
 #'
 #' @inheritParams Kissileff_n2ll
-#' @param par  A set of numeric parameters for the First Principles Model in the format: c(theta, r)
+#' @param par A set of numeric parameters for the First Principles Model in the format: c(theta, r)
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams Kissileff_n2ll
 #' @inheritParams FPM_Intake

@@ -17,7 +17,7 @@ RMSEcalc(
 \arguments{
 \item{data}{The dataset with 'True' bite timing and cumulative intake.}
 
-\item{parameters}{Fitted parameters for which error is being tested}
+\item{parameters}{Fitted parameters for which error is being tested. Kissileff models need an intercept, linear slope, and quadratic slope entered in that order and FPM models need theta and r entered in that order}
 
 \item{timeVar}{The variable name for the 'True' bite timing in dataset}
 
@@ -26,7 +26,7 @@ RMSEcalc(
 \item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
 Default is 'FPM'.}
 
-\item{error_outcome}{Which variable to use to calculate error - 'Time' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.}
+\item{error_outcome}{Which variable to use to calculate error - 'timing' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.}
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 }
@@ -36,7 +36,7 @@ A list with two values
     \item{nNAs}{number of timepoints where the value (time or intake) could not be estimated}
 }
 \description{
-This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
+This function wraps the RMSE functions to calculate the root mean squared error for either bites or timing.
 }
 \examples{
 

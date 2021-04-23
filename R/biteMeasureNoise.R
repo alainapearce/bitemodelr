@@ -5,13 +5,13 @@
 #' Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
 #' to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
 #' and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-#' is added after and there is no adjustment to fit the model. The parameters will be fit using either Kissileff's
-#'  quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the First Principles Model
-#'  (Thomas et al., 2017), total intake (Emax), and number of bites.
+#' is added after and there is no adjustment to fit the model. The parameters will be fit using either the
+#' Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation
+#' (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 #'
 #' @param BiteDat A dataset with Bites, bite sizes, cumulative intake, and bite timing.
-#' @inheritParams simBites
-#' @inheritParams simBites
+#' @inheritParams genBiteDat
+#' @inheritParams genBiteDat
 #' @param TimeVar String reflecting name for bite timing variable BiteDat
 #' @param BiteVar String reflecting name for bite size variable in BiteDat dataset
 #' @param measureNoise (optional) A string indicating they type of measurement noise to add. The options include:
@@ -27,7 +27,7 @@
 #' \dontrun{
 #' }
 #'
-#' @seealso This function relies on \code{\link{n2LL_FPM}} and \code{\link{n2LL_Kissileff}}.
+#' @seealso To add process noise to bite data *before* bite timing calculation see \code{\link{biteProcNoise}}
 #'
 #' @export
 

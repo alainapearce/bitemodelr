@@ -6,7 +6,7 @@
 \usage{
 rmvnSample(
   nSample = 100,
-  model_str = "FPM",
+  model_str = "LODE",
   write.dat = TRUE,
   data_str = "simDat",
   scaleFactor = NA
@@ -15,16 +15,16 @@ rmvnSample(
 \arguments{
 \item{nSample}{number of samples to be randomly pulled from multivariate normal distribution, default <- 100}
 
-\item{model_str}{The base model to use--'FPM' for the first principles model, 'Kissileff' for the quadratic model, or 'Both' if you want to return both sets of parameters. Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation Model, 'Quad' for the quadratic model, or 'Both' if you want to return both sets of parameters. Default is 'LODE'.}
 
 \item{write.dat}{A logical indicator for whether to write data to a file. Default is TRUE.}
 
-\item{data_str}{(optional) A string you want to use to name output dataset - the model used and number of samples will automatically be part of the name. Default is 'simDat' which results in the dataset name(s) if you use 100 samples: FPM(model)_simDat_rmvnDat100.csv. If a}
+\item{data_str}{(optional) A string you want to use to name output dataset - the model used and number of samples will automatically be part of the name. Default is 'simDat' which, if you request 100 samples, results in the default dataset name: LODE_simDat_rmvnDat100.csv.}
 
-\item{scaleFactor}{(optional) A scaling factor to adjust the standard deviation of the multivariate normal distribution. Will be applied to all sampled variables. E.g., a value of 0.5 will scale the standard deviation by half and the variance by a quarter using pre- (S) and post-matrix (S transpose - ST) multiplication of the covariance matrix (C) with the scaling factor on the diagonal (S x C x ST)}
+\item{scaleFactor}{(optional) A scaling factor to adjust the standard deviation of the multivariate normal distribution. Will be applied to all sampled variables. E.g., a value of 0.5 will scale the standard deviation by half and the variance by a quarter using pre-(S) and post-matrix (S transpose - ST) multiplication of the covariance matrix (C) with the scaling factor on the diagonal (S x C x ST)}
 }
 \value{
-A data set with simulated data for microstructure behaviors and model parameters.
+A dataset of simulated data for microstructure behaviors and model parameters derived from the multivariate distribution described in Fogel et al., 2017.
 }
 \description{
 This function selects a random sample from the multivariate normal distribution that includes: model parameters, total intake, and number of bites.
@@ -35,4 +35,8 @@ This function selects a random sample from the multivariate normal distribution 
 }
 
 
+}
+\references{
+Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
+(\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
 }

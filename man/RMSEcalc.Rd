@@ -9,7 +9,7 @@ RMSEcalc(
   parameters,
   timeVar,
   intakeVar,
-  model_str = "FPM",
+  model_str = "LODE",
   error_outcome = "timing",
   Emax
 )
@@ -17,14 +17,13 @@ RMSEcalc(
 \arguments{
 \item{data}{The dataset with 'True' bite timing and cumulative intake.}
 
-\item{parameters}{Fitted parameters for which error is being tested. Kissileff models need an intercept, linear slope, and quadratic slope entered in that order and FPM models need theta and r entered in that order}
+\item{parameters}{Fitted parameters for which error is being tested. The Quadratic model needs an intercept, linear slope, and quadratic slope entered in that order and Logistic Ordinary Differential Equation (LODE) Model needs theta and r entered in that order}
 
 \item{timeVar}{The variable name for the 'True' bite timing in dataset}
 
 \item{intakeVar}{The variable name for the 'True' cumulative intake in dataset}
 
-\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
-Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
 \item{error_outcome}{Which variable to use to calculate error - 'timing' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.}
 

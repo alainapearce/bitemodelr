@@ -7,7 +7,7 @@
 n2LL_grid(
   data,
   parameters = c(10, 0.1),
-  model_str = "FPM",
+  model_str = "LODE",
   paramStep,
   bounds,
   nSteps = 10,
@@ -20,10 +20,9 @@ n2LL_grid(
 \arguments{
 \item{data}{A bite dataset containing cumulative intake and timing for each bite}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and FPM_Time needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
 
-\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
-Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
 \item{paramStep}{Names of parameters that will be varied during calculation of -2 log-likelihoods: c('theta', 'r)}
 

@@ -9,8 +9,8 @@
 #' @param bounds Upper and lower bounds for parameter values. If varying the value of multiple parameters (i.e., more than one listed in paramStep), this will take a list of boundary vectors: boundsList = list(c(10, 15), c(0, 1)). THe order of this must match the order of the parameters specified in paramStep
 #' @param nSteps Number of steps to vary each parameter. Note: this is not the number of -2 log-likihood estimates
 #' @param type The type of search to complete. 'grid' will calculate the -2 log-likihood for every combination of parameter step value combinations (default). 'linear' will calculate -2 log-likehood for every step of a single parameter while holding other parameters constant at the value entered in parameters.
-#' @inheritParams Kissileff_n2ll
-#' @inheritParams Kissileff_n2ll
+#' @inheritParams Quad_n2ll
+#' @inheritParams Quad_n2ll
 #' @param graph (optional) A logical indicator indicate whether a graph should be returned. Default is TRUE
 #'
 #' @return A dataset with the -2 log-likelihood and parameter values for each step of the search. Optionally, will also return a graph of the likelihood space.
@@ -23,27 +23,27 @@
 #'
 #' @export
 
-n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramStep, bounds, nSteps = 10, type = 'linear', timeVar, intakeVar, graph = TRUE){
+n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'LODE', paramStep, bounds, nSteps = 10, type = 'linear', timeVar, intakeVar, graph = TRUE){
 
-  if (model_str == "FPM") {
-    n2ll_fn <- substitute(FPM_n2ll)
+  if (model_str == "LODE" | model_str == "lode") {
+    n2ll_fn <- substitute(LODE_n2ll)
     fn_name <- as.character(n2ll_fn)
-  } else if (model_str == "Kissileff") {
-    n2ll_fn <- substitute(Kissileff_n2ll)
+  } else if (model_str == "Quad" | model_str == "quad") {
+    n2ll_fn <- substitute(Quad_n2ll)
     fn_name <- as.character(substitute(n2ll_fn))
   } else {
-    stop("model_str does not match available models. Options are 'FPM' or 'Kissileff'")
+    stop("model_str does not match available models. Options are 'LODE' or 'Quad'")
   }
 
   # check parameters
   param_arg = methods::hasArg(parameters)
   if (isFALSE(param_arg)) {
-    if (fn_name == "FPM_n2ll") {
+    if (fn_name == "LODE_n2ll") {
       parameters <- c(10, 0.1)
-    } else if (fn_name == "Kissileff_n2ll") {
+    } else if (fn_name == "Quad_n2ll") {
       parameters <- c(10, 1, -1)
     } else {
-      stop("Entered -2 Loglikelihood function not found. Must enter either FPM_n2ll or Kissileff_n2ll.")
+      stop("Entered -2 Loglikelihood function not found. Must enter either LODE_n2ll or Quad_n2ll.")
     }
   }
 
@@ -119,11 +119,11 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
                            step_n2ll = rep(NA, nrow))
   }
 
-  if (fn_name == "FPM_n2ll") {
+  if (fn_name == "LODE_n2ll") {
     n2ll_data$initial_theta = parameters[1]
     n2ll_data$initial_r = parameters[2]
 
-  } else if (fn_name == "Kissileff_n2ll") {
+  } else if (fn_name == "Quad_n2ll") {
     n2ll_data$initial_int = parameters[1]
     n2ll_data$initial_linear = parameters[2]
     n2ll_data$initial_quad = parameters[2]
@@ -133,7 +133,7 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
 
   for (p in 1:length(paramStep)){
 
-    if (fn_name == "FPM_n2ll") {
+    if (fn_name == "LODE_n2ll") {
       # identify the index for the parameter that corresponds to optim par output
       if (paramStep[p] == "theta" | paramStep[p] == "Theta") {
         parIndex[p] <- 1
@@ -141,7 +141,7 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
         parIndex[p] <- 2
       }
 
-    } else if (fn_name == "Kissileff_n2ll") {
+    } else if (fn_name == "Quad_n2ll") {
 
       # get the parameter index that corresponds to optim par output
       if (paramStep[p] == "int" | paramStep[p] == "Int" | paramStep[p] ==
@@ -190,14 +190,14 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
         step_parIndex <- parIndex[p]
         parStep[step_parIndex] <- stepVal
 
-        if (fn_name == 'FPM_n2ll'){
+        if (fn_name == 'LODE_n2ll'){
           if (class(n2ll_fn) == 'name') {
             n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar])))
           } else {
             n2ll <- n2ll_fn(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar]))
           }
 
-        } else if (fn_name == 'Kissileff_n2ll'){
+        } else if (fn_name == 'Quad_n2ll'){
           if (class(n2ll_fn) == 'name') {
             n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar))
           } else {
@@ -264,46 +264,42 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
           stepVal2 = n2ll_data$upper_bound.1[1]
         }
 
-        if(model_str == 'Kissileff' & length(paramStep) == 3){
-          for(n3 in 1:nSteps){
+        if (length(paramStep) == 3){
+          if(model_str == 'Quad' | model_str == 'quad') {
 
-            # set/reset starting value
-            if (n3 == 1){
-              stepVal3 = n2ll_data$upper_bound.2[1]
-            }
+            for(n3 in 1:nSteps){
 
-            #row specific values
-            steprow = (n1*nSteps - nSteps) + (n2*nSteps - nSteps) + n3
-            n2ll_data$step[steprow] <- n1
-            n2ll_data$step.1[steprow] <- n2
-            n2ll_data$step.2[steprow] <- n3
-
-            n2ll_data$step_value[steprow] <- stepVal1
-            n2ll_data$step_value.1[steprow] <- stepVal2
-            n2ll_data$step_value.2[steprow] <- stepVal3
-
-            parStep <- parameters
-            parStep[step_parIndex1] <- stepVal1
-            parStep[step_parIndex2] <- stepVal2
-            parStep[step_parIndex3] <- stepVal3
-
-            if (fn_name == 'FPM_n2ll'){
-              if (class(n2ll_fn) == 'name') {
-                n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar])))
-              } else {
-                n2ll <- n2ll_fn(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar]))
+              # set/reset starting value
+              if (n3 == 1){
+                stepVal3 = n2ll_data$upper_bound.2[1]
               }
 
-            } else if (fn_name == 'Kissileff_n2ll'){
+              #row specific values
+              steprow = (n1*nSteps - nSteps) + (n2*nSteps - nSteps) + n3
+              n2ll_data$step[steprow] <- n1
+              n2ll_data$step.1[steprow] <- n2
+              n2ll_data$step.2[steprow] <- n3
+
+              n2ll_data$step_value[steprow] <- stepVal1
+              n2ll_data$step_value.1[steprow] <- stepVal2
+              n2ll_data$step_value.2[steprow] <- stepVal3
+
+              parStep <- parameters
+              parStep[step_parIndex1] <- stepVal1
+              parStep[step_parIndex2] <- stepVal2
+              parStep[step_parIndex3] <- stepVal3
+
               if (class(n2ll_fn) == 'name') {
                 n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar))
               } else {
                 n2ll <- n2ll_fn(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar)
               }
-            }
 
-            n2ll_data$step_n2ll[nrow] <- n2ll
-            stepVal3 <- stepVal3 - step3
+              n2ll_data$step_n2ll[nrow] <- n2ll
+              stepVal3 <- stepVal3 - step3
+            }
+          } else {
+            stop('Only the Quadratic model can have 3 parameters to step through')
           }
         } else {
           #row specific values
@@ -318,14 +314,14 @@ n2LL_grid = function(data, parameters = c(10, 0.10), model_str = 'FPM', paramSte
           parStep[step_parIndex1] <- stepVal1
           parStep[step_parIndex2] <- stepVal2
 
-          if (fn_name == 'FPM_n2ll'){
+          if (fn_name == 'LODE_n2ll'){
             if (class(n2ll_fn) == 'name') {
               n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar])))
             } else {
               n2ll <- n2ll_fn(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar, Emax = max(data[, intakeVar]))
             }
 
-          } else if (fn_name == 'Kissileff_n2ll'){
+          } else if (fn_name == 'Quad_n2ll'){
             if (class(n2ll_fn) == 'name') {
               n2ll <- do.call(fn_name, list(data = data, par = parStep, timeVar = timeVar, intakeVar = intakeVar))
             } else {

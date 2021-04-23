@@ -3,12 +3,12 @@
 #' This function wraps the RMSE functions to calculate the root mean squared error for either bites or timing.
 #'
 #' @param data The dataset with 'True' bite timing and cumulative intake.
-#' @param parameters Fitted parameters for which error is being tested. Kissileff models need an intercept, linear slope, and quadratic slope entered in that order and FPM models need theta and r entered in that order
+#' @param parameters Fitted parameters for which error is being tested. The Quadratic model needs an intercept, linear slope, and quadratic slope entered in that order and Logistic Ordinary Differential Equation (LODE) Model needs theta and r entered in that order
 #' @param timeVar The variable name for the 'True' bite timing in dataset
 #' @param intakeVar The variable name for the 'True' cumulative intake in dataset
-#' @inheritParams ParamRecovery
+#' @inheritParams simBites
 #' @param error_outcome Which variable to use to calculate error - 'timing' will use bite timing and 'intake' will use cumulative intake. Default is 'timing'.
-#' @inheritParams FPM_Intake
+#' @inheritParams LODE_Intake
 #'
 #' @return A list with two values
 #'     \item{rmse}{the root mean squared error}
@@ -21,7 +21,7 @@
 #'
 #' @export
 #'
-RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', error_outcome = 'timing', Emax) {
+RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'LODE', error_outcome = 'timing', Emax) {
 
   # check parameters
   param_arg <- methods::hasArg(parameters)
@@ -48,11 +48,11 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
   }
 
   #get functions needed to get fitted value
-  if (model_str == 'FPM') {
-    if (error_outcome == 'timing'){
-      model_function <- substitute(FPM_Time)
-    } else if (error_outcome == 'intake'){
-      model_function <- substitute(FPM_Intake)
+  if (model_str == 'LODE' | model_str == 'lode') {
+    if (error_outcome == 'timing' | error_outcome == 'Timing'){
+      model_function <- substitute(LODE_Time)
+    } else if (error_outcome == 'intake' | error_outcome == 'Intake'){
+      model_function <- substitute(LODE_Intake)
     } else {
       stop("error_outcome is not recognized. Must enter either 'timing' for error estimation on
            bite timing or 'intake' for error estimation on cumulative intake")
@@ -61,37 +61,35 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
     #check for Emax
     Emax_arg <- methods::hasArg(Emax)
     if(isFALSE(Emax_arg)){
-      stop("Must set Emax to the total intake in order to use the First Principles Model")
+      stop("Must set Emax to the total intake in order to use the Logistic Ordinary Differential Equation (LODE) Model")
     }
-
-  } else if (model_str == 'Kissileff') {
-    if (error_outcome == 'timing'){
-      model_function <- substitute(Kissileff_Time)
-    } else if (error_outcome == 'intake'){
-      model_function <- substitute(Kissileff_Intake)
+  } else if (model_str == 'Quad' | model_str == 'quad') {
+    if (error_outcome == 'timing' | error_outcome == 'Timing'){
+      model_function <- substitute(Quad_Time)
+    } else if (error_outcome == 'intake' | error_outcome == 'Intake'){
+      model_function <- substitute(Quad_Intake)
     } else {
       stop("error_outcome is not recognized. Must enter either 'timing' for error estimation on
            bite timing or 'intake' for error estimation on cumulative intake")
     }
   } else {
-    stop("model_str is not recognized. Must enter either 'FPM' for First Principles Model or 'Kissileff'
-         for the quadratic model")
+    stop("model_str is not recognized. Must enter either 'LODE' for the Logistic Ordinary Differential Equation (LODE) Model or 'Quad' for the Quadratic model")
   }
 
 
   #get predicted values and RMSE
-  if (model_str == 'FPM') {
+  if (model_str == 'LODE' | model_str == 'lode') {
     parameters_long = rep(list(parameters), nrow(data))
     Emax_long <- rep(Emax, nrow(data))
-  } else if (model_str == 'Kissileff') {
+  } else if (model_str == 'Quad' | model_str == 'quad') {
     parameters_long <- rep(list(parameters), nrow(data))
   }
 
-  if(error_outcome == 'timing') {
+  if(error_outcome == 'timing' | error_outcome == 'Timing') {
     #predicted values for bite timing
-    if (model_str == 'FPM') {
+    if (model_str == 'LODE' | model_str == 'lode') {
       predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, Emax = Emax_long, message = FALSE)
-    } else if (model_str == 'Kissileff') {
+    } else if (model_str == 'Quad' | model_str == 'quad') {
       predValue <- mapply(model_function, intake = data[, intakeVar], parameters = parameters_long, message = FALSE)
     }
 
@@ -106,13 +104,18 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
 
       #check for NA/NULL or values <0
       for (b in 1:length(predValue)){
-        if(base::is.na(predValue[[b]]) || base::is.null(predValue[[b]]) || predValue[[b]] < 0){
-          if (b/length(predValue) < 0.5){
-            #set time to zero
+        if(base::is.na(predValue[[b]]) || base::is.null(predValue[[b]])){
+          if (b == 1){
             predValue[[b]] <- 0
           } else {
-            #replace with max predicted timing
-            predValue[[b]] <- max(data[, timeVar])
+            #amount of error (true - pred) = time change from previous bite
+            #so need to set time in pred so it is x less than true
+
+            #timing change from previous bite
+            timeDif <- data[b, timeVar] - data[(b-1), timeVar]
+
+            #add change in time to 'true' bite timing so that ammount of error = change in bite timing
+            predValue[[b]] <- data[b, timeVar] + timeDif
           }
         }
       }
@@ -126,20 +129,21 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       #check for negative values
       nNeg <- sum(predValue < 0)
 
-      #make negative values NA so they are replaced below
-      predValue <- ifelse(predValue < 0, NA, predValue)
-
       #replace NA values
-      if(nNA > 0 || nNeg > 0){
+      if(nNA > 0){
         for (b in 1:length(predValue)){
           if(base::is.na(predValue[b]) || base::is.null(predValue[b])){
-            #1st half timepoints vs 2nd half timepoints
-            if (b/length(predValue) < 0.5){
-              #set time to zero
-              predValue[b] <- 0
+            if (b == 1){
+              predValue[[b]] <- 0
             } else {
-              #replace with max predicted timing
-              predValue[b] <- max(data[, timeVar])
+              #amount of error (true - pred) = time change from previous bite
+              #so need to set time in pred so it is x less than true
+
+              #timing change from previous bite
+              timeDif <- data[b, timeVar] - data[(b-1), timeVar]
+
+              #add change in time to 'true' bite timing so that ammount of error = change in bite timing
+              predValue[[b]] <- data[b, timeVar] + timeDif
             }
           }
         }
@@ -149,11 +153,11 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
     #RMSE
     rmse <- RMSE(data[, timeVar], predValue)
 
-  } else if (error_outcome == 'intake'){
+  } else if (error_outcome == 'intake' | error_outcome == 'Intake'){
     #predicted values for cumulative intake
-    if (model_str == 'FPM') {
+    if (model_str == 'LODE' | model_str == 'lode') {
       predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long, Emax = Emax_long)
-    } else if (model_str == 'Kissileff') {
+    } else if (model_str == 'Quad' | model_str == 'quad') {
       predValue <- mapply(model_function, time = data[, timeVar], parameters = parameters_long)
     }
 
@@ -166,12 +170,36 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       nNeg <- sum(base::unlist(predValue) < 0)
 
       for (b in 1:length(predValue)){
-        if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]] || predValue < 0)){
-          #1st half timepoints vs 2nd half timepoints
-          if (b/length(predValue) < 0.5){
+        if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]])){
+          if (b == 1){
             predValue[[b]] <- 0
           } else {
-            predValue[[b]] <- Emax
+
+            if (model_str == "Quad" | model_str == "quad"){
+              vertex.Y <- parameters[1] - (parameters[2]^2/(4*parameters[3]))
+
+              if (parameters[3] < 0 && vertex.Y < Emax){
+                predValue[[b]] <- vertex.Y
+              } else {
+                #amount of error (true - pred) = intake change from previous bite
+                #so need to set intake in pred so it is x less than true
+
+                #timing change from previous bite
+                biteDif <- data[b, intakeVar] - data[(b-1), intakeVar]
+
+                #add change in time to 'true' bite intake so that amount of error = change in intake
+                predValue[[b]] <- data[b, intakeVar] + biteDif
+              }
+            } else {
+              #amount of error (true - pred) = intake change from previous bite
+              #so need to set intake in pred so it is x less than true
+
+              #timing change from previous bite
+              biteDif <- data[b, intakeVar] - data[(b-1), intakeVar]
+
+              #add change in time to 'true' bite intake so that amount of error = change in intake
+              predValue[[b]] <- data[b, intakeVar] + biteDif
+            }
           }
         }
       }
@@ -184,40 +212,40 @@ RMSEcalc <- function(data, parameters, timeVar, intakeVar, model_str = 'FPM', er
       #check for negative values
       nNeg <- sum(predValue < 0)
 
-      #make negative values NA so they are replaced below
-      predValue <- ifelse(predValue < 0, NA, predValue)
-
       #replace NA values
-      if(nNA > 0 || nNeg > 0){
+      if(nNA > 0){
+        for (b in 1:length(predValue)){
+          if(base::is.null(predValue[[b]]) || base::is.na(predValue[[b]])){
+            if (b == 1){
+              predValue[[b]] <- 0
+            } else {
 
-        #identify NAs
-        NAindex <- is.na(predValue)
+              if (model_str == "Quad" | model_str == "quad"){
+                vertex.Y <- parameters[1] - (parameters[2]^2/(4*parameters[3]))
 
-        #figure out if more than 1 switch
-        Switch <- diff(NAindex, 1)
-        nSwitch <- sum(Switch != 0)
+                if (parameters[3] < 0 && vertex.Y < Emax){
+                  predValue[[b]] <- vertex.Y
+                } else {
+                  #amount of error (true - pred) = intake change from previous bite
+                  #so need to set intake in pred so it is x less than true
 
-        #only 1 switch means 1 string of NA values so can treat them all the same
-        if (nSwitch == 1){
-          if (min(which(is.na(predValue))) == 1){
-            #first value is NA so set all NA to zero
-            predValue <- ifelse(is.na(predValue), 0, predValue)
-          } else if (max(which(is.na(predValue))) == length(predValue)){
-            #last value is NA so set all NA to Emax
-            predValue <- ifelse(is.na(predValue), 0, Emax)
-          }
-        } else if (nSwitch == 2){
-          #get location of switches
-          SwitchIndex <- which(Switch != 0)
-          if (min(which(is.na(predValue))) == 1){
-            #first value is NA so set all to zero from 1 to first switch
-            predValue[1:SwitchIndex[1]] <- ifelse(is.na(predValue), 0, predValue)
+                  #timing change from previous bite
+                  biteDif <- data[b, intakeVar] - data[(b-1), intakeVar]
 
-          }
+                  #add change in time to 'true' bite intake so that amount of error = change in intake
+                  predValue[[b]] <- data[b, intakeVar] + biteDif
+                }
+              } else {
+                #amount of error (true - pred) = intake change from previous bite
+                #so need to set intake in pred so it is x less than true
 
-          if (max(which(is.na(predValue))) == length(predValue)){
-            #last value is NA so set all NA to Emax
-            predValue[(SwitchIndex[2]-1):length(predValue)] <- ifelse(is.na(predValue), 0, Emax)
+                #timing change from previous bite
+                biteDif <- data[b, intakeVar] - data[(b-1), intakeVar]
+
+                #add change in time to 'true' bite intake so that amount of error = change in intake
+                predValue[[b]] <- data[b, intakeVar] + biteDif
+              }
+            }
           }
         }
       }

@@ -7,8 +7,8 @@
 #' ditribution with mean = average bite size and SD = sd_bitesize.
 #'
 #' @param cumulativeBites A numeric vector representing the cumulative intake at each bite
-#' @param nBites A numeric value that represents total number of bites in a meal.
-#' @param Emax A numeric value that represents total cumulative intake.
+#' @inheritParams genBiteDat
+#' @inheritParams genBiteDat
 #' @param minE A numeric value that represents the minimum intake in grams that maintains a time >= 0 (note, for FPM this is always 0, for Kissileff quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @simBites for full explanation)
 #' @param pNoise_biteSizeSD (optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.
 #'
@@ -19,6 +19,7 @@
 #' \dontrun{
 #' }
 #'
+#' @seealso To add measurement noise to bite data *after* bite timing calculation see \code{\link{biteMeasureNoise}}
 #'
 #' @export
 biteProcNoise <- function(cumulativeBites, nBites, Emax, minE = 0, pNoise_biteSizeSD = NA) {
@@ -33,17 +34,26 @@ biteProcNoise <- function(cumulativeBites, nBites, Emax, minE = 0, pNoise_biteSi
       #if min intake with positive time is greater than first bite size, find first bite that is > minE and switch order
         if (minE > grams.bite_noise[1]){
           #find existing bites that could work
-          okBites <- grams.bite_noise[b] >= minE
+          okBites <- grams.bite_noise >= minE
 
-          #get vector index for first bite >= minE
-          okBite_index <- which(min(isTRUE(okBites)))
+          if (sum(okBites) == 0){
+            Emaxdif <- Emax - minE
 
-          #get the indices around that to create new vecto
-          stop_ind <- okBite_index -1
-          start_ind <- okBite_index + 1
+            grams.bite_noise_init <- truncnorm::rtruncnorm((nBites-1),
+                                                           a = 0, mean = (Emaxdif/(nBites-1)), sd = pNoise_biteSizeSD)
+            grams.bite_noise <- (grams.bite_noise_init/sum(grams.bite_noise_init)) * Emaxdif
+            grams.bite_noise <- c(minE, grams.bite_noise)
+          } else {
+            #get vector index for first bite >= minE
+            okBite_index <- which(min(isTRUE(okBites)))
 
-          #new vector with first bite >= minE
-          grams.bite_noise <- c(grams.bite_noise[okBite_index], grams.bite_noise[1:stop_ind], grams.bite_noise[1], grams.bite_noise[start_ind:nBites])
+            #get the indices around that to create new vector
+            stop_ind <- okBite_index -1
+            start_ind <- okBite_index + 1
+
+            #new vector with first bite >= minE
+            grams.bite_noise <- c(grams.bite_noise[okBite_index], grams.bite_noise[1:stop_ind], grams.bite_noise[1], grams.bite_noise[start_ind:nBites])
+          }
         }
 
       # get cumulative intake from new bite sizes

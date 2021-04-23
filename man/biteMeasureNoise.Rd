@@ -43,9 +43,9 @@ the model parameters for each curve. Process noise can be used rather than avera
 Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
 to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
 and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-is added after and there is no adjustment to fit the model. The parameters will be fit using either Kissileff's
- quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the First Principles Model
- (Thomas et al., 2017), total intake (Emax), and number of bites.
+is added after and there is no adjustment to fit the model. The parameters will be fit using either the
+Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation
+(LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 }
 \examples{
 
@@ -54,5 +54,5 @@ is added after and there is no adjustment to fit the model. The parameters will 
 
 }
 \seealso{
-This function relies on \code{\link{n2LL_FPM}} and \code{\link{n2LL_Kissileff}}.
+To add process noise to bite data *before* bite timing calculation see \code{\link{biteProcNoise}}
 }

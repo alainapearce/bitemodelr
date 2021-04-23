@@ -8,7 +8,7 @@ simBites(
   nBites,
   Emax,
   parameters,
-  model_str = "FPM",
+  model_str = "LODE",
   id = NA,
   procNoise = TRUE,
   pNoise_biteSizeSD = NA,
@@ -21,18 +21,17 @@ simBites(
 
 \item{Emax}{A numeric value that represents total cumulative intake.}
 
-\item{parameters}{(suggested) A set of numeric parameters for the bite time estimation function: Kissileff_Time needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and FPM_Time needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
 
-\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
-Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
 \item{id}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 
-\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estrimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
+\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
 
 \item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 
-\item{maxDur}{(optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the First Principles model - will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Do not need for the Kissileff model.}
+\item{maxDur}{(optional) A numeric value; the maximum meal duration. Used for simulation purposes if using the LODE model, it will check to see if meal duration extends beyond entered value and sample bites based on the Emax possible the given meal duration. Will be ignored if using the Quadratic model.}
 
 \item{NAmessage}{Indicate whether to write out message is there are NA values for bite timing. Default is FALSE.}
 }
@@ -40,15 +39,16 @@ Default is 'FPM'.}
 A bite dataset with bite timing, bite size, and cumulative intake for each bite
 }
 \description{
-This function generates a bite data set that incluneds cumulative intake for *n* bites
-and the estimated bite timing. The simulation calculates cumulative intake using
-average bite size so the bite size is the same across the meal. There is the option of altering
-bites size by a given standard deviation to reflect within meal variation in bite size.
-If sd_bitesize is specified, the bites size will randomly vary across the meal using a Gussian
-ditribution with mean = average bite size and SD = sd_bitesize. Once the cumulative intake
-is generated, the timing of each bite will be estimated from either the Kissileff's quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001) or the First Principles Model (Thomas et al., 2017)
-cumulative intake models.
+This function simulates a bite dataset from specified parameters and model.
+The simulation calculates cumulative intake using average bite size so the
+bite size is the same across the meal. There is the option of adding
+either process noise to the bite sizes. Process noise can be added through
+jitter or a specified standard deviation. If sd_bitesize is specified, the bites size
+will randomly vary across the meal using a Gaussian distribution with mean = average bite size
+and SD = sd_bitesize. Process noise is added *before* to the calculation of bite timing.
+The timing of each bite will be estimated from either the Quadratic model
+(Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE)
+model (Thomas et al., 2017).
 }
 \examples{
 
@@ -56,4 +56,14 @@ cumulative intake models.
 }
 
 
+}
+\references{
+Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
+(\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
+Kissileff HR, Thorton J, Becker E. Appetite. 1982;3:255-272
+(\href{https://pubmed.ncbi.nlm.nih.gov/7159076/}{PubMed})
+Kissileff HR, Guss JL. Appetite. 2001;36:70-78
+(\href{https://pubmed.ncbi.nlm.nih.gov/11270360/}{PubMed})
+Thomas DM, Paynter J, Peterson CM, et al. Am J Clin Nutr. 2017;105:323-331
+ (\href{https://pubmed.ncbi.nlm.nih.gov/28077377/}{PubMed})
 }

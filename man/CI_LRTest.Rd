@@ -7,47 +7,40 @@
 CI_LRTest(
   data,
   par,
-  parValues,
-  model_str = "FPM",
+  model_str = "LODE",
   timeVar,
   intakeVar,
   min_n2ll,
   paramIndex,
   conf = 95,
-  bound,
-  fixParam = FALSE
+  bound
 )
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{par}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)}
+\item{par}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order; the Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order}
 
-\item{parValues}{(option) Fitted parameter values to use as reference - only required for the Brent optimization when fixParam is set to TRUE}
-
-\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
-Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
-\item{min_n2ll}{This is a single value or list of the fitted minimum -2 log-likelihood. This will be used as the -2 log-likelihood value for all fitted parameter values entered in paramCI. If multiple values are entered, must enter an equal number of parameter values in paramCI for each labeled parameter. E.g., paramCI = list(r = c(0.10, 0.15)) if enter two -2 log-likelihood values.}
+\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters.}
 
-\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if First Principles Model, par[1] would be theta and par[2] would be r.}
+\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.}
 
-\item{conf}{Numeric value(s) for the percent confidence desired. Can enter a vector of values if different confidence values will be applied to each parameter. Must enter the percent confidence for each parameter in the order the parameters are specified (e.g., for the FPM model, conf = c(99, 85) would denote a 99 percent CI for theta and a 85 percent CI for r. Default is 95.}
+\item{conf}{Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI.}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
-
-\item{fixParam}{(optional) A logical indicating whether to fix other parameters in model and use Brent optimization method (see optim). Default is FALSE.}
 }
 \value{
 The likelihood ratio test for the CI bound and value (upper v lower) requested
 }
 \description{
-This function wrpas model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
+This function warps model fit functions called through optim {stats} to calcualte the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
 }
 \examples{
 

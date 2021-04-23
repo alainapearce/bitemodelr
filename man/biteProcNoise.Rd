@@ -33,5 +33,7 @@ ditribution with mean = average bite size and SD = sd_bitesize.
 \dontrun{
 }
 
-
+}
+\seealso{
+To add measurement noise to bite data *after* bite timing calculation see \code{\link{biteMeasureNoise}}
 }

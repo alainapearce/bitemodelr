@@ -16,18 +16,18 @@ A data frame with 500 rows and 14 variables:
     \item{TotalIntake_g}{Total intake in grams - calculated from nBites and BiteSize_g}
     \item{EatRate}{Eating rate in grams/min - calculated from TotalIntake_g and ActiveMeal_pcent}
     \item{MealDur_min}{Meal duration in minutes - calcualted from TotalOE_min and ActiveMeal_pcent}
-    \item{theta}{First Principles Model parameter theta - initial rate of eating}
-    \item{r}{First Principles Model parameter r - 1/r is the time to double intake}
-    \item{int}{Kissileff's quadratic model intercept}
-    \item{linear}{Kissileff's quadratic model linear term - eating rate}
-    \item{quad}{Kissileff's quadratic model quadratic term - how eating rate changes}
+    \item{theta}{LODE Model parameter theta - initial rate of eating}
+    \item{r}{LODE Model parameter r - 1/r is the time to double intake}
+    \item{int}{Quadratic model intercept}
+    \item{linear}{Quadratic model linear term - eating rate}
+    \item{quad}{Quadratic model quadratic term - how eating rate changes}
 }
 }
 \usage{
 data(SimDat_Fogel2017)
 }
 \description{
-Simulated data based on Fogel et al., 2017 child microstructure behaivor means and variance structure. 500 sets of mictrostructure behaivors were randomly selected from a multivariate normal distribution. Model parameters were estimated after bites were generated using randomly selected bite timings using a logisitc distrubition truncated to positive values. See generation script DataGen_SimDat_Fogel2017.R in raw-data.
+Simulated data based on Fogel et al., 2017 child microstructure behaivor means and variance structure. 500 sets of mictrostructure behaivors were randomly selected from a multivariate normal distribution. Model parameters were estimated after bites were generated using randomly selected bite timings using a logisitc distribution truncated to positive values. See generation script DataGen_SimDat_Fogel2017.R in raw-data.
 }
 \examples{
 data(SimDat_Fogel2017)
@@ -35,7 +35,9 @@ nBites <- attr(SimDat_Fogel2017, "nBites")
 
 }
 \references{
-Fogel et al. (2017) Physiology & Behavior 176 (2017) 107–116
+Fogel A, Goh AT, Fries LR, et al. A description of an “obesogenic” eating style that promotes higher energy intake and is associated with greater adiposity in 4.5year-old children: Results from the GUSTO cohort. Physiology & Behavior. 2017;176:107-116. doi:10.1016/j.physbeh.2017.02.013
+
+Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
 (\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
 }
 \keyword{datasets}

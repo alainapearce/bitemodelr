@@ -9,7 +9,7 @@ IntakeModelParams(
   parameters,
   timeVar,
   intakeVar,
-  model_str = "FPM",
+  model_str = "LODE",
   idVar = NA,
   hessian = FALSE
 )
@@ -18,14 +18,13 @@ IntakeModelParams(
 \item{data}{A data frame that contains two varliabels:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
 
 \item{timeVar}{A string that is the name of the elapsed time variable in data}
 
 \item{intakeVar}{A string that is the name of the cumulative intake variable in data}
 
-\item{model_str}{The base model to use--'FPM' for the first principles model and 'Kissileff' for the quadratic model.
-Default is 'FPM'.}
+\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
 \item{idVar}{(optional) A string that is the name of the ID variable in data. Optional: only include if
 data has multiple unique IDs that you want to be processed separately. Without input, only 1 set of
@@ -39,8 +38,8 @@ A dataframe with fitted parameter values and all optim outputs
 \description{
 This function provides fitted model parameters for the cumulative
 intake curve for each participant/unique ID in a data set. The parameters
-are either fit with Kissileff's quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
-or the First Principles Model (Thomas et al., 2017). The models are fit using optim {stats}.
+are either fit with the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
+or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017). The models are fit using optim {stats}.
 }
 \examples{
 
@@ -49,5 +48,5 @@ or the First Principles Model (Thomas et al., 2017). The models are fit using op
 
 }
 \seealso{
-For data details see \code{\link{FPM_Fit}} or \code{\link{Kissileff_Fit}}
+For data details see \code{\link{LODE_Fit}} or \code{\link{Quad_Fit}}
 }

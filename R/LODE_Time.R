@@ -32,6 +32,13 @@
 LODE_Time <- function(intake, parameters, Emax, message = TRUE) {
   # parameters = c(theta, r)
 
+  # make sure parameters are numeric
+  if (is.character(parameters[[1]])) {
+    parameters <- as.numeric(parameters)
+  } else if (is.data.frame(parameters)) {
+    parameters <- data.matrix(parameters)
+  }
+
   # since it is a logistic function, theoretically intake will never be
   # Emax. If intake = Emax, use 99% of Emax to get estimate for last
   # timepoint
@@ -49,7 +56,7 @@ LODE_Time <- function(intake, parameters, Emax, message = TRUE) {
     }
   }
 
-  log_term <- (Emax * (((intake * parameters[2]) / parameters[1]) + 1))/(Emax - intake)
+  log_term <- (Emax * (((intake * parameters[2]) / parameters[1]) + 1)) / (Emax - intake)
 
   if (log_term > 0) {
     # get time at which intake is achieved given the LODE equation

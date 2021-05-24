@@ -7,14 +7,14 @@
 Quad_timeE0(Emax, parameters, id)
 }
 \arguments{
-\item{Emax}{A numeric value that represents total cumulative intake.}
+\item{Emax}{A numeric value for total cumulative intake.}
 
 \item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
 
 \item{id}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 }
 \value{
-A boolean operator indicating if the provided parameters reflect a feasible cumulative intake curve (TRUE) or not (FALSE)
+A boolean operator indicating if the provided parameters reflect a feasible cumulative intake curve (TRUE) or not (FALSE) and the minimum intake
 }
 \description{
 This function checks the feasibility parameters relative to Emax and returns the timing for the minimum positive intake based on parameter values for the quadratic model. Note: if Emax and parameter values represent a non-feasbile model, it will not return timing values

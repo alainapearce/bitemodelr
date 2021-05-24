@@ -32,9 +32,9 @@ n2LL_grid(
 
 \item{type}{The type of search to complete. 'grid' will calculate the -2 log-likihood for every combination of parameter step value combinations (default). 'linear' will calculate -2 log-likehood for every step of a single parameter while holding other parameters constant at the value entered in parameters.}
 
-\item{timeVar}{A string that is the name of the elapsed time variable in data}
+\item{timeVar}{Name of the variable in data that contains timing data}
 
-\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
 \item{graph}{(optional) A logical indicator indicate whether a graph should be returned. Default is TRUE}
 }
@@ -51,5 +51,5 @@ This function computes -2 log-likelihood values while varying parameter values.
 
 }
 \seealso{
-This function relies on \code{\link{simBites}} and \code{\link{IntakeModelParams}}.
+This function relies on \code{\link{biteIntake}} and \code{\link{IntakeModelParams}}.
 }

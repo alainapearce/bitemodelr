@@ -7,8 +7,8 @@
 #' @param data A data frame that contains two varliabels:
 #' 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time
 #' @param par A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)
-#' @param timeVar A string that is the name of the elapsed time variable in data
-#' @param intakeVar A string that is the name of the cumulative intake variable in data
+#' @param timeVar Name of the variable in data that contains timing data
+#' @param intakeVar AName of the variable in data that contains cumulative intake data
 #'
 #' @return The -2 log-likelihood for the model given the specified parameters.
 #'
@@ -23,12 +23,19 @@
 #' and \code{\link{Quad_Time}}.
 #'
 #' @export
-Quad_n2ll <- function(data, par, timeVar, intakeVar)
-{
+Quad_n2ll <- function(data, par, timeVar, intakeVar) {
+
+  # make sure parameters are numeric
+  if (is.character(par[[1]])) {
+    par <- as.numeric(par)
+  } else if (is.data.frame(par)) {
+    par <- data.matrix(par)
+  }
 
   # estimate intake from equation
   data$Estimated_intake <- sapply(data[, timeVar], Quad_Intake,
-                                  parameters = c(par))
+    parameters = c(par)
+  )
 
   # get variabel name
   estimated_name <- paste0("Estimated_", intakeVar)
@@ -40,11 +47,11 @@ Quad_n2ll <- function(data, par, timeVar, intakeVar)
   # calculate sigma
   # sigma <- sum(data$resid^2)/length(data$resid)
 
-  #add a small number to set a sort of minimum
-  sigma <- sum(data$resid^2)/length(data$resid)+0.001
+  # add a small number to set a sort of minimum
+  sigma <- sum(data$resid^2) / length(data$resid) + 0.001
 
   # ll equation
-  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + (-1/(2 * sigma^2)) * (sum(data$resid^2))
+  ll <- (-length(data$resid) / 2) * (log(2 * pi * sigma^2)) + (-1 / (2 * sigma^2)) * (sum(data$resid^2))
 
   # return -2ll
   return(-2 * ll)

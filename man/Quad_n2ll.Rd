@@ -12,9 +12,9 @@ Quad_n2ll(data, par, timeVar, intakeVar)
 
 \item{par}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)}
 
-\item{timeVar}{A string that is the name of the elapsed time variable in data}
+\item{timeVar}{Name of the variable in data that contains timing data}
 
-\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 }
 \value{
 The -2 log-likelihood for the model given the specified parameters.

@@ -8,19 +8,19 @@ genBiteDat(
   nBites,
   Emax,
   mealDur,
-  genDist = "logis",
+  timePDF = "logis",
   return_params = FALSE,
   id = NA
 )
 }
 \arguments{
-\item{nBites}{A numeric value that represents total number of bites in a meal.}
+\item{nBites}{A numeric value for total number of bites in a meal.}
 
-\item{Emax}{A numeric value that represents total cumulative intake.}
+\item{Emax}{A numeric value for total cumulative intake.}
 
 \item{mealDur}{Meal duration in minutes}
 
-\item{genDist}{A string or vector of strings for the generating distribution. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables.}
+\item{timePDF}{A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables.}
 
 \item{return_params}{(optional) A boolean indicating if model parameters should be returned. Only relevant if a model_str is entered. Default is FALSE.}
 

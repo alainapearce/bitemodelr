@@ -5,51 +5,33 @@
 \title{ParamRecovery: This function recovers parameters for cumulative intake model and the bite data provided}
 \usage{
 ParamRecovery(
-  nBites,
-  Emax,
-  parameters,
+  data,
+  timeVar,
+  intakeVar,
+  idVar,
   model_str = "LODE",
-  procNoise = TRUE,
-  measureNoise = FALSE,
-  pNoise_biteSizeSD = NA,
-  mNoise_biteTimeSD = NA,
-  mNoise_biteSizeCat = "mean",
-  keepBites = FALSE,
   conf = 95,
-  rmse = NA
+  error_method,
+  error_measure
 )
 }
 \arguments{
-\item{nBites}{A numeric value that represents total number of bites in a meal.}
+\item{data}{A data frame that contains two varliabels:
+1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{Emax}{A numeric value that represents total cumulative intake.}
+\item{timeVar}{Name of the variable in data that contains timing data}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+
+\item{idVar}{Name of the variable in data that contains id values}
 
 \item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
-\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing estimated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE.}
+\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
 
-\item{measureNoise}{(optional) A logical indicator for measurement noise after the estimation of bite timings. Default value is FALSE.}
+\item{error_method}{(optional ) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.}
 
-\item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
-
-\item{mNoise_biteTimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
-
-\item{mNoise_biteSizeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
-entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
-
-\item{keepBites}{(optional) This is a logical indicator for whether to return the simulated bite dataset with
-elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumulative
-intake data will use the same bite timing as in the initial data but will estimate intake for each bite based on
-the recovered model parameters. Default is FALSE.}
-
-\item{conf}{Numeric value for the percent confidence desired. Default is 95, which provides 95\% confident
-intervals. If no confidence intervals are desired, set conf to FALSE.}
-
-\item{rmse}{(optional) A string indicating which measure to compute root mean square error for. Options include:
-'timing' for bite timing, 'intake' for cumulative intake', 'both' to compute for both timing and intake.
-If not specified, rmse is not computed. Default is to not compute rmse.}
+\item{error_measure}{Which variable to use to calculate error - 'timing' will use bite timing, 'intake' will use cumulative intake, 'both' will return both. Default is 'intake'.}
 }
 \value{
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE

@@ -12,9 +12,9 @@ LODE_n2ll(data, par, timeVar, intakeVar, Emax)
 
 \item{par}{A set of numeric parameters for the LODE in the format: c(theta, r)}
 
-\item{timeVar}{A string that is the name of the elapsed time variable in data}
+\item{timeVar}{Name of the variable in data that contains timing data}
 
-\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }

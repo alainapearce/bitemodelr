@@ -29,11 +29,16 @@
 #' and \code{\link{Quad_Time}}.
 #'
 #' @export
-LODEincorrect_Intake <- function(time, parameters, Emax)
-{
+LODEincorrect_Intake <- function(time, parameters, Emax) {
 
-  E_t = (Emax*parameters[1]*(exp((time(Emax*parameters[2] + parameters[1]))/(Emax))-1))/(parameters[1]*(exp((time(Emax*parameters[2] + parameters[1]))/(Emax))) + Emax*parameters[2])
+  # make sure parameters are numeric
+  if (is.character(parameters[[1]])) {
+    parameters <- as.numeric(parameters)
+  } else if (is.data.frame(parameters)) {
+    parameters <- data.matrix(parameters)
+  }
+
+  E_t <- (Emax * parameters[1] * (exp((time(Emax * parameters[2] + parameters[1])) / (Emax)) - 1)) / (parameters[1] * (exp((time(Emax * parameters[2] + parameters[1])) / (Emax))) + Emax * parameters[2])
 
   return(E_t)
 }
-

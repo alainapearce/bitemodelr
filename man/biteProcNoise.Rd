@@ -4,18 +4,20 @@
 \alias{biteProcNoise}
 \title{biteProcNoise: Adds process noise to cumulative intake by bites}
 \usage{
-biteProcNoise(cumulativeBites, nBites, Emax, minE = 0, pNoise_biteSizeSD = NA)
+biteProcNoise(cumulativeBites, nBites, Emax, Et0 = 0, pNoiseSD = NA)
 }
 \arguments{
-\item{cumulativeBites}{A numeric vector representing the cumulative intake at each bite}
+\item{nBites}{A numeric value for total number of bites in a meal.}
 
-\item{nBites}{A numeric value that represents total number of bites in a meal.}
+\item{Emax}{A numeric value for total cumulative intake.}
 
-\item{Emax}{A numeric value that represents total cumulative intake.}
+\item{Et0}{Only needed if data entered is cumulative intake. Minimum intake in grams that maintains a time >= 0 (note, for LODE this is always 0, for the Quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @biteIntake for full explanation).}
 
-\item{minE}{A numeric value that represents the minimum intake in grams that maintains a time >= 0 (note, for FPM this is always 0, for Kissileff quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @simBites for full explanation)}
+\item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 
-\item{pNoise_biteSizeSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
+\item{data}{A numeric vector representing the cumulative intake at each bite or bite timing}
+
+\item{mealDur}{Only needed if data entered is bite timing. Max duration of the meal.}
 }
 \value{
 A dataset of bites and cumulative intake with process noise added

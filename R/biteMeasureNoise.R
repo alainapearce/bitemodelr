@@ -31,18 +31,20 @@
 #'
 #' @export
 
-biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = FALSE,  mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean") {
+biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = FALSE, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean") {
 
   ## Add measurement error
-  if (measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
+  if (measureNoise == "Both" | measureNoise == "both" | measureNoise == "BiteSize" | measureNoise == "bitesize") {
     # add measurement error
     if (!is.na(mNoise_biteSizeCat)) {
 
       # default: use average bites size for parameter recovery
       if (mNoise_biteSizeCat == "mean") {
-        BiteDat$BiteGrams_recParam_Adj <- rep(Emax/nBites,
-                                              nrow(BiteDat))
-        BiteDat$CumulativeGrams_recParam_Adj <- cumsum(BiteDat$BiteGrams_recParam_Adj)
+        BiteDat$BiteGrams_mNoise_Adj <- rep(
+          Emax / nBites,
+          nrow(BiteDat)
+        )
+        BiteDat$CumulativeGrams_mNoise_Adj <- cumsum(BiteDat$BiteGrams_mNoise_Adj)
       } else {
         # use user-entered bite categories
         # get max bite size
@@ -67,49 +69,48 @@ biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", B
         BiteDat$BiteSizeCat <- cut(BiteDat[, BiteVar], breaks = c(breaks_full), labels = c(label_names))
 
         # set up the new bite size variable
-        BiteDat$BiteGrams_recParam_Adj <- NA
+        BiteDat$BiteGrams_mNoise_Adj <- NA
 
         # get average bite size per category
         for (l in 1:nlabels) {
-          BiteDat[BiteDat$BiteSizeCat == label_names[l], ]$BiteGrams_recParam_Adj <-
+          BiteDat[BiteDat$BiteSizeCat == label_names[l], ]$BiteGrams_mNoise_Adj <-
             mean(BiteDat[BiteDat$BiteSizeCat == label_names[l], BiteVar])
         }
 
         # new cumulative intake
-        BiteDat$CumulativeGrams_recParam_Adj <- cumsum(BiteDat$BiteGrams_recParam_Adj)
+        BiteDat$CumulativeGrams_mNoise_Adj <- cumsum(BiteDat$BiteGrams_mNoise_Adj)
       }
     }
   }
 
-  if (measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteTiming' | measureNoise == 'bitetiming') {
+  if (measureNoise == "Both" | measureNoise == "both" | measureNoise == "BiteTiming" | measureNoise == "bitetiming") {
 
-    #create new empty variable
-    BiteDat$EstimatedTimeAdj = NA
+    # create new empty variable
+    BiteDat$EstimatedTimeAdj <- NA
 
     # add measurement error to bite timing
     if (is.na(mNoise_biteTimeSD)) {
       BiteDat$EstimatedTimeAdj <- jitter(BiteDat[, TimeVar])
-
     } else if (!is.na(mNoise_biteTimeSD)) {
 
-      #add random noise to bite timing under the constraints:
+      # add random noise to bite timing under the constraints:
       # 1) starting time is not negative
       # 2) t(n) is not less than t(n-1)
 
       # get differences between bite timings - not default in jitter command is to adjust by the min difference/5 so will set the range of possible differences from - 1/2 min diff to + 1/2 min difference
       biteTime_diff <- c(BiteDat[1, TimeVar], diff(BiteDat[, TimeVar], difference = 1))
 
-      difLimits = min(biteTime_diff)/2
+      difLimits <- min(biteTime_diff) / 2
 
       # get truncated random adjustment to bite timing
       biteTime_adj <- truncnorm::rtruncnorm(nrow(BiteDat), a = -difLimits, b = difLimits, mean = 0, sd = mNoise_biteTimeSD)
 
-      #get new timing by adding to 'True' calculated time
-      BiteDat$EstimatedTimeAdj[nb] = BiteDat[, TimeVar] + biteTime_adj
+      # get new timing by adding to 'True' calculated time
+      BiteDat$EstimatedTimeAdj[nb] <- BiteDat[, TimeVar] + biteTime_adj
     }
 
-    #ensure first bite timing is > 0
-    if (BiteDat$EstimatedTimeAdj[1] < 0){
+    # ensure first bite timing is > 0
+    if (BiteDat$EstimatedTimeAdj[1] < 0) {
       BiteDat$EstimatedTimeAdj[1] <- 0
     }
 
@@ -120,15 +121,16 @@ biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", B
     # average of the t-1 and t+1 cumulative intake
     for (d in 1:length(Check_biteTime_adj)) {
       if (Check_biteTime_adj[d] < 0) {
-        BiteDat$EstimatedTimeAdj[d] = (BiteDat$EstimatedTimeAdj[d + 1] -
-                                         BiteDat$EstimatedTimeAdj[d - 1])/2
+        BiteDat$EstimatedTimeAdj[d] <- (BiteDat$EstimatedTimeAdj[d + 1] -
+          BiteDat$EstimatedTimeAdj[d - 1]) / 2
       }
     }
 
     # add name
-    names(BiteDat)[ncol(BiteDat)] <- "EstimatedTime_recParam_Adj"
+    names(BiteDat)[ncol(BiteDat)] <- "EstimatedTime_mNoise_Adj"
   }
 
   # return output
   return(BiteDat)
 }
+

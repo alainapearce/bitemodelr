@@ -18,7 +18,8 @@ Imports:
     faux,
     methods,
     utils,
-    truncdist
+    truncdist,
+    HelpersMG
 Remotes:
     debruine/faux
 Suggests: 

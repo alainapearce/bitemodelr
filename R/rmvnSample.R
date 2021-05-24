@@ -24,10 +24,11 @@
 rmvnSample <- function(nSample = 100, model_str = "LODE", write.dat = TRUE, data_str = "simDat", scaleFactor = NA) {
   # set.seed(2468)
 
-  utils::data(SimDat_Fogel2017)
+  loop_count <- 0
+  utils::data(logitParamDat_Fogel2017)
 
   TotalSamples <- 0
-  while (TotalSamples < nSample) {
+  while (TotalSamples < nSample & loop_count < 100) {
     rowsNeed <- nSample - TotalSamples
 
     if (rowsNeed < 10) {
@@ -44,23 +45,23 @@ rmvnSample <- function(nSample = 100, model_str = "LODE", write.dat = TRUE, data
           0, 0, scaleFactor, 0,
           0, 0, 0, scaleFactor
         ), byrow = TRUE, nrow = 4)
-        covMatrix <- stats::cov(SimDat_Fogel2017[c(2, 7, 10:11)])
+        covMatrix <- stats::cov(logitParamDat_Fogel2017[c(2, 7, 14:15)])
 
         covMatrixScaled <- scaleMatrix %*% covMatrix %*% t(scaleMatrix)
         row.names(covMatrixScaled) <- row.names(covMatrix)
         colnames(covMatrixScaled) <- colnames(covMatrix)
 
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:11)]), Sigma = covMatrixScaled, empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 14:15)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:11)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:11)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 14:15)]), Sigma = stats::cov(logitParamDat_Fogel2017[c(2, 7, 14:15)]), empirical = TRUE))
       }
 
 
       rmvn_dat$r_check <- (-1 * rmvn_dat$theta) / round(rmvn_dat$TotalIntake_g, 2)
 
       rmvn_datKeep <- rmvn_dat[rmvn_dat$r > rmvn_dat$r_check, ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$r >= min(SimDat_Fogel2017$r) & rmvn_datKeep$r <= max(SimDat_Fogel2017$r), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$theta >= min(SimDat_Fogel2017$theta) & rmvn_datKeep$theta <= max(SimDat_Fogel2017$theta), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$r >= min(logitParamDat_Fogel2017$r) & rmvn_datKeep$r <= max(logitParamDat_Fogel2017$r), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$theta >= min(logitParamDat_Fogel2017$theta) & rmvn_datKeep$theta <= max(logitParamDat_Fogel2017$theta), ]
     } else if (model_str == "Quad" || model_str == "quad") {
       if (!is.na(scaleFactor)) {
         scaleMatrix <- matrix(c(
@@ -70,20 +71,20 @@ rmvnSample <- function(nSample = 100, model_str = "LODE", write.dat = TRUE, data
           0, 0, 0, scaleFactor, 0,
           0, 0, 0, 0, scaleFactor
         ), byrow = TRUE, nrow = 5)
-        covMatrix <- stats::cov(SimDat_Fogel2017[c(2, 7, 12:14)])
+        covMatrix <- stats::cov(logitParamDat_Fogel2017[c(2, 7, 10:12)])
 
         covMatrixScaled <- scaleMatrix %*% covMatrix %*% t(scaleMatrix)
         row.names(covMatrixScaled) <- row.names(covMatrix)
         colnames(covMatrixScaled) <- colnames(covMatrix)
 
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = covMatrixScaled, empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 10:12)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 12:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 12:14)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 10:12)]), Sigma = stats::cov(logitParamDat_Fogel2017[c(2, 7, 10:12)]), empirical = TRUE))
       }
 
-      rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(SimDat_Fogel2017$int) & rmvn_dat$int <= max(SimDat_Fogel2017$int), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(SimDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$linear), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(SimDat_Fogel2017$quad), ]
+      rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(logitParamDat_Fogel2017$int) & rmvn_dat$int <= max(logitParamDat_Fogel2017$int), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(logitParamDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(logitParamDat_Fogel2017$linear), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(logitParamDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(logitParamDat_Fogel2017$quad), ]
     } else if (model_str == "both" || model_str == "Both") {
       if (!is.na(scaleFactor)) {
         scaleMatrix <- matrix(c(
@@ -96,32 +97,32 @@ rmvnSample <- function(nSample = 100, model_str = "LODE", write.dat = TRUE, data
           0, 0, 0, 0, 0, 0, scaleFactor
         ), byrow = TRUE, nrow = 7)
 
-        covMatrix <- stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)])
+        covMatrix <- stats::cov(logitParamDat_Fogel2017[c(2, 7, 10:12, 14:15)])
 
         covMatrixScaled <- scaleMatrix %*% covMatrix %*% t(scaleMatrix)
         row.names(covMatrixScaled) <- row.names(covMatrix)
         colnames(covMatrixScaled) <- colnames(covMatrix)
 
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:14)]), Sigma = covMatrixScaled, empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 10:12, 14:15)]), Sigma = covMatrixScaled, empirical = TRUE))
       } else {
-        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(SimDat_Fogel2017[c(2, 7, 10:14)]), Sigma = stats::cov(SimDat_Fogel2017[c(2, 7, 10:14)]), empirical = TRUE))
+        rmvn_dat <- as.data.frame(MASS::mvrnorm(newsample, mu = colMeans(logitParamDat_Fogel2017[c(2, 7, 10:12, 14:15)]), Sigma = stats::cov(logitParamDat_Fogel2017[c(2, 7, 10:12, 14:15)]), empirical = TRUE))
       }
 
       # LODE checks
       rmvn_dat$r_check <- (-1 * rmvn_dat$theta) / rmvn_dat$TotalIntake_g
 
       rmvn_datKeep <- rmvn_dat[rmvn_dat$r_check < rmvn_dat$r, ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$r >= min(SimDat_Fogel2017$r) & rmvn_datKeep$r <= max(SimDat_Fogel2017$r), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$theta >= min(SimDat_Fogel2017$theta) & rmvn_datKeep$theta <= max(SimDat_Fogel2017$theta), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$r >= min(logitParamDat_Fogel2017$r) & rmvn_datKeep$r <= max(logitParamDat_Fogel2017$r), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$theta >= min(logitParamDat_Fogel2017$theta) & rmvn_datKeep$theta <= max(logitParamDat_Fogel2017$theta), ]
 
       # Quad checks
-      rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(SimDat_Fogel2017$int) & rmvn_dat$int <= max(SimDat_Fogel2017$int), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(SimDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(SimDat_Fogel2017$linear), ]
-      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(SimDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(SimDat_Fogel2017$quad), ]
+      rmvn_datKeep <- rmvn_dat[rmvn_dat$int >= min(logitParamDat_Fogel2017$int) & rmvn_dat$int <= max(logitParamDat_Fogel2017$int), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$linear >= min(logitParamDat_Fogel2017$linear) & rmvn_datKeep$linear <= max(logitParamDat_Fogel2017$linear), ]
+      rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$quad >= min(logitParamDat_Fogel2017$quad) & rmvn_datKeep$quad <= max(logitParamDat_Fogel2017$quad), ]
     }
 
-    rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$nBites >= min(SimDat_Fogel2017$nBites) & rmvn_datKeep$nBites <= max(SimDat_Fogel2017$nBites), ]
-    rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$TotalIntake_g >= min(SimDat_Fogel2017$TotalIntake_g) & rmvn_datKeep$TotalIntake_g <= max(SimDat_Fogel2017$TotalIntake_g), ]
+    rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$nBites >= min(logitParamDat_Fogel2017$nBites) & rmvn_datKeep$nBites <= max(logitParamDat_Fogel2017$nBites), ]
+    rmvn_datKeep <- rmvn_datKeep[rmvn_datKeep$TotalIntake_g >= min(logitParamDat_Fogel2017$TotalIntake_g) & rmvn_datKeep$TotalIntake_g <= max(logitParamDat_Fogel2017$TotalIntake_g), ]
 
     if (nrow(rmvn_datKeep) > 0) {
 
@@ -186,6 +187,7 @@ rmvnSample <- function(nSample = 100, model_str = "LODE", write.dat = TRUE, data
     }
 
     TotalSamples <- nrow(SimDat_rmvn)
+    loop_count <- loop_count + 1
   }
 
   # add time at Emax to dataset

@@ -29,13 +29,18 @@
 #' and \code{\link{Quad_Time}}.
 #'
 #' @export
-LODE_Intake <- function(time, parameters, Emax)
-{
+LODE_Intake <- function(time, parameters, Emax) {
+
+  # make sure parameters are numeric
+  if (is.character(parameters[[1]])) {
+    parameters <- as.numeric(parameters)
+  } else if (is.data.frame(parameters)) {
+    parameters <- data.matrix(parameters)
+  }
 
   # parameters = c(theta, r)
-  E_t = (Emax * (exp((time * (Emax * parameters[2] + parameters[1]))/Emax) -
-                   1))/((exp((time * (Emax * parameters[2] + parameters[1]))/Emax) +
-                           (Emax * parameters[2])/parameters[1]))
+  E_t <- (Emax * (exp((time * (Emax * parameters[2] + parameters[1])) / Emax) -
+    1)) / ((exp((time * (Emax * parameters[2] + parameters[1])) / Emax) +
+    (Emax * parameters[2]) / parameters[1]))
   return(E_t)
 }
-

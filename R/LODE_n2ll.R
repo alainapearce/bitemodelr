@@ -25,6 +25,14 @@
 #' @export
 LODE_n2ll <- function(data, par, timeVar, intakeVar, Emax) {
 
+  # make sure parameters are numeric
+  # make sure parameters are numeric
+  if (is.character(par[[1]])) {
+    par <- as.numeric(par)
+  } else if (is.data.frame(par)) {
+    par <- data.matrix(par)
+  }
+
   # get estimated intake
   data$Estimated_intake <- sapply(data[, timeVar], LODE_Intake, parameters = c(par[1], par[2]), Emax = Emax)
 
@@ -33,13 +41,13 @@ LODE_n2ll <- function(data, par, timeVar, intakeVar, Emax) {
   names(data)[length(names(data))] <- estimated_name
 
   # calculate the error/residual between predicted and actual intake
-  data$resid <-data[, intakeVar] - data[, estimated_name]
+  data$resid <- data[, intakeVar] - data[, estimated_name]
 
   # get sigma
-  sigma <- sum(data$resid^2)/length(data$resid)
+  sigma <- sum(data$resid^2) / length(data$resid)
 
   # ll equation
-  ll <- (-length(data$resid)/2) * (log(2 * pi * sigma^2)) + ((-1/(2 * sigma^2)) * (sum(data$resid^2)))
+  ll <- (-length(data$resid) / 2) * (log(2 * pi * sigma^2)) + ((-1 / (2 * sigma^2)) * (sum(data$resid^2)))
 
   # rerun -2ll
   return(-2 * ll)

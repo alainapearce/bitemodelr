@@ -32,6 +32,13 @@
 LODEincorrect_Time <- function(intake, parameters, Emax, message = TRUE) {
   # parameters = c(theta, r)
 
+  # make sure parameters are numeric
+  if (is.character(parameters[[1]])) {
+    parameters <- as.numeric(parameters)
+  } else if (is.data.frame(parameters)) {
+    parameters <- data.matrix(parameters)
+  }
+
   # since it is a logistic function, theoretically intake will never be
   # Emax. If intake = Emax, use 99% of Emax to get estimate for last
   # timepoint
@@ -39,18 +46,18 @@ LODEincorrect_Time <- function(intake, parameters, Emax, message = TRUE) {
     intake <- intake * 0.9999
   }
 
-  #calculate the r limit to determine if model is not sovlable
-  rlimit = -1 * parameters[1]/intake
+  # calculate the r limit to determine if model is not sovlable
+  rlimit <- -1 * parameters[1] / intake
 
-  #check to see if r limit is exceeded
+  # check to see if r limit is exceeded
   if (parameters[2] < rlimit) {
-    if (isTRUE(message))  {
+    if (isTRUE(message)) {
       stop("Unable to solve for time for the current parameters and max intake: r is less than -theta/intake. Check parameters and data are correct.")
     }
   }
 
-  T_e = (Emax/(Emax*parameters[2]+parameters[1]))*log((Emax*((intake*parameters[2])+1))/(Emax - intake))
+  T_e <- (Emax / (Emax * parameters[2] + parameters[1])) * log((Emax * ((intake * parameters[2]) + 1)) / (Emax - intake))
 
-  #return time
+  # return time
   return(T_e)
 }

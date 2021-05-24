@@ -18,9 +18,9 @@ biteMeasureNoise(
 \arguments{
 \item{BiteDat}{A dataset with Bites, bite sizes, cumulative intake, and bite timing.}
 
-\item{nBites}{A numeric value that represents total number of bites in a meal.}
+\item{nBites}{A numeric value for total number of bites in a meal.}
 
-\item{Emax}{A numeric value that represents total cumulative intake.}
+\item{Emax}{A numeric value for total cumulative intake.}
 
 \item{TimeVar}{String reflecting name for bite timing variable BiteDat}
 

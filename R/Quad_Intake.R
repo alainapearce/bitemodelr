@@ -28,14 +28,21 @@
 #' see \code{\link{LODE_Intake}} and \code{\link{LODE_Time}}.
 #'
 #' @export
-Quad_Intake <- function(time, parameters)
-{
-  #get time squared
+Quad_Intake <- function(time, parameters) {
+
+  # make sure parameters are numeric
+  if (is.character(parameters[[1]])) {
+    parameters <- as.numeric(parameters)
+  } else if (is.data.frame(parameters)) {
+    parameters <- data.matrix(parameters)
+  }
+
+  # get time squared
   time2 <- time^2
 
-  #solve for intake at time t
+  # solve for intake at time t
   E_t <- parameters[1] + parameters[2] * time + parameters[3] * time2
 
-  #return intake valueß
+  # return intake valueß
   return(E_t)
 }

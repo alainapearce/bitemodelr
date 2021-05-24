@@ -2,11 +2,12 @@
 % Please edit documentation in R/CI_Fit.R
 \name{CI_Fit}
 \alias{CI_Fit}
-\title{CI_Fit: Fits the parameters at the confidence bounds using the log-likelihood ratio test}
+\title{CI_Fit: Fits the parameters at the confidence bound using the log-likelihood profile estimation}
 \usage{
 CI_Fit(
   data,
   parameters,
+  Emax,
   paramIndex,
   min_n2ll,
   model_str = "LODE",
@@ -22,17 +23,19 @@ CI_Fit(
 
 \item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
 
+\item{Emax}{A numeric value for total cumulative intake.}
+
 \item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.}
 
 \item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters.}
 
 \item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
-\item{timeVar}{A string that is the name of the elapsed time variable in data}
+\item{timeVar}{Name of the variable in data that contains timing data}
 
-\item{intakeVar}{A string that is the name of the cumulative intake variable in data}
+\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
-\item{conf}{Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI.}
+\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
 }
@@ -40,7 +43,7 @@ CI_Fit(
 
 }
 \description{
-This function uses optim to fit the parameters at the specified confidence bounds using the log-likelihood ratio test.
+This function uses optim to fit the parameters at the specified confidence bound using the log-likelihood ratio test.
 }
 \examples{
 
@@ -49,5 +52,5 @@ This function uses optim to fit the parameters at the specified confidence bound
 
 }
 \seealso{
-\code{\link{CI_LRT}} is the function to compute the log-likelihood test \code{\link{CIbounds_RT}} is a wrapper function to get upper and lower confidence bounds for all model parameters.
+\code{\link{CI_LPE}} is the function to compute the log-likelihood test \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
 }

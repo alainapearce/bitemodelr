@@ -146,38 +146,19 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   fnIntake_name <- as.character(substitute(intake_fn))
 
   ####             2. Recover Parameters             ####
-  if (CImethod == 'hessian' | CImethod == 'both'){
 
-    #set param_names
-    if (model_str == 'LODE'){
-      param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge', 'se_theta', 'se_r', paste0('u', conf, 'CIse_theta'), paste0('u', conf, 'CIse_r'), paste0('l', conf, 'CIse_theta'), paste0('l', conf, 'CIse_r'))
-    } else if (model_str == 'Quad'){
-      param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge', 'se_int', 'se_linear', 'se_quad', paste0('u', conf, 'CIse_int'), paste0('u', conf, 'CIse_linear'), paste0('u', conf, 'CIse_quad'), paste0('l', conf, 'CIse_int'),  paste0('l', conf, 'CIse_linear'), paste0('l', conf, 'CIse_quad'))
-    }
+  #get param names
+  if (model_str == 'LODE'){
+    param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge')
+  } else if (model_str == 'Quad'){
+    param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge')
+  }
 
-    #recover values
-    if(nobs > 1){
-      data_list <- split(data, data$id)
-
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str, hessianCI = TRUE)
-
-    } else {
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str, hessianCI = TRUE)
-    }
+  #recover values
+  if(nobs > 1){
+    params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
   } else {
-    #get param names
-    if (model_str == 'LODE'){
-      param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge')
-    } else if (model_str == 'Quad'){
-      param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge')
-    }
-
-    #recover values
-    if(nobs > 1){
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
-    } else {
-      params_list <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
-    }
+    params_list <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
   }
 
   #unlist values
@@ -202,12 +183,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   # add time_fn specific parameters to data frame
   if (model_str == 'LODE') {
     if (is.factor(params_dat$theta)){
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:3, 8:13)], function(x) as.numeric(as.character(x)))
-      } else {
         params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -216,12 +192,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:3, 8:13)], function(x) as.numeric(x))
-      } else {
         params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -236,12 +207,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   } else if (model_str == 'Quad') {
 
     if (is.factor(params_dat$int)){
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:4, 9:17)], function(x) as.numeric(as.character(x)))
-      } else {
         params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -250,12 +216,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:4, 9:17)], function(x) as.numeric(x))
-      } else {
         params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)

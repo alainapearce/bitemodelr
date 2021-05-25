@@ -26,9 +26,8 @@
 #' elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumulative
 #' intake data will use the same bite timing as in the initial data but will estimate intake for each bite based on
 #' the recovered model parameters. Default is FALSE.
-#' @param CImethod A string indicating which approach to calculating confidence intervals should be used - 'hessian' for optim derived standard errors, 'LPE' for the likelihood profile confidence intervals, or 'both' to compare fits of both. Default is 'LPE'.
-#' @inheritParams Quad_Fit
-#' @param error_method (optional ) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.
+#' @inheritParams conf (optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95% CI. If no confidence intervals are desired, set conf = NA.
+#' @param error_method (optional) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.
 #' @inheritParams modelError
 #' @param distinct Indicate if want to calculate parameter estimate distinctness - TRUE or FALSE. Default is FALSE.
 #'
@@ -43,7 +42,7 @@
 #'
 #' @export
 
-simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LODE', procNoise = TRUE, measureNoise = FALSE, pNoiseSD = NA, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean", keepBites = FALSE, CImethod = 'LPE', conf = 95, error_method, error_measure, distinct = FALSE, cutoff) {
+simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LODE', procNoise = TRUE, measureNoise = FALSE, pNoiseSD = NA, mNoise_TimeSD = NA, mNoise_IntakeCat = "mean", keepBites = FALSE, conf = 95, error_method, error_measure, distinct = FALSE, cutoff) {
 
   ####             1. Set up/initial checks             #####
   # get entered of default function names as characters
@@ -351,11 +350,11 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   ## Add measurement error - HERE
   if (!isFALSE(measureNoise)) {
     if (nobs > 1){
-      simDat_list <- mapply(biteMeasureNoise, BiteDat = simDat_list, nBites = paramRecov$nBites, Emax = paramRecov$Emax,  MoreArgs = list(TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = measureNoise,  mNoise_biteTimeSD = mNoise_biteTimeSD, mNoise_biteSizeCat = mNoise_biteSizeCat), SIMPLIFY = FALSE)
+      simDat_list <- mapply(biteMeasureNoise, BiteDat = simDat_list, nBites = paramRecov$nBites, Emax = paramRecov$Emax,  MoreArgs = list(TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = measureNoise,  mNoise_TimeSD = mNoise_TimeSD, mNoise_IntakeCat = mNoise_IntakeCat), SIMPLIFY = FALSE)
 
       simDat <- do.call(rbind, lapply(simDat_list, as.data.frame))
     } else {
-      simDat <- biteMeasureNoise(BiteDat = simDat, nBites = paramRecov$nBites, Emax = paramRecov$Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = measureNoise,  mNoise_biteTimeSD = mNoise_biteTimeSD, mNoise_biteSizeCat = mNoise_biteSizeCat)
+      simDat <- biteMeasureNoise(BiteDat = simDat, nBites = paramRecov$nBites, Emax = paramRecov$Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = measureNoise,  mNoise_TimeSD = mNoise_TimeSD, mNoise_IntakeCat = mNoise_IntakeCat)
     }
   }
 
@@ -395,24 +394,6 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
 
   paramRecov$true_n2ll <- true_n2ll
 
-  # recover parameters
-  if (CImethod == 'hessian' | CImethod == 'both'){
-
-    #set param_names
-    if (model_str == 'LODE'){
-      param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge', 'se_theta', 'se_r', paste0('u', conf, 'CIse_theta'), paste0('u', conf, 'CIse_r'), paste0('l', conf, 'CIse_theta'), paste0('l', conf, 'CIse_r'))
-    } else if (model_str == 'Quad'){
-      param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge', 'se_int', 'se_linear', 'se_quad', paste0('u', conf, 'CIse_int'), paste0('u', conf, 'CIse_linear'), paste0('u', conf, 'CIse_quad'), paste0('l', conf, 'CIse_int'),  paste0('l', conf, 'CIse_linear'), paste0('l', conf, 'CIse_quad'))
-    }
-
-    #recover values
-    if(nobs > 1){
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str, hessianCI = TRUE)
-
-    } else {
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str, hessianCI = TRUE)
-    }
-  } else {
     #get param names
     if (model_str == 'LODE'){
       param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge')
@@ -426,7 +407,6 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
     } else {
       params_list <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
     }
-  }
 
   #unlist values
   if (nobs > 1){
@@ -450,12 +430,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   # add time_fn specific parameters to data frame
   if (model_str == 'LODE') {
     if (is.factor(params_dat$theta)){
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:3, 8:13)], function(x) as.numeric(as.character(x)))
-      } else {
         params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -464,12 +439,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:3, 8:13)], function(x) as.numeric(x))
-      } else {
         params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -484,12 +454,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   } else if (model_str == 'Quad') {
 
     if (is.factor(params_dat$int)){
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:4, 9:17)], function(x) as.numeric(as.character(x)))
-      } else {
         params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -498,12 +463,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-      #if hessian CI
-      if (CImethod == 'hessian' | CImethod == 'both'){
-        params_dat_num <- sapply(params_dat[c(2:4, 9:17)], function(x) as.numeric(x))
-      } else {
         params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
-      }
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -527,7 +487,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   }
 
   ####             5. Calculated Confidence Intervals             #####
-  if (CImethod == 'LPE' | CImethod == 'both') {
+  if (!is.na(conf)) {
     if(nobs > 1){
       paramCI_list <- mapply(CIbounds_LPE, simDat_list, parameters = parameters_fit_list, Emax = paramRecov$Emax, min_n2ll = paramRecov$fit_n2ll, MoreArgs = list(model_str , timeVar = param_timeVar, intakeVar = param_intakeVar, conf = conf))
 
@@ -746,7 +706,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
     # add adjusted variables to initDat (which has correct varnames with procNoise info)
     ##Bite size
     if(measureNoise == 'Both' | measureNoise == 'both' | measureNoise == 'BiteSize' | measureNoise == 'bitesize') {
-      if (mNoise_biteSizeCat == "mean") {
+      if (mNoise_IntakeCat == "mean") {
         initDat$CumulativeGrams_mNoise_AdjMean = simDat$CumulativeGrams_mNoise_Adj
         initDat$BiteGrams_mNoise_AdjMean = simDat$BiteGrams_mNoise_Adj
       } else {
@@ -760,9 +720,9 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
       initDat$EstimatedTime_mNoise_Adj = simDat$EstimatedTime_mNoise_Adj
 
       # rename with SD
-      if (!is.na(mNoise_biteTimeSD)) {
+      if (!is.na(mNoise_TimeSD)) {
         n = length(names(initDat))
-        names(initDat)[n] <- paste0("EstimatedTime_mNoise_Adjsd", round(mNoise_biteTimeSD, 2))
+        names(initDat)[n] <- paste0("EstimatedTime_mNoise_Adjsd", round(mNoise_TimeSD, 2))
       }
     }
 

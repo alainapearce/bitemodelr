@@ -10,8 +10,6 @@
 #' @inheritParams Quad_n2ll
 #' @inheritParams Quad_n2ll
 #' @inheritParams biteIntake
-#' @inheritParams Quad_Fit
-#' @inheritParams Quad_Fit
 #' @inheritParams genBiteDat
 #'
 #' @return A dataframe with fitted parameter values and all optim outputs
@@ -24,7 +22,7 @@
 #' }
 #'
 #' @export
-IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = "LODE", hessianCI = FALSE, conf = 95, id = NA) {
+IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = "LODE", id = NA) {
 
   # check input arguments
   intakeVar_arg <- methods::hasArg(intakeVar)
@@ -74,20 +72,18 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
   # fit parameters
   if (fn_name == "LODE_Fit") {
     if (class(fit_fn) == "name") {
-      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters, timeVar = timeVar, intakeVar = intakeVar, Emax = emax, hessianCI = hessianCI, conf = conf))
+      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters, timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
     } else {
       BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-        Emax = emax, hessianCI = hessianCI, conf = conf
-      )
+                            Emax = emax)
     }
   } else if (fn_name == "Quad_Fit") {
     if (class(fit_fn) == "name") {
       BiteMod_fit <- do.call(fn_name, list(
         data = data, parameters = parameters,
-        timeVar = timeVar, intakeVar = intakeVar, hessianCI = hessianCI, conf = conf
-      ))
+        timeVar = timeVar, intakeVar = intakeVar))
     } else {
-      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar, hessianCI = hessianCI, conf = conf)
+      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar)
     }
   } else {
     stop("Entered fit function not found. Must enter either LODE_Fit or Quad_Fit.")
@@ -96,29 +92,15 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
   # add id if provided
   id_arg <- methods::hasArg(id)
 
-  # get output list
-  if (isTRUE(hessianCI)) {
-    # set up output
-    BiteMod_fit_list <- BiteMod_fit[c(1:4, 7)]
-    BiteMod_fit_list[["method"]] <- fn_name
+  # set up output
+  BiteMod_fit_list <- BiteMod_fit[1:4]
+  BiteMod_fit_list[["method"]] <- fn_name
 
-    if (isTRUE(id_arg)) {
-      BiteMod_fit_list[["id"]] <- id
-      BiteMod_fit_list <- BiteMod_fit_list[c("id", "method", "par", "value", "counts", "convergence", "par_CI")]
-    } else {
-      BiteMod_fit_list <- BiteMod_fit_list[c("method", "par", "value", "counts", "convergence", "par_CI")]
-    }
+  if (isTRUE(id_arg)) {
+    BiteMod_fit_list[["id"]] <- id
+    BiteMod_fit_list <- BiteMod_fit_list[c("id", "method", "par", "value", "counts", "convergence")]
   } else {
-    # set up output
-    BiteMod_fit_list <- BiteMod_fit[1:4]
-    BiteMod_fit_list[["method"]] <- fn_name
-
-    if (isTRUE(id_arg)) {
-      BiteMod_fit_list[["id"]] <- id
-      BiteMod_fit_list <- BiteMod_fit_list[c("id", "method", "par", "value", "counts", "convergence")]
-    } else {
-      BiteMod_fit_list <- BiteMod_fit_list[c("method", "par", "value", "counts", "convergence")]
-    }
+    BiteMod_fit_list <- BiteMod_fit_list[c("method", "par", "value", "counts", "convergence")]
   }
 
   return(BiteMod_fit_list)

@@ -16,8 +16,8 @@
 #' @param BiteVar String reflecting name for bite size variable in BiteDat dataset
 #' @param measureNoise (optional) A string indicating they type of measurement noise to add. The options include:
 #' 'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered); or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.
-#' @param mNoise_biteTimeSD (optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.
-#' @param mNoise_biteSizeCat (option) This allows you to alter the default for bite size error (average bite size) by
+#' @param mNoise_TimeSD (optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.
+#' @param mNoise_IntakeCat (option) This allows you to alter the default for bite size error (average bite size) by
 #' entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.
 #'
 #' @return It will always return a dataset with adjusted bite timing reflecting measurement error
@@ -31,15 +31,15 @@
 #'
 #' @export
 
-biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = FALSE, mNoise_biteTimeSD = NA, mNoise_biteSizeCat = "mean") {
+biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", BiteVar = "BiteGrams", measureNoise = FALSE, mNoise_TimeSD = NA, mNoise_IntakeCat = "mean") {
 
   ## Add measurement error
   if (measureNoise == "Both" | measureNoise == "both" | measureNoise == "BiteSize" | measureNoise == "bitesize") {
     # add measurement error
-    if (!is.na(mNoise_biteSizeCat)) {
+    if (!is.na(mNoise_IntakeCat)) {
 
       # default: use average bites size for parameter recovery
-      if (mNoise_biteSizeCat == "mean") {
+      if (mNoise_IntakeCat == "mean") {
         BiteDat$BiteGrams_mNoise_Adj <- rep(
           Emax / nBites,
           nrow(BiteDat)
@@ -51,7 +51,7 @@ biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", B
         maxBiteSize <- max(BiteDat[, BiteVar])
 
         # get full list of breaks
-        breaks_full <- c(0, mNoise_biteSizeCat, maxBiteSize)
+        breaks_full <- c(0, mNoise_IntakeCat, maxBiteSize)
 
         # generate category labels
         nlabels <- length(breaks_full) - 1
@@ -89,9 +89,9 @@ biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", B
     BiteDat$EstimatedTimeAdj <- NA
 
     # add measurement error to bite timing
-    if (is.na(mNoise_biteTimeSD)) {
+    if (is.na(mNoise_TimeSD)) {
       BiteDat$EstimatedTimeAdj <- jitter(BiteDat[, TimeVar])
-    } else if (!is.na(mNoise_biteTimeSD)) {
+    } else if (!is.na(mNoise_TimeSD)) {
 
       # add random noise to bite timing under the constraints:
       # 1) starting time is not negative
@@ -103,7 +103,7 @@ biteMeasureNoise <- function(BiteDat, nBites, Emax, TimeVar = "EstimatedTime", B
       difLimits <- min(biteTime_diff) / 2
 
       # get truncated random adjustment to bite timing
-      biteTime_adj <- truncnorm::rtruncnorm(nrow(BiteDat), a = -difLimits, b = difLimits, mean = 0, sd = mNoise_biteTimeSD)
+      biteTime_adj <- truncnorm::rtruncnorm(nrow(BiteDat), a = -difLimits, b = difLimits, mean = 0, sd = mNoise_TimeSD)
 
       # get new timing by adding to 'True' calculated time
       BiteDat$EstimatedTimeAdj[nb] <- BiteDat[, TimeVar] + biteTime_adj

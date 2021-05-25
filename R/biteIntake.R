@@ -45,8 +45,8 @@
 #' @export
 
 biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id,
-                     procNoise = TRUE, pNoiseSD = NA, maxDur = NA,
-                     NAmessage = FALSE) {
+                       procNoise = TRUE, pNoiseSD = NA, maxDur = NA,
+                       NAmessage = FALSE) {
 
 
   # get name of function that was passed
@@ -133,13 +133,13 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
     return("notFeasible")
   } else {
 
+    # get bite numbers
+    bites <- seq(1, nBites, by = 1)
+
     # check class Et0
     if (is.character(Et0)) {
       Et0 <- as.numeric(Et0)
     }
-
-    # get long list of parameters
-    params_long <- rep(list(parameters), nBites)
 
     # bite timings entered
     time_arg <- methods::hasArg(timeDat)
@@ -147,18 +147,42 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
     if (isTRUE(time_arg)){
 
       # get cumulative intake
-      grams.cumulative_use <- mapply(intake_fn, time = timeDat, parameters = params_long, Emax = Emax, message = FALSE)
+      if (model_str == 'LODE'){
+        grams.cumulative <- mapply(intake_fn, time = timeDat, MoreArgs = list(parameters = parameters, Emax = Emax))
+
+      } else if (model_str == 'Quad'){
+        grams.cumulative <- mapply(intake_fn, time = timeDat, MoreArgs = list(parameters = parameters))
+
+      }
 
       if (is.list(grams.cumulative)){
-        grams.cumulative_use <- unlist(grams.cumulative_use)
+        grams.cumulative <- unlist(grams.cumulative)
       }
 
       #get bites
-      grames.bites_use <- diff(grams.cumulative_use, 1)
+      grams.bite <- c(grams.cumulative[1], diff(grams.cumulative, 1))
 
-      simTime <- timeDat
+      ## organize data
+      biteData <- data.frame(
+        bites, timeDat, grams.cumulative,
+        grams.bite
+      )
+
+      #get naming convention
+      names(biteData) <- c("Bite", "Time", "CumulativeGrams", "BiteGrams")
+
+      # add id if needed
+      id_arg <- methods::hasArg(id)
+
+      if (isTRUE(id_arg)) {
+        biteData <- cbind.data.frame(rep(id, nBites), biteData)
+        names(biteData)[1] <- "id"
+      }
+
+      return(data.frame(biteData))
 
     } else {
+      # no timeDat entered so simulate bite data
 
       # check maxDur limits - check intake at maxDur and set alternative
       # cumulative intake to estimate bite sizes so that it does not exceed
@@ -211,9 +235,6 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
       }
 
       ## set up bite data
-      # get bite numbers
-      bites <- seq(1, nBites, by = 1)
-
       if (exists("changeIntake")) {
         grams.bite_avg <- avgbite_series(Emax = newEmax, Et0 = Et0, nBites = nBites)
       } else {
@@ -226,31 +247,31 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
       # add process noise to bites (unless procNoise = FALSE)
       if (isTRUE(procNoise)) {
         if (exists("changeIntake")) {
-          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative, nBites = nBites, Emax = newEmax, Et0 = Et0, pNoiseSD = pNoiseSD)
+          procNoise_bites <- biteProcNoise(data = grams.cumulative, type = 'intake', nBites = nBites, Emax = newEmax, Et0 = Et0, pNoiseSD = pNoiseSD)
         } else {
-          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative, nBites, Emax = Emax, Et0 = Et0, pNoiseSD = pNoiseSD)
+          procNoise_bites <- biteProcNoise(data = grams.cumulative, type = 'intake', nBites, Emax = Emax, Et0 = Et0, pNoiseSD = pNoiseSD)
         }
 
         # get the bite data that will be used calculate time
-        grams.bite_use <- procNoise_bites$grams.bite_noise
-        grams.cumulative_use <- procNoise_bites$grams.cumulative_noise
+        grams.bite <- procNoise_bites$bite_noise
+        grams.cumulative <- procNoise_bites$cumulative_noise
       } else {
         # get the bite data that will be used calculate time
-        grams.bite_use <- grams.bite_avg
-        grams.cumulative_use <- grams.cumulative
+        grams.bite <- grams.bite_avg
+        grams.cumulative <- grams.cumulative
       }
 
       # calculate bite timing from bite sizes AFTER bite size process noise
       # was added (if procNoise = TRUE)
       if (model_str == "LODE" | model_str == "LODEincorrect") {
         simTime <- mapply(time_fn,
-                          intake = grams.cumulative_use,
-                          parameters = params_long, Emax = Emax, message = FALSE
+                          intake = grams.cumulative, MoreArgs = list(
+                          parameters = parameters, Emax = Emax, message = FALSE)
         )
       } else if (model_str == "Quad") {
         simTime <- mapply(time_fn,
-                          intake = grams.cumulative_use,
-                          parameters = params_long, message = FALSE
+                          intake = grams.cumulative, MoreArgs = list(
+                          parameters = parameters, message = FALSE)
         )
       }
 
@@ -264,18 +285,14 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
         # unlist
         simTime <- base::unlist(simTime)
       }
-    }
 
-    ## organize data
-    sim_dat <- data.frame(
-      bites, simTime, grams.cumulative_use,
-      grams.bite_use
-    )
+      ## organize data
+      biteData <- data.frame(
+        bites, simTime, grams.cumulative,
+        grams.bite
+      )
 
-    # get naming convention
-    if(isTRUE(time_arg)){
-      names(sim_dat) <- c("Bite", "Time", "CumulativeGrams", "BiteGrams")
-    } else {
+      # get naming convention
       if (isTRUE(procNoise)) {
         if (!is.na(pNoiseSD)) {
           name_label <- paste0("_procNoise_sd", round(pNoiseSD, digits = 2))
@@ -286,18 +303,18 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
         name_label <- "_avgBite"
       }
 
-      names(sim_dat) <- c("Bite", paste0("EstimatedTime", name_label), paste0("CumulativeGrams", name_label), paste0("BiteGrams", name_label))
+      names(biteData) <- c("Bite", paste0("EstimatedTime", name_label), paste0("CumulativeGrams", name_label), paste0("BiteGrams", name_label))
+
+      # add id if needed
+      id_arg <- methods::hasArg(id)
+
+      if (isTRUE(id_arg)) {
+        biteData <- cbind.data.frame(rep(id, nBites), biteData)
+        names(biteData)[1] <- "id"
+      }
+
+      return(data.frame(biteData))
     }
-
-    # add id if needed
-    id_arg <- methods::hasArg(id)
-
-    if (isTRUE(id_arg)) {
-      sim_dat <- cbind.data.frame(rep(id, nBites), sim_dat)
-      names(sim_dat)[1] <- "id"
-    }
-
-    return(data.frame(sim_dat))
   }
 }
 

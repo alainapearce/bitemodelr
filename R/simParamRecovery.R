@@ -322,7 +322,7 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   }
 
   if (nobs > 1){
-    initDat_list <- mapply(biteIntake, nBites = paramRecov$nBites, Emax = paramRecov$Emax, parameters = param_feasible, id = paramRecov$id, MoreArgs = list(model_str, procNoise, pNoiseSD), SIMPLIFY = FALSE)
+    initDat_list <- mapply(biteIntake, nBites = paramRecov$nBites, Emax = paramRecov$Emax, parameters = param_feasible, id = paramRecov$id, MoreArgs = list(model_str = model_str, procNoise = procNoise, pNoiseSD = pNoiseSD), SIMPLIFY = FALSE)
 
     initDat <- do.call(rbind, lapply(initDat_list, as.data.frame))
   } else {

@@ -13,7 +13,7 @@
 #' and SD = pNoiseSD. Process noise is added *before* to the calculation of bite timing.
 #' The timing of each bite will be calculated using the specified model and parameters
 #'
-#' @param intaketimeDat If a vector of cumulative intake is entered, will calculate the bite timing using entered parameters rather than simulating timing data. No process noise will be added.
+#' @param intakeDat If a vector of cumulative intake is entered, will calculate the bite timing using entered parameters rather than simulating timing data. No process noise will be added.
 #' @inheritParams genBiteDat
 #' @inheritParams genBiteDat
 #' @inheritParams genBiteDat
@@ -43,8 +43,8 @@
 #'
 #' @export
 
-biteTiming <- function(timeDat, nBites, Emax, mealDure, timePDF, parameters, model_str = "LODE", id,
-                     procNoise = TRUE, pNoiseSD) {
+biteTiming <- function(intakeDat, nBites, Emax, mealDur, timePDF, parameters, model_str = "LODE", id,
+                       procNoise = TRUE, pNoiseSD = NA) {
 
 
   # get name of function that was passed
@@ -131,171 +131,169 @@ biteTiming <- function(timeDat, nBites, Emax, mealDure, timePDF, parameters, mod
     return("notFeasible")
   } else {
 
+    # get bite numbers
+    bites <- seq(1, nBites, by = 1)
+
     # check class Et0
     if (is.character(Et0)) {
       Et0 <- as.numeric(Et0)
     }
 
-    # get long list of parameters
-    params_long <- rep(list(parameters), nBites)
+    # check if bite cumulative intake entered
+    intake_arg <- methods::hasArg(intakeDat)
 
-    # bite timings entered
-    time_arg <- methods::hasArg(timeDat)
-
-    if (isTRUE(time_arg)){
+    # use entered data
+    if (isTRUE(intake_arg)){
 
       # get cumulative intake
-      grams.cumulative_use <- mapply(intake_fn, time = timeDat, parameters = params_long, Emax = Emax, message = FALSE)
+      if (model_str == 'LODE'){
+        time.bite <- mapply(time_fn, intake = intakeDat, MoreArgs = list(parameters = parameters, Emax = Emax, message = FALSE))
+      } else if (model_str == 'Quad'){
+        time.bite <- mapply(time_fn, intake = intakeDat, MoreArgs = list(parameters = parameters, message = FALSE))
+      }
 
-      if (is.list(grams.cumulative)){
-        grams.cumulative_use <- unlist(grams.cumulative_use)
+      if (is.list(time.bite)){
+        time.bite <- unlist(time.bite)
       }
 
       #get bites
-      grames.bites_use <- diff(grams.cumulative_use, 1)
+      grames.bites <- c(intakeDat[1], diff(intakeDat, 1))
 
-      simTime <- timeDat
+      ## organize data
+      biteData <- data.frame(
+        bites, time.bite, grames.bites, intakeDat
+      )
+
+      # get naming convention
+      names(biteData) <- c("Bite", "Time", "CumulativeGrams", "BiteGrams")
+
+      # add id if needed
+      id_arg <- methods::hasArg(id)
+
+      if (isTRUE(id_arg)) {
+        biteData <- cbind.data.frame(rep(id, nBites), biteData)
+        names(biteData)[1] <- "id"
+      }
+
+      return(data.frame(biteData))
 
     } else {
 
-      # check maxDur limits - check intake at maxDur and set alternative
-      # cumulative intake to estimate bite sizes so that it does not exceed
-      # intake at maxDur
-      if (!is.na(maxDur)) {
-        if (model_str == "LODE") {
-          Emax_Time <- sapply(Emax, LODE_Time,
-                              parameters = c(parameters),
-                              Emax = Emax, message = FALSE
-          )
-
-          if (round(Emax_Time, 2) > maxDur | is.na(Emax_Time)) {
-            # indicates need to change Emax because Emax not reached withing maxDur
-            # for meal
-            changeIntake <- "Y"
-            newEmax <- sapply(maxDur, LODE_Intake,
-                              parameters = c(parameters),
-                              Emax = Emax
-            )
-            message("The entered Emax is not reached by end of meal (maxDur). Bites are estimated based on cumulative intake at the end of the meal time. This means participant will not have reached Emax")
-          }
-        } else if (model_str == "Quad") {
-          Emax_Time <- sapply(Emax, Quad_Time, parameters = c(parameters), message = FALSE)
-
-          if (round(Emax_Time, 2) > maxDur) {
-            # indicates need to change Emax because Emax not reached withing maxDur
-            # for meal
-            changeIntake <- "Y"
-            newEmax <- sapply(maxDur, Quad_Intake, parameters = c(parameters))
-            message("The entered Emax is not reached by end of meal (maxDur). Bites are estimated based on cumulative intake at the end of the meal time. This means participant will not have reached Emax")
-          }
-        }
-      }
-
-      # average bite size vector function
-      avgbite_series <- function(Et0, Emax, nBites) {
-        # average bite size
-        avgBite <- Emax / nBites
-
-        # if the minimum intake that has positive time is greater than the average bite size, then set first bite to Et0 and set rest of bites to the average bites size based on remaining intake
-        if (Et0 > avgBite) {
-          Emaxdif <- Emax - Et0
-          bitesAvg <- c(Et0, rep(Emaxdif / (nBites - 1), (nBites - 1)))
+      # check Emax against mealDur
+      if (model_str == 'LODE'){
+        if (class(intake_fn) == 'name') {
+          mealDur_intake <- do.call(as.character(intake_fn), list(time = mealDur, parameters = parameters, Emax = Emax))
         } else {
-          # get average bite size based on Emax that is reached by maxDur
-          bitesAvg <- rep(avgBite, nBites)
+          mealDur_intake <- intake_fn(time = mealDur, parameters = parameters, Emax = Emax)
         }
-
-        return(bitesAvg)
+      } else if (model_str == 'Quad') {
+        if (class(intake_fn) == 'name') {
+          mealDur_intake <- do.call(as.character(intake_fn), list(time = mealDur, parameters = parameters, Emax = Emax))
+        } else {
+          mealDur_intake <- intake_fn(time = mealDur, parameters = parameters, Emax = Emax)
+        }
       }
 
-      ## set up bite data
-      # get bite numbers
-      bites <- seq(1, nBites, by = 1)
+      if (mealDur_intake < Emax) {
+        message('Emax was not reached at meal duration for entered parameters and model')
+      }
 
-      if (exists("changeIntake")) {
-        grams.bite_avg <- avgbite_series(Emax = newEmax, Et0 = Et0, nBites = nBites)
+      ## get random timing data
+      if (timePDF == "logis" | timePDF == "logit") {
+        rand_logis <- round(sort(truncdist::rtrunc(nBites, spec = "logis", a = 0, location = 0, scale = 7)), 2)
+        rand_time <- (rand_logis / max(rand_logis)) * mealDur
+      } else if (timePDF == "quad") {
+        rand_quad
+        rand_time <- (rand_quad / max(rand_quad)) * mealDur
+      } else if (timePDF == "uquad") {
+        rand_uquad
+        rand_time <- (rand_uquad / max(rand_uquad)) * mealDur
+      } else if (timePDF == "exp") {
+        rand_exp <- round(sort(stats::rexp(nBites, rate = 0.5)), 2)
+        rand_time <- (rand_exp / max(rand_exp)) * mealDur
+      } else if (timePDF == "linear") {
+        rand_linear <- seq(1, nBites)
+        rand_time <- (rand_linear / max(rand_linear)) * mealDur
       } else {
-        grams.bite_avg <- avgbite_series(Emax = Emax, Et0 = Et0, nBites = nBites)
+        stop("The string entered for timePDF is not correct. Allowed values are: logis', 'quad', 'u-quad', 'exp', or 'linear'")
       }
 
-      # get cumulative intake
-      grams.cumulative <- cumsum(grams.bite_avg)
+      # sort time in order from earlier to later
+      sampled_time <- sort(rand_time)
 
       # add process noise to bites (unless procNoise = FALSE)
       if (isTRUE(procNoise)) {
-        if (exists("changeIntake")) {
-          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative, nBites = nBites, Emax = newEmax, Et0 = Et0, pNoise_biteSizeSD = pNoise_biteSizeSD)
-        } else {
-          procNoise_bites <- biteProcNoise(cumulativeBites = grams.cumulative, nBites, Emax = Emax, Et0 = Et0, pNoise_biteSizeSD = pNoise_biteSizeSD)
-        }
+        procNoise_bites <- biteProcNoise(data = sampled_time, type = 'time', nBites, Emax = Emax, mealDur = mealDur, pNoiseSD = pNoiseSD)
 
         # get the bite data that will be used calculate time
-        grams.bite_use <- procNoise_bites$grams.bite_noise
-        grams.cumulative_use <- procNoise_bites$grams.cumulative_noise
+        time.bite <- procNoise_bites$cumulative_noise
       } else {
         # get the bite data that will be used calculate time
-        grams.bite_use <- grams.bite_avg
-        grams.cumulative_use <- grams.cumulative
+        time.bite <- sampled_time
       }
 
-      # calculate bite timing from bite sizes AFTER bite size process noise
+      # run utility function defined below to clean bite timiing
+      # checks: 1) time > mealDur; 2) time < 0; 3) time t+1 < time t
+      time.bite <- clean_timepoints(time_dat = time.bite, mealDur, nBites)
+
+      # calculate intake from bite sizes AFTER bite size process noise
       # was added (if procNoise = TRUE)
       if (model_str == "LODE" | model_str == "LODEincorrect") {
-        simTime <- mapply(time_fn,
-                          intake = grams.cumulative_use,
-                          parameters = params_long, Emax = Emax, message = FALSE
-        )
+        simIntake <- mapply(intake_fn,
+                            time = time.bite, MoreArgs = list(parameters = parameters, Emax = Emax))
+
       } else if (model_str == "Quad") {
-        simTime <- mapply(time_fn,
-                          intake = grams.cumulative_use,
-                          parameters = params_long, message = FALSE
-        )
+        simIntake <- mapply(intake_fn,
+                            time = time.bite, MoreArgs = list(parameters = parameters))
       }
 
       # unlist if needed
-      if (is.list(simTime)) {
+      if (is.list(simIntake)) {
 
         # find NULL values and replace with NA because un-listing NULL values results in the removal of that timepoint
-        null_index <- which(sapply(simTime, is.null))
-        simTime[null_index] <- NA
+        null_index <- which(sapply(simIntake, is.null))
+        simIntake[null_index] <- NA
 
         # unlist
-        simTime <- base::unlist(simTime)
+        simIntake <- base::unlist(simIntake)
       }
-    }
 
-    ## organize data
-    sim_dat <- data.frame(
-      bites, simTime, grams.cumulative_use,
-      grams.bite_use
-    )
+      #get grams per bite
+      grams.bite <- c(simIntake[1], diff(simIntake, 1))
 
-    # get naming convention
-    if(isTRUE(time_arg)){
-      names(sim_dat) <- c("Bite", "Time", "CumulativeGrams", "BiteGrams")
-    } else {
-      if (isTRUE(procNoise)) {
-        if (!is.na(pNoise_biteSizeSD)) {
-          name_label <- paste0("_procNoise_sd", round(pNoise_biteSizeSD, digits = 2))
-        } else {
-          name_label <- "_procNoise"
-        }
+      ## organize data
+      biteData <- data.frame(
+        bites, time.bite, grams.bite, simIntake
+      )
+
+      # get naming convention
+      if(isTRUE(intake_arg)){
+        names(biteData) <- c("Bite", "Time", "CumulativeGrams", "BiteGrams")
       } else {
-        name_label <- "_avgBite"
+        if (isTRUE(procNoise)) {
+          if (!is.na(pNoiseSD)) {
+            name_label <- paste0("_procNoise_sd", round(pNoiseSD, digits = 2))
+          } else {
+            name_label <- "_procNoise"
+          }
+        } else {
+          name_label <- "_avgBite"
+        }
+
+        names(biteData) <- c("Bite", paste0("EstimatedTime", name_label), paste0("CumulativeGrams", name_label), paste0("BiteGrams", name_label))
       }
 
-      names(sim_dat) <- c("Bite", paste0("EstimatedTime", name_label), paste0("CumulativeGrams", name_label), paste0("BiteGrams", name_label))
+      # add id if needed
+      id_arg <- methods::hasArg(id)
+
+      if (isTRUE(id_arg)) {
+        biteData <- cbind.data.frame(rep(id, nBites), biteData)
+        names(biteData)[1] <- "id"
+      }
+
+      return(data.frame(biteData))
     }
-
-    # add id if needed
-    id_arg <- methods::hasArg(id)
-
-    if (isTRUE(id_arg)) {
-      sim_dat <- cbind.data.frame(rep(id, nBites), sim_dat)
-      names(sim_dat)[1] <- "id"
-    }
-
-    return(data.frame(sim_dat))
   }
 }
+
 

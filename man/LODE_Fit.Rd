@@ -4,15 +4,7 @@
 \alias{LODE_Fit}
 \title{LODE_Fit: Fits parameters for the Logistic Ordinary Differential Equation (LODE) Model}
 \usage{
-LODE_Fit(
-  data,
-  parameters,
-  timeVar,
-  intakeVar,
-  Emax,
-  hessianCI = FALSE,
-  conf = 95
-)
+LODE_Fit(data, parameters, timeVar, intakeVar, Emax)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -25,10 +17,6 @@ LODE_Fit(
 \item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
-
-\item{hessianCI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for for parameters. Default is FALSE}
-
-\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
 }
 \value{
 A list with of values from optim fit

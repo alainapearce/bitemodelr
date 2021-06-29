@@ -5,22 +5,26 @@
 \title{biteTiming: Calculates bite timing from entered cumulative intake. If no cumulative intake data is entered, it will simulated a bite dataset.}
 \usage{
 biteTiming(
-  timeDat,
+  intakeDat,
   nBites,
   Emax,
-  mealDure,
+  mealDur,
   timePDF,
   parameters,
   model_str = "LODE",
   id,
   procNoise = TRUE,
-  pNoiseSD
+  pNoiseSD = NA
 )
 }
 \arguments{
+\item{intakeDat}{If a vector of cumulative intake is entered, will calculate the bite timing using entered parameters rather than simulating timing data. No process noise will be added.}
+
 \item{nBites}{A numeric value for total number of bites in a meal.}
 
 \item{Emax}{A numeric value for total cumulative intake.}
+
+\item{mealDur}{Meal duration in minutes}
 
 \item{timePDF}{A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables.}
 
@@ -33,8 +37,6 @@ biteTiming(
 \item{procNoise}{(optional) A logical indicator for adding random process noise to the timing data by jittering bite timing with cumulative intake calculated from jittered bite timing. This uses the default jitter amount (smallest distance/5). Default value is TRUE if bite timings are simulated.}
 
 \item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
-
-\item{intaketimeDat}{If a vector of cumulative intake is entered, will calculate the bite timing using entered parameters rather than simulating timing data. No process noise will be added.}
 }
 \value{
 A bite dataset with bite timing, bite size, and cumulative intake for each bite

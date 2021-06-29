@@ -4,7 +4,7 @@
 \alias{Quad_Fit}
 \title{Quad_Fit: Fits beta coefficients for the Quadratic model}
 \usage{
-Quad_Fit(data, parameters, timeVar, intakeVar, hessianCI = FALSE, conf = 95)
+Quad_Fit(data, parameters, timeVar, intakeVar)
 }
 \arguments{
 \item{data}{A data frame that contains two varliabels:
@@ -15,10 +15,6 @@ Quad_Fit(data, parameters, timeVar, intakeVar, hessianCI = FALSE, conf = 95)
 \item{timeVar}{Name of the variable in data that contains timing data}
 
 \item{intakeVar}{AName of the variable in data that contains cumulative intake data}
-
-\item{hessianCI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for for parameters. Default is FALSE}
-
-\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
 }
 \value{
 A list with of values from optim fit

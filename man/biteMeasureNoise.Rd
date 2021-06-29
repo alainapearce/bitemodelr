@@ -11,8 +11,8 @@ biteMeasureNoise(
   TimeVar = "EstimatedTime",
   BiteVar = "BiteGrams",
   measureNoise = FALSE,
-  mNoise_biteTimeSD = NA,
-  mNoise_biteSizeCat = "mean"
+  mNoise_TimeSD = NA,
+  mNoise_IntakeCat = "mean"
 )
 }
 \arguments{
@@ -29,9 +29,9 @@ biteMeasureNoise(
 \item{measureNoise}{(optional) A string indicating they type of measurement noise to add. The options include:
 'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered); or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
 
-\item{mNoise_biteTimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
+\item{mNoise_TimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
 
-\item{mNoise_biteSizeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
+\item{mNoise_IntakeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
 entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
 }
 \value{

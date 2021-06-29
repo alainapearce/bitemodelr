@@ -26,10 +26,12 @@
 #' elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumulative
 #' intake data will use the same bite timing as in the initial data but will estimate intake for each bite based on
 #' the recovered model parameters. Default is FALSE.
-#' @inheritParams conf (optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95% CI. If no confidence intervals are desired, set conf = NA.
+#' @inheritParams CI_LPE
 #' @param error_method (optional) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.
 #' @inheritParams modelError
+#' @inheritParams modelError
 #' @param distinct Indicate if want to calculate parameter estimate distinctness - TRUE or FALSE. Default is FALSE.
+#' @inheritParams modelError
 #'
 #' @return Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
 #'
@@ -42,7 +44,7 @@
 #'
 #' @export
 
-simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LODE', procNoise = TRUE, measureNoise = FALSE, pNoiseSD = NA, mNoise_TimeSD = NA, mNoise_IntakeCat = "mean", keepBites = FALSE, conf = 95, error_method, error_measure, distinct = FALSE, cutoff) {
+simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LODE', procNoise = TRUE, measureNoise = FALSE, pNoiseSD = NA, mNoise_TimeSD = NA, mNoise_IntakeCat = "mean", keepBites = FALSE, conf = 95, error_method, error_measure, adjustNA = "interpolate", distinct = FALSE, cutoff) {
 
   ####             1. Set up/initial checks             #####
   # get entered of default function names as characters
@@ -326,8 +328,8 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
     initDat <- do.call(rbind, lapply(initDat_list, as.data.frame))
   } else {
     initDat <- biteIntake(nBites = nBites, Emax = Emax, parameters = parameters,
-                        model_str = model_str, procNoise = procNoise,
-                        pNoiseSD = pNoiseSD)
+                          model_str = model_str, procNoise = procNoise,
+                          pNoiseSD = pNoiseSD)
   }
 
   # parameter recovery database
@@ -394,19 +396,19 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
 
   paramRecov$true_n2ll <- true_n2ll
 
-    #get param names
-    if (model_str == 'LODE'){
-      param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge')
-    } else if (model_str == 'Quad'){
-      param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge')
-    }
+  #get param names
+  if (model_str == 'LODE'){
+    param_names <- c('model', 'theta', 'r', 'value', 'count', 'gradient', 'converge')
+  } else if (model_str == 'Quad'){
+    param_names <- c('model', 'int', 'linear', 'quad', 'value', 'count', 'gradient', 'converge')
+  }
 
-    #recover values
-    if(nobs > 1){
-      params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
-    } else {
-      params_list <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
-    }
+  #recover values
+  if(nobs > 1){
+    params_list <- lapply(simDat_list, IntakeModelParams, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
+  } else {
+    params_list <- IntakeModelParams(simDat, parameters = parametersDefault, timeVar = param_timeVar, intakeVar = param_intakeVar, model_str = model_str)
+  }
 
   #unlist values
   if (nobs > 1){
@@ -430,21 +432,31 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   # add time_fn specific parameters to data frame
   if (model_str == 'LODE') {
     if (is.factor(params_dat$theta)){
-        params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
+      params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
 
-      params_dat_num = as.data.frame.matrix(params_dat_num)
-      paramRecov <- cbind(paramRecov, params_dat_num)
+      if (nobs > 1){
+        params_dat_num = as.data.frame.matrix(params_dat_num)
+
+      } else {
+        params_dat_num <- as.data.frame(t(params_dat_num))
+      }
 
       #min -2LL
+      paramRecov <- cbind(paramRecov, params_dat_num)
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-        params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
+      params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
 
-      params_dat_num = as.data.frame.matrix(params_dat_num)
-      paramRecov <- cbind(paramRecov, params_dat_num)
+      if (nobs > 1){
+        params_dat_num = as.data.frame.matrix(params_dat_num)
+
+      } else{
+        params_dat_num <- as.data.frame(t(params_dat_num))
+      }
 
       #min -2LL
+      paramRecov <- cbind(paramRecov, params_dat_num)
       paramRecov$fit_n2ll <- as.numeric(params_dat$value)
     }
 
@@ -454,18 +466,28 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   } else if (model_str == 'Quad') {
 
     if (is.factor(params_dat$int)){
-        params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
+      params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
 
-      params_dat_num = as.data.frame.matrix(params_dat_num)
+      if (nobs > 1){
+        params_dat_num = as.data.frame.matrix(params_dat_num)
+      } else {
+        params_dat_num <- as.data.frame(t(params_dat_num))
+      }
+
       paramRecov <- cbind(paramRecov, params_dat_num)
 
       #min -2LL
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-        params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
+      params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
 
-      params_dat_num = as.data.frame.matrix(params_dat_num)
+      if (nobs > 1){
+        params_dat_num = as.data.frame.matrix(params_dat_num)
+      } else {
+        params_dat_num <- as.data.frame(t(params_dat_num))
+      }
+
       paramRecov <- cbind(paramRecov, params_dat_num)
 
       #min -2LL
@@ -616,33 +638,9 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
   ####             7. Recovered Parameter Error             #####
   if (isTRUE(error_arg)) {
 
-    #get base label
-    if (error_method == 'rmse'){
-      #get labels
-      error_label <- c('nNA', 'nNeg', 'rmse')
-    } else if (error_method == 'R2'){
-      #get labels
-      error_label <- c('nNA', 'nNeg', 'R2')
-    } else if (error_method == 'both'){
-      #get labels
-      error_label <- c('nNA', 'nNeg', 'rmse', 'R2')
-    }
-
-    #add measure names
-    if (error_measure == "timing") {
-      error_names <- sapply(error_label, function(x) paste0('timing_', x))
-    } else if (error_measure == "intake") {
-      #get names
-      error_names <- sapply(error_label, function(x) paste0('intake_', x))
-    } else if (error_measure == 'both'){
-      error_names_time <- sapply(error_label, function(x) paste0('timing_', x))
-      error_names_intake <- sapply(error_label, function(x) paste0('intake_', x))
-      error_names <- c(error_names_time, error_names_intake)
-    }
-
     #run error functions
     if(nobs > 1){
-      error_list <- mapply(modelError, simDat_list, parameters = parameters_fit_list, MoreArgs = list(timeVar = 'EstimatedTime', intakeVar = 'CumulativeGrams', model_str = model_str, method = error_method, error_measure = error_measure))
+      error_list <- mapply(modelError, simDat_list, parameters = parameters_fit_list, MoreArgs = list(timeVar = 'EstimatedTime', intakeVar = 'CumulativeGrams', model_str = model_str, method = error_method, error_measure = error_measure, adjustNA = adjustNA))
 
       if(length(class(error_list)) > 1 | is.matrix(error_list)){
         error_timing_dat <- do.call(rbind, lapply(error_list[1,], as.data.frame))
@@ -652,21 +650,12 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
         error_dat <- do.call(rbind, lapply(error_list, as.data.frame))
       }
     } else {
-      error_list <- modelError(simDat, parameters = parameters_fit, timeVar = 'EstimatedTime', intakeVar = 'CumulativeGrams', model_str = model_str, method = error_method, error_measure = error_measure)
+      error_list <- modelError(simDat, parameters = parameters_fit, timeVar = 'EstimatedTime', intakeVar = 'CumulativeGrams', model_str = model_str, method = error_method, error_measure = error_measure, adjustNA = adjustNA)
       error_dat <- data.frame(t(unlist(error_list)))
     }
 
-    #get the index first error specific var to use later to save values
-    ErrorVar_start <- length(names(paramRecov)) + 1
-
     #add to data
     paramRecov <- cbind.data.frame(paramRecov, error_dat)
-
-    #end error variables
-    ErrorVar_end <- length(names(paramRecov))
-
-    #add empty variables to data
-    names(paramRecov)[ErrorVar_start:ErrorVar_end] <- error_names
   }
 
   ####             8. Estimate Distinctness  (nobs > 1 only)           #####

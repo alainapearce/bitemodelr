@@ -8,7 +8,7 @@
 #' @inheritParams CI_LPE
 #' @inheritParams biteIntake
 #' @inheritParams Quad_n2ll
-#' @inheritParams Quad_n2ll
+#' @inheritParams CI_LPE
 #' @inheritParams CI_LPE
 #'
 #' @return A list with all information for the specified confidence bounds, model, and parameters

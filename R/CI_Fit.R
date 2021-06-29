@@ -10,7 +10,7 @@
 #' @inheritParams biteIntake
 #' @inheritParams Quad_n2ll
 #' @inheritParams Quad_n2ll
-#' @inheritParams Quad_Fit
+#' @inheritParams CI_LPE
 #' @inheritParams CI_LPE
 #'
 #' @return
@@ -23,6 +23,7 @@
 #' @seealso \code{\link{CI_LPE}} is the function to compute the log-likelihood test \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
 #'
 #' @export
+#'
 CI_Fit <- function(data, parameters, Emax, paramIndex, min_n2ll, model_str = "LODE", timeVar, intakeVar, conf = 95, bound) {
 
   # check parameters

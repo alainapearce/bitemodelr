@@ -14,7 +14,10 @@
 #' @inheritParams Quad_n2ll
 #' @param idVar Name of the variable in data that contains id values
 #' @inheritParams simParamRecovery
+#' @inheritParams CI_LPE
 #' @inheritParams simParamRecovery
+#' @inheritParams modelError
+#' @inheritParams modelError
 #' @inheritParams simParamRecovery
 #' @inheritParams modelError
 #'
@@ -30,7 +33,7 @@
 #' @export
 #'
 ### NEED TO TEST ###
-ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", conf = 95, error_method, error_measure) {
+ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", conf = 95, error_method, error_measure, adjustNA = "interpolate", distinct = FALSE, cutoff) {
 
   ####             1. Set up/initial checks             #####
   # get entered of default function names as characters
@@ -183,7 +186,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   # add time_fn specific parameters to data frame
   if (model_str == 'LODE') {
     if (is.factor(params_dat$theta)){
-        params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
+      params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(as.character(x)))
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -192,7 +195,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-        params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
+      params_dat_num <- sapply(params_dat[2:3], function(x) as.numeric(x))
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -207,7 +210,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   } else if (model_str == 'Quad') {
 
     if (is.factor(params_dat$int)){
-        params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
+      params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(as.character(x)))
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -216,7 +219,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
       paramRecov$fit_n2ll <- as.numeric(as.character(params_dat$value))
 
     } else {
-        params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
+      params_dat_num <- sapply(params_dat[2:4], function(x) as.numeric(x))
 
       params_dat_num = as.data.frame.matrix(params_dat_num)
       paramRecov <- cbind(paramRecov, params_dat_num)
@@ -364,33 +367,9 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
   ####             5. Recovered Parameter Error             #####
   if (isTRUE(error_arg)) {
 
-    # get base label
-    if (error_method == "rmse") {
-      # get labels
-      error_label <- c("nNA", "nNeg", "rmse")
-    } else if (error_method == "R2") {
-      # get labels
-      error_label <- c("nNA", "nNeg", "R2")
-    } else if (error_method == "both") {
-      # get labels
-      error_label <- c("nNA", "nNeg", "rmse", "R2")
-    }
-
-    # add measure names
-    if (error_measure == "timing") {
-      error_names <- sapply(error_label, function(x) paste0("timing_", x))
-    } else if (error_measure == "intake") {
-      # get names
-      error_names <- sapply(error_label, function(x) paste0("intake_", x))
-    } else if (error_measure == "both") {
-      error_names_time <- sapply(error_label, function(x) paste0("timing_", x))
-      error_names_intake <- sapply(error_label, function(x) paste0("intake_", x))
-      error_names <- c(error_names_time, error_names_intake)
-    }
-
     # run error functions
     if (nobs > 1) {
-      error_list <- mapply(modelError, simDat_list, parameters = parameters_fit_list, MoreArgs = list(timeVar = "EstimatedTime", intakeVar = "CumulativeGrams", model_str = model_str, method = error_method, error_measure = error_measure))
+      error_list <- mapply(modelError, simDat_list, parameters = parameters_fit_list, MoreArgs = list(timeVar = "EstimatedTime", intakeVar = "CumulativeGrams", model_str = model_str, method = error_method, error_measure = error_measure, adjustNA = adjustNA))
 
       if (length(class(error_list)) > 1 | is.matrix(error_list)) {
         error_timing_dat <- do.call(rbind, lapply(error_list[1, ], as.data.frame))
@@ -400,21 +379,13 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
         error_dat <- do.call(rbind, lapply(error_list, as.data.frame))
       }
     } else {
-      error_list <- modelError(simDat, parameters = parameters_fit, timeVar = "EstimatedTime", intakeVar = "CumulativeGrams", model_str = model_str, method = error_method, error_measure = error_measure)
+      error_list <- modelError(simDat, parameters = parameters_fit, timeVar = "EstimatedTime", intakeVar = "CumulativeGrams", model_str = model_str, method = error_method, error_measure = error_measure, adjustNA = adjustNA)
       error_dat <- data.frame(t(unlist(error_list)))
     }
-
-    # get the index first error specific var to use later to save values
-    ErrorVar_start <- length(names(paramRecov)) + 1
 
     # add to data
     paramRecov <- cbind.data.frame(paramRecov, error_dat)
 
-    # end error variables
-    ErrorVar_end <- length(names(paramRecov))
-
-    # add empty variables to data
-    names(paramRecov)[ErrorVar_start:ErrorVar_end] <- error_names
   }
 
   ####             6. Estimate Distinctness  (nobs > 1 only)           #####

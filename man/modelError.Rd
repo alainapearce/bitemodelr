@@ -11,7 +11,8 @@ modelError(
   intakeVar,
   model_str = "LODE",
   method,
-  error_measure = "intake"
+  error_measure = "intake",
+  adjustNA = "interpolate"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ modelError(
 \item{method}{Specify which error metric to compute - 'rmse' will calculated root mean squared error, 'R2' will calculate a pseudo-R^2, 'both' with return both measures}
 
 \item{error_measure}{Which variable to use to calculate error - 'timing' will use bite timing, 'intake' will use cumulative intake, 'both' will return both. Default is 'intake'.}
+
+\item{adjustNA}{The method used to adjust predicted values that are not real integers, resulting in NA values. 'interpolate' will average the true data values from adjacent bites while 'minmax' will use the minimum or maximum true data values for bites at the start and end of the meal, respectively. Default is 'interpolate'.}
 }
 \value{
 A list with 3-4 values depending on input arguments

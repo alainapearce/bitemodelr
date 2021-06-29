@@ -35,7 +35,7 @@ CI_Fit(
 
 \item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
-\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
 }

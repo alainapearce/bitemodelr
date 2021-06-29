@@ -10,8 +10,6 @@ IntakeModelParams(
   timeVar,
   intakeVar,
   model_str = "LODE",
-  hessianCI = FALSE,
-  conf = 95,
   id = NA
 )
 }
@@ -26,10 +24,6 @@ IntakeModelParams(
 \item{intakeVar}{AName of the variable in data that contains cumulative intake data}
 
 \item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
-
-\item{hessianCI}{(optional) A logical indicator for whether to return the Hessian matrix derived confidence interval for for parameters. Default is FALSE}
-
-\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
 
 \item{id}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 }

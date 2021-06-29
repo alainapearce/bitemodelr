@@ -12,7 +12,10 @@ ParamRecovery(
   model_str = "LODE",
   conf = 95,
   error_method,
-  error_measure
+  error_measure,
+  adjustNA = "interpolate",
+  distinct = FALSE,
+  cutoff
 )
 }
 \arguments{
@@ -27,11 +30,15 @@ ParamRecovery(
 
 \item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
 
-\item{conf}{(optional) Numeric value for the percent confidence desired. Default is 95 for the 95th percent CI - is only used if hessianCI is set to TRUE.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
 
-\item{error_method}{(optional ) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.}
+\item{error_method}{(optional) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.}
 
 \item{error_measure}{Which variable to use to calculate error - 'timing' will use bite timing, 'intake' will use cumulative intake, 'both' will return both. Default is 'intake'.}
+
+\item{adjustNA}{The method used to adjust predicted values that are not real integers, resulting in NA values. 'interpolate' will average the true data values from adjacent bites while 'minmax' will use the minimum or maximum true data values for bites at the start and end of the meal, respectively. Default is 'interpolate'.}
+
+\item{distinct}{Indicate if want to calculate parameter estimate distinctness - TRUE or FALSE. Default is FALSE.}
 }
 \value{
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE

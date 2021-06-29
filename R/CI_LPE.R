@@ -10,7 +10,7 @@
 #' @inheritParams Quad_n2ll
 #' @param min_n2ll The minimum -2 log-likelihood value obtained when fitting the parameters.
 #' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.
-#' @inheritParams Quad_Fit
+#' @param conf (optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.
 #' @param bound A string with the boundary value desired: 'upper' or 'lower'
 #'
 #' @return The likelihood ratio test for the CI bound and value (upper v lower) requested

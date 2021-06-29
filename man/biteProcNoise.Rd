@@ -2,33 +2,34 @@
 % Please edit documentation in R/biteProcNoise.R
 \name{biteProcNoise}
 \alias{biteProcNoise}
-\title{biteProcNoise: Adds process noise to cumulative intake by bites}
+\title{biteProcNoise: Adds process noise to either bite cumulative intake or bite timing}
 \usage{
-biteProcNoise(cumulativeBites, nBites, Emax, Et0 = 0, pNoiseSD = NA)
+biteProcNoise(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
 }
 \arguments{
+\item{data}{A numeric vector representing the cumulative intake at each bite or bite timing}
+
+\item{type}{A string indicating type of data: 'intake' or 'time'}
+
 \item{nBites}{A numeric value for total number of bites in a meal.}
 
 \item{Emax}{A numeric value for total cumulative intake.}
 
 \item{Et0}{Only needed if data entered is cumulative intake. Minimum intake in grams that maintains a time >= 0 (note, for LODE this is always 0, for the Quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @biteIntake for full explanation).}
 
-\item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
-
-\item{data}{A numeric vector representing the cumulative intake at each bite or bite timing}
-
 \item{mealDur}{Only needed if data entered is bite timing. Max duration of the meal.}
+
+\item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
 }
 \value{
 A dataset of bites and cumulative intake with process noise added
 }
 \description{
-This function generates a bite data set that includes cumulative intake for *n* bites
-after adding process noise.
+This function generates a bite data set after adding process noise to the dimension of interest - bite cumulative intakes or bite timings.
 }
 \details{
-If sd_bitesize is specified, the bites size will randomly vary across the meal using a Gussian
-ditribution with mean = average bite size and SD = sd_bitesize.
+If pNoiseSD is specified, the bites size will randomly vary across the meal using a Gussian
+ditribution. When adding process noise to intake data, the distribution will have a mean = average bite size and SD = pNoiseSD. When adding process noise to time data, the distribution will have a mean = average time between bites and SD = pNoiseSD.
 }
 \examples{
 

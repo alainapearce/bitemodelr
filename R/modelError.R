@@ -9,6 +9,7 @@
 #' @inheritParams biteIntake
 #' @param method Specify which error metric to compute - 'rmse' will calculated root mean squared error, 'R2' will calculate a pseudo-R^2, 'both' with return both measures
 #' @param error_measure Which variable to use to calculate error - 'timing' will use bite timing, 'intake' will use cumulative intake, 'both' will return both. Default is 'intake'.
+#' @param adjustNA The method used to adjust predicted values that are not real integers, resulting in NA values. 'interpolate' will average the true data values from adjacent bites while 'minmax' will use the minimum or maximum true data values for bites at the start and end of the meal, respectively. Default is 'interpolate'.
 #'
 #' @return A list with 3-4 values depending on input arguments
 #'     \item{rmse}{the root mean squared error (if requested)}
@@ -24,7 +25,7 @@
 #'
 #' @export
 #'
-modelError <- function(data, parameters, timeVar, intakeVar, model_str = "LODE", method, error_measure = "intake") {
+modelError <- function(data, parameters, timeVar, intakeVar, model_str = "LODE", method, error_measure = "intake", adjustNA = "interpolate") {
 
   # check parameters
   param_arg <- methods::hasArg(parameters)
@@ -167,74 +168,144 @@ modelError <- function(data, parameters, timeVar, intakeVar, model_str = "LODE",
     nNA <- sum(is.na(predValue))
 
     # add to output
-    output <- list(
-      nNA = nNA,
-      nNeg = nNeg
-    )
+    if (error_measure[e] == 'timing'){
+      output <- list(
+        timing_nNA = nNA,
+        timing_nNeg = nNeg
+      )
+    } else if (error_measure[e] == 'intake'){
+      output <- list(
+        intake_nNA = nNA,
+        intake_nNeg = nNeg
+      )
+    }
 
     # replace NA values
     if (nNA > 0) {
-      nNA_fix <- function(trueVar, predVal, naIndex, vertexY = NA) {
-        # for Quad models with neg quadratic coef, set max intake to vertex if less than Emax
-        if (!is.na(vertexY) & naIndex == length(predVal)) {
-          predValChange <- vertexY
+      nNA_fix <- function(data, trueVar, predVal, naIndex, adjustNA, vertexY = NA) {
+        #if last value is NA
+        if (naIndex == length(data[, trueVar])) {
+          if (!is.na(vertexY)){
+            # for Quad models with neg quadratic coef, set max intake to vertex if less than Emax
+            predValChange <- vertexY
+          } else {
+            predValChange <- max(max(data[, trueVar]), max(predVal, na.rm = TRUE))
+          }
+
+        } else if (naIndex == 1){
+          #set first value to 0
+          predValChange <- 0
         } else {
 
-          # amount of error (true - pred) = time change from previous bite
-          # so need to set time in pred so it is x less than true - direction
-          # of error does not matter since RMSE squares the error
+          if (adjustNA == 'interpolate'){
+            # get average of adjacent time points
+            predValChange <- (data[(naIndex-1), trueVar] + data[(naIndex+1), trueVar])/2
+          } else if (adjustNA == 'minmax'){
 
-          # change from previous bite
-          biteDif <- data[naIndex, trueVar] - data[naIndex, trueVar]
-
-          # add change in time to 'true' bite timing so that ammount of error = change in bite timing
-          predValChange <- data[naIndex, trueVar] + biteDif
+            #take the more extreme of the possibilities (if pred is greater then max true, don't want to decrease)
+            if (naIndex/length(data[, trueVar]) < 0.5){
+              predValChange = min(min(data[, trueVar]), min(predVal, na.rm = TRUE))
+            } else {
+              predValChange = max(max(data[, trueVar]), max(predVal, na.rm = TRUE))
+            }
+          }
         }
+
         return(predValChange)
       }
 
       # find NAs
-      na_index <- which(sapply(predValue, is.na))
+      naIndex <- which(sapply(predValue, is.na))
 
       # vertex.Y arg
       vertex_arg <- exists("vertex.Y")
 
       # fix NAs
-      if (isTRUE(vertex_arg)) {
-        nonNA_PredVals <- sapply(na_index, nNA_fix, trueVar = errorVar, predVal = predValue, vertexY = vertex.Y)
+      # catch cases with too many NAs - still likely need to limit later to ~10%
+      if (length(naIndex) > 0.50*length(predValue)){
+        naError <- TRUE
       } else {
-        nonNA_PredVals <- sapply(na_index, nNA_fix, trueVar = errorVar, predVal = predValue)
-      }
+        naError <- FALSE
 
-      # replace NA values
-      predValue[na_index] <- nonNA_PredVals
+        if (isTRUE(vertex_arg)) {
+          nonNA_PredVals <- sapply(naIndex, FUN = nNA_fix, data = data, trueVar = errorVar, predVal = predValue, adjustNA = adjustNA, vertexY = vertex.Y)
+        } else {
+          nonNA_PredVals <- sapply(naIndex, FUN = nNA_fix, data = data, trueVar = errorVar, predVal = predValue, adjustNA = adjustNA)
+        }
+
+        # replace NA values
+        predValue[naIndex] <- nonNA_PredVals
+      }
+    } else {
+      naError <- FALSE
     }
 
     # RMSE
-    if (method == "rmse" | method == "both") {
-      # RMSE function
-      RMSE <- function(trueVal, predVal) {
-        # calculate RMSE
-        rmse <- sqrt(mean((trueVal - predVal)^2))
+    if (isFALSE(naError)){
+      if (method == "rmse" | method == "both") {
+        # RMSE function
+        RMSE <- function(trueVal, predVal) {
+          # calculate RMSE
+          rmse <- sqrt(mean((trueVal - predVal)^2))
 
-        return(rmse)
+          return(rmse)
+        }
+
+        # get rmse
+        if (error_measure[e] == 'timing'){
+          rmse <- RMSE(data[, timeVar], predValue)
+        } else if (error_measure[e] == 'intake'){
+          rmse <- RMSE(data[, intakeVar], predValue)
+        }
+
+        # add to output
+        if (error_measure[e] == 'timing'){
+          output[["timing_rmse"]] <- rmse
+        } else if (error_measure[e] == 'intake'){
+          output[["intake_rmse"]] <- rmse
+        }
+
       }
 
-      rmse <- RMSE(data[, timeVar], predValue)
+      if (method == "R2" | method == "both") {
+        # get pseudo-R2
+        if (error_measure[e] == 'timing'){
+          R2 <- cor(data[, timeVar], predValue)^2
+        } else if (error_measure[e] == 'intake'){
+          R2 <- cor(data[, intakeVar], predValue)^2
+        }
 
+        # add to output
+        if (error_measure[e] == 'timing'){
+          output[["timing_R2"]] <- R2
+        } else if (error_measure[e] == 'intake'){
+          output[["intake_R2"]] <- R2
+        }
+      }
+
+      error_list[[as.character(error_measure[e])]] <- output
+    } else {
       # add to output
-      output[["rmse"]] <- rmse
+      if (error_measure[e] == 'timing'){
+        if (method == "rmse" | method == "both") {
+          output[["timing_rmse"]] <- NaN
+        }
+
+        if (method == "R2" | method == "both") {
+          output[["timing_R2"]] <- NaN
+        }
+      } else if (error_measure[e] == 'intake'){
+        if (method == "rmse" | method == "both") {
+          output[["intake_rmse"]] <- NaN
+        }
+
+        if (method == "R2" | method == "both") {
+          output[["intake_R2"]] <- NaN
+        }
+      }
     }
-
-    if (method == "R2" | method == "both") {
-      # get pseudo-R2
-      R2 <- cor(data[, timeVar], predValue)^2
-
-      # add to output
-      output[["R2"]] <- R2
-    }
-
     error_list[[as.character(error_measure[e])]] <- output
+
   }
 
   # return

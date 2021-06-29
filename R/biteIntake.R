@@ -49,6 +49,9 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
                        NAmessage = FALSE) {
 
 
+  # bite timings entered
+  time_arg <- methods::hasArg(timeDat)
+
   # get name of function that was passed
   if (model_str == "LODE" | model_str == "lode") {
     # standard str
@@ -133,16 +136,6 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
     return("notFeasible")
   } else {
 
-    # get bite numbers
-    bites <- seq(1, nBites, by = 1)
-
-    # check class Et0
-    if (is.character(Et0)) {
-      Et0 <- as.numeric(Et0)
-    }
-
-    # bite timings entered
-    time_arg <- methods::hasArg(timeDat)
 
     if (isTRUE(time_arg)){
 
@@ -161,6 +154,9 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
 
       #get bites
       grams.bite <- c(grams.cumulative[1], diff(grams.cumulative, 1))
+
+      # get bite numbers
+      bites <- seq(1, length(grams.bite), by = 1)
 
       ## organize data
       biteData <- data.frame(
@@ -183,6 +179,14 @@ biteIntake <- function(timeDat, nBites, Emax, parameters, model_str = "LODE", id
 
     } else {
       # no timeDat entered so simulate bite data
+
+      # get bite numbers
+      bites <- seq(1, nBites, by = 1)
+
+      # check class Et0
+      if (is.character(Et0)) {
+        Et0 <- as.numeric(Et0)
+      }
 
       # check maxDur limits - check intake at maxDur and set alternative
       # cumulative intake to estimate bite sizes so that it does not exceed

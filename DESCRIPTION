@@ -1,12 +1,15 @@
 Package: bitemodelr
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Modeling Microstructure Eating Behaviors
 Version: 0.1.0
-Authors@R: person("Pearce", "Alaina", role = c("aut", "cre"), 
-                  email = "gu.alaina.pearce@gmail.com")
+Authors@R: person(given = "Alaina",
+           family = "Pearce",
+           role = c("aut", "cre"),
+           email = "gu.alaina.pearce@gmail.com",
+           comment = c(ORCID = "0000-0003-3157-6566"))
 Description: More about what it does (maybe more than one line)
     Use four spaces when indenting paragraphs within the Description.
-License: GPL-2
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 URL: https://github.com/alainapearce/BiteModel
@@ -26,4 +29,4 @@ Suggests:
     testthat
 RoxygenNote: 7.1.1
 Depends: 
-    R (>= 2.10)
+    R (>= 3.10)

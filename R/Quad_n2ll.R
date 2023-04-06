@@ -1,14 +1,12 @@
-#' Quad_n2ll: Calculates -2 loglikelihood for the Quadratic model
+#' Quad_n2ll: Calculates -2 log likelihood for the Quadratic model
 #'
-#' This function calculates the -2 loglikelihood for specific function for
-#' the Quadratic model for the cumulative intake curves
-#' (Kissileff, 1982; Kissileff & Guss, 2001)
+#' This function calculates the -2 log likelihood for specific function for the Quadratic model for the cumulative intake curves (Kissileff, 1982; Kissileff & Guss, 2001)
 #'
-#' @param data A data frame that contains two varliabels:
+#' @param data A data frame that contains:
 #' 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time
 #' @param par A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)
-#' @param timeVar Name of the variable in data that contains timing data
-#' @param intakeVar AName of the variable in data that contains cumulative intake data
+#' @param timeVar (optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'
+#' @param intakeVar (optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'
 #'
 #' @return The -2 log-likelihood for the model given the specified parameters.
 #'
@@ -17,10 +15,7 @@
 #' \dontrun{
 #' }
 #'
-#' @seealso To get best fit parameters for the Logistic Ordinary Differential Equation (LODE) Model use \code{\link{LODE_Fit}}.
-#' To get your intake and bite timing data using the the Quadratic model
-#' (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
-#' and \code{\link{Quad_Time}}.
+#' @seealso To get best fit parameters for the Logistic Ordinary Differential Equation (LODE) Model use \code{\link{LODE_Fit}}. To get your intake and bite timing data using the the Quadratic model(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}} and \code{\link{Quad_Time}}.
 #'
 #' @export
 Quad_n2ll <- function(data, par, timeVar, intakeVar) {
@@ -37,7 +32,7 @@ Quad_n2ll <- function(data, par, timeVar, intakeVar) {
     parameters = c(par)
   )
 
-  # get variabel name
+  # get variable name
   estimated_name <- paste0("Estimated_", intakeVar)
   names(data)[length(names(data))] <- estimated_name
 

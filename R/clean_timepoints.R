@@ -1,8 +1,8 @@
 #' clean_timepoints: utility function to clean randomly sampled or jittered bite times
 #'
-#' This cleans randomly sampled or jittered timepoints to ensure: 1) time does not exceed meal duration, 2) time is not negative, 3) time increases at each timpoint, and 4) has no NA or NULL value,
+#' Cleans randomly sampled or jittered time points to ensure: 1) time does not exceed meal duration, 2) time is not negative, 3) time increases at each time point, and 4) has no NA or NULL value,
 #'
-#' @param time_dat A vector of randomly sampled or jittered timepoints
+#' @param time_dat A vector of randomly sampled or jittered time points
 #' @inheritParams genBiteDat
 #' @inheritParams genBiteDat
 #'
@@ -17,7 +17,7 @@
 #' @export
 #'
 clean_timepoints <- function(time_dat, mealDur, nBites) {
-  # get indices for timepoints that are over mealDur and sort
+  # get indices for time points that are over mealDur and sort
   lateTime_indices <- sort(which(time_dat > mealDur))
 
   if (length(lateTime_indices) > 0) {

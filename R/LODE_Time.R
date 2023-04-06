@@ -1,7 +1,6 @@
 #' LODE_Time: Estimates the elapse time using the Logistic Ordinary Differential Equation (LODE) Model
 #'
-#' This function estimates the elapsed time since start of a meal for a given cumulative intake
-#' using the Logistic Ordinary Differential Equation (LODE) Model for the cumulative intake curves from Thomas et al., (2017).
+#' This function estimates the elapsed time since start of a meal for a given cumulative intake using the Logistic Ordinary Differential Equation (LODE) Model for the cumulative intake curves from Thomas et al., (2017).
 #'
 #' @inheritParams Quad_Time
 #' @inheritParams LODE_Intake
@@ -23,9 +22,7 @@
 #' LODE_Time(15, 30, .25, 300)
 #' }
 #'
-#' @seealso For the reverse calculation, see \code{\link{LODE_Intake}} to get meal cumulative intake
-#' at a given time. To get cumulative intake and meal time using the
-#' Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
+#' @seealso For the reverse calculation, see \code{\link{LODE_Intake}} to get meal cumulative intake at a given time. To get cumulative intake and meal time using the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
 #' and \code{\link{Quad_Time}}.
 #'
 #' @export

@@ -1,7 +1,6 @@
 #' Quad_Time: Estimates elapsed time using the Quadratic model
 #'
-#' This function estimates the elapsed time since start of a meal for a given cumulative intake using
-#' the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
+#' This function estimates the elapsed time since start of a meal for a given cumulative intake using the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
 #'
 #' @param intake The cumulative intake since meal start.
 #' @inheritParams Quad_Intake
@@ -22,10 +21,7 @@
 #' Quad_Time(15, 10, 7, -.3)
 #' }
 #'
-#' @seealso For the reverse calculation, see \code{\link{Quad_Intake}} to get cumulative intake
-#' from entered time since start of meal. To get cumulative intake and meal time using the
-#' Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017),
-#' see \code{\link{LODE_Intake}} and \code{\link{LODE_Time}}.
+#' @seealso For the reverse calculation, see \code{\link{Quad_Intake}} to get cumulative intake from entered time since start of meal. To get cumulative intake and meal time using the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), see \code{\link{LODE_Intake}} and \code{\link{LODE_Time}}.
 #'
 #' @export
 Quad_Time <- function(intake, parameters, message = TRUE) {

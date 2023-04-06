@@ -2,7 +2,7 @@
 % Please edit documentation in R/CIbounds_LPE.R
 \name{CIbounds_LPE}
 \alias{CIbounds_LPE}
-\title{CIbounds_LPE: Estimates the confidence bounds using loglikelihood profile estimation}
+\title{CIbounds_LPE: Estimates stable paremeter confidence bounds using loglikelihood profile estimation}
 \usage{
 CIbounds_LPE(
   data,
@@ -16,22 +16,22 @@ CIbounds_LPE(
 )
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10))}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
-\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters.}
+\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
-\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA}
 }
 \value{
 A list with all information for the specified confidence bounds, model, and parameters
@@ -48,7 +48,7 @@ A list with all information for the specified confidence bounds, model, and para
    \item{parCI_upper_chisq.p}{A vector of numbers with the chi-square p-value for the lower confidence bounds for each parameter entered in paramCI}
 }
 \description{
-This function Estimates the confidence bounds using log ratio tests using optim() to identify the boundaries for the upper and lower confidence bounds
+This function Estimates the confidence bounds using log ratio tests using optim() to identify the boundaries for the upper and lower parameter confidence bounds
 }
 \examples{
 

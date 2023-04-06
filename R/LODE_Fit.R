@@ -1,8 +1,6 @@
 #' LODE_Fit: Fits parameters for the Logistic Ordinary Differential Equation (LODE) Model
 #'
-#' This function fits theta and r for the Logistic Ordinary Differential Equation (LODE) Model of the
-#' the cumulative intake curves from Thomas et al., (2017) using
-#' optim {stats}.
+#' This function fits theta and r for the Logistic Ordinary Differential Equation (LODE) Model of the the cumulative intake curves from Thomas et al., (2017) using optim {stats}.
 #'
 #' @inheritParams Quad_n2ll
 #' @inheritParams LODE_Intake
@@ -25,8 +23,7 @@
 #' \dontrun{
 #' }
 #'
-#' @seealso To get fit your intake data using the Quadratic model
-#' (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}}.
+#' @seealso To get fit your intake data using the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}}.
 #'
 #' @export
 LODE_Fit <- function(data, parameters, timeVar, intakeVar, Emax) {

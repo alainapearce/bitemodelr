@@ -36,25 +36,24 @@ simParamRecovery(
 
 \item{id}{(optional)  If no data entered, a numeric value or a vector of values for simulation ids. There should be one id for each set of values entered in the same order}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{procNoise}{(optional) A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing calcuated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value is TRUE if bites are simulated.}
+\item{procNoise}{(optional) For simulation only (i.e., timeDat not specified). A logical indicator for adding random process noise to the bite data by jittering bite size with bite timing calculated from jittered bite sizes. This uses the default jitter amount (smallest distance/5). Default value when timeDat is TRUE}
 
 \item{measureNoise}{(optional) A logical indicator for measurement noise after the estimation of bite timings. Default value is FALSE.}
 
-\item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
+\item{pNoiseSD}{(optional) Only use if want to replace default approach (jitter). Standard deviation of individuals to use to generate a Gaussian distribution. Mean will be set depending on entered type: intake - mean bite size; time - mean inter-bite-interval. Distribution will be truncated at 0 if needed.}
 
-\item{mNoise_TimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
+\item{mNoise_TimeSD}{(optional) Use only if want to replace default of jitter appraoch. Measurement noise added to each timepoint will be chosen from a Gaussian distribution with mean = 0 and entered standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
 
-\item{mNoise_IntakeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
-entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
+\item{mNoise_IntakeCat}{(option) Use only if want to replace default of using average bite size. Cut points must equal n - 1 categories (e.g., if want three small, medium, and large bitecategories, enter the small-medium and medium-large  cut points). Bite sizes within each category will be set to the average bite size for that category. measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored. Note: Cut points will be left/lower inclusive but exclude upper boundary}
 
 \item{keepBites}{(optional) This is a logical indicator for whether to return the simulated bite dataset with
 elapsed time and cumulative intake for each bite across all simulated intake curves. The returned cumulative
 intake data will use the same bite timing as in the initial data but will estimate intake for each bite based on
 the recovered model parameters. Default is FALSE.}
 
-\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA}
 
 \item{error_method}{(optional) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.}
 
@@ -68,14 +67,7 @@ the recovered model parameters. Default is FALSE.}
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
 }
 \description{
-This function simulates the cumulative intake curve using average bites size and then fitting
-the model parameters for each curve. Process noise can be used rather than average bite size, if wanted.
-Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
-to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
-and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-is added after and there is no adjustment to fit the model. The parameters will be fit using either the
-Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential
-Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
+This function simulates the cumulative intake curve using average bites size and then fitting the model parameters for each curve. Process noise can be used rather than average bite size, if wanted. Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes and measurement noise is that process noise is added before the calculation of bite timing while measurement noise is added after and there is no adjustment to fit the model. The parameters will be fit using either the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 }
 \examples{
 

@@ -1,29 +1,58 @@
-#' biteProcNoise: Adds process noise to either bite cumulative intake or bite timing
+#' biteProcNoise: Adds process noise to either bite intake or bite timing
 #'
-#' This function generates a bite data set after adding process noise to the dimension of interest - bite cumulative intakes or bite timings.
+#' Simulates process noise to better approximate human meal microstructure data. Process error is simulated by adding noise to bite intake and timing so each bite size differs slightly and the inter-bite-interval varies across meal time.
 #'
-#' If pNoiseSD is specified, the bites size will randomly vary across the meal using a Gussian
-#' ditribution. When adding process noise to intake data, the distribution will have a mean = average bite size and SD = pNoiseSD. When adding process noise to time data, the distribution will have a mean = average time between bites and SD = pNoiseSD.
+#' If pNoiseSD is specified, the bite sizes will randomly vary across the meal using a Gaussian distribution. When adding process noise to intake data, the distribution will have a mean = average bite size and SD = pNoiseSD. For the Quadratic model, the distribution will be truncated at the minimum bite size for time = 0 give the entered parameters. For the LODE model, it will be truncated at 0. When adding process noise to time data, the distribution will have a mean = average time between bites and SD = pNoiseSD.
 #'
-#' @param data A numeric vector representing the cumulative intake at each bite or bite timing
-#' @param type A string indicating type of data: 'intake' or 'time'
-#' @inheritParams genBiteDat
-#' @inheritParams genBiteDat
-#' @param Et0 Only needed if data entered is cumulative intake. Minimum intake in grams that maintains a time >= 0 (note, for LODE this is always 0, for the Quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @biteIntake for full explanation).
-#' @param mealDur Only needed if data entered is bite timing. Max duration of the meal.
-#' @param pNoiseSD (optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.
+#' @param data Either a vector of cumulative intake at each bite or bite timings
+#' @param type String indicating type of data: 'intake' or 'time'
+#' @param Emax (optional) Total cumulative intake. If not entered, will use max of data for type = 'intake'
+#' @param mealDur (optional) Meal duration in minutes. If not entered will use max of data entered for type = 'time'
+#' @inheritParams biteIntake
+#' @param parameters (optional) Only needed if model_str = 'Quad'. A set of numeric parameters; the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order.
+#' @inheritParams biteIntake
+#' @param pNoiseSD (optional) Only use if want to replace default approach (jitter). Standard deviation of individuals to use to generate a Gaussian distribution. Mean will be set depending on entered type: intake - mean bite size; time - mean inter-bite-interval. Distribution will be truncated at 0 if needed.
 #'
-#' @return A dataset of bites and cumulative intake with process noise added
+#' @return If type = 'timing', a vector of bite timings with process noise added. If type = 'intake', a dataset of bite sizes and cumulative intake with process noise added.
 #'
 #' @examples
+#' #simulate bite dataset
+#' bite_data <- biteIntake(nBites = 15, Emax = 300, parameters = c(10, .10))
+#'
+#' #add noise to data
+#' intake_noise <- biteProcNoise(data = bite_data$CumulativeGrams_procNoise, type = 'intake')
+#'
+#' timing_noise <- biteProcNoise(data = bite_data$EstimatedTime_procNoise, type = 'time')
 #'
 #' \dontrun{
 #' }
 #'
-#' @seealso To add measurement noise to bite data *after* bite timing calculation see \code{\link{biteMeasureNoise}}
+#' @seealso To add measurement noise to bite data *after* initial parametarization see \code{\link{biteMeasureNoise}}
 #'
 #' @export
-biteProcNoise <- function(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA) {
+biteProcNoise <- function(data, type, Emax, mealDur, model_str = "LODE", parameters, pNoiseSD = NA) {
+
+
+  # get name of function that was passed
+  if (model_str == "LODE" | model_str == "lode") {
+    # standard str
+    model_str <- "LODE"
+
+  } else if (model_str == "LODEincorrect") {
+    # standard str
+    model_str <- "LODEincorrect"
+
+  } else if (model_str == "Quad" | model_str == "quad") {
+    model_str == "Quad"
+
+    #check for parameters
+    hasParam <- methods::hasArg(parameters)
+    if (isFALSE(hasParam)){
+      stop("Need to enter parameters when model_str = 'Quad'")
+    }
+  } else {
+    stop("model_str does not match available models. Options are 'LODE' or 'Quad'")
+  }
 
   # check input arguments
   hasType <- methods::hasArg(type)
@@ -33,40 +62,53 @@ biteProcNoise <- function(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
   } else if(type == 'intake' | type == 'Intake'){
     type = 'intake'
 
-    hasEt0 <- methods::hasArg(Et0)
-    if(isFALSE(hasEt0)){
-      stop('must enter Et0 when adding process noise to intake data')
+    has_Emax <- methods::hasArg(Emax)
+    if(isFALSE(has_Emax)){
+      Emax <- max(data)
     }
-
   } else if(type == 'time' | type == 'Time'){
     type = 'time'
 
     has_mealDur <- methods::hasArg(mealDur)
     if(isFALSE(has_mealDur)){
-      stop('must enter mealDur when adding process noise to bite timing')
+      mealDur <- max(data)
     }
 
   } else {
     stop('type must be set to either "intake" or "time"')
   }
 
+  #get min intake
+  if (type == 'intake') {
+    # Check model feasibility for LODE model
+    if (model_str == "LODE" | model_str == "LODEincorrect") {
+      Et0 <- 0
+    } else if (model_str == "Quad") {
+
+      checkQuad_mod <- Quad_timeE0(Emax, parameters)
+
+      # get minimum intake
+      if (is.list(checkQuad_mod)) {
+        Et0 <- checkQuad_mod$timeE0[length(checkQuad_mod$timeE0)]
+      } else {
+        stop('Entered parameters for model are not feasible')
+      }
+    }
+  }
+
+  #get nBites
+  nBites = length(data)
+
   # if have user entered sd for proccess noise distribution
   if (!is.na(pNoiseSD)) {
     if(type == 'intake'){
-      bite_noise_init <- truncnorm::rtruncnorm(nBites,
-                                               a = 0, mean = (Emax / nBites), sd = pNoiseSD
+      bite_noise_init <- truncnorm::rtruncnorm(nBites, a = Et0, mean = (Emax / nBites), sd = pNoiseSD
       )
       bite_noise <- (bite_noise_init / sum(bite_noise_init)) * Emax
     } else if (type == 'time'){
-      bite_noise_init <- truncnorm::rtruncnorm(nBites,
-                                               a = 0, mean = (mealDur / nBites), sd = pNoiseSD
+      bite_noise_init <- truncnorm::rtruncnorm(nBites,  a = 0, mean = (mealDur / nBites), sd = pNoiseSD
       )
       bite_noise <- (bite_noise_init / sum(bite_noise_init)) * mealDur
-    }
-
-    #check min intake at time = 0 if adding noise to intake data
-    if (type == 'intake'){
-
     }
 
     # get cumulative intake from new bite sizes
@@ -108,9 +150,7 @@ biteProcNoise <- function(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
   }
 
   # check to see if values decreases at any point
-  bite_noise_diff <- c(cumulative_noise[1], diff(cumulative_noise,
-                                                 difference = 1
-  ))
+  bite_noise_diff <- c(cumulative_noise[1], diff(cumulative_noise, difference = 1))
 
   count_loop <- 0
   if (sum(bite_noise_diff < 0) > 0) {
@@ -125,14 +165,11 @@ biteProcNoise <- function(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
       # average of the t-1 and t+1 cumulative intake
       for (d in 1:length(neg_index)) {
         ind_sel <- neg_index[d]
-        cumulative_noise[ind_sel] <- (cumulative_noise[ind_sel + 1] -
-                                  cumulative_noise[ind_sel - 1]) / 2
+        cumulative_noise[ind_sel] <- (cumulative_noise[ind_sel + 1] - cumulative_noise[ind_sel - 1]) / 2
       }
 
       # check to see if intake decreases at any point
-      bite_noise_diff <- c(cumulative_noise[1], diff(cumulative_noise,
-                                                     difference = 1
-      ))
+      bite_noise_diff <- c(cumulative_noise[1], diff(cumulative_noise, difference = 1))
 
       if (count_loop == 40) {
         message("loop for jittered bite did fix decreasing value after 20 itterations")
@@ -148,9 +185,7 @@ biteProcNoise <- function(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
   # final data
   if (type == 'intake' & isTRUE(noise_dat_good)){
     #get individual bite sizes
-    bite_noise <- c(cumulative_noise[1], diff(cumulative_noise,
-                                              difference = 1
-    ))
+    bite_noise <- c(cumulative_noise[1], diff(cumulative_noise, difference = 1 ))
 
     #return both individual bite sizes and cumulative intake
     procNoise_bites <- data.frame(bite_noise, cumulative_noise)

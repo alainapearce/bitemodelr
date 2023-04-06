@@ -2,7 +2,7 @@
 % Please edit documentation in R/CI_Fit.R
 \name{CI_Fit}
 \alias{CI_Fit}
-\title{CI_Fit: Fits the parameters at the confidence bound using the log-likelihood profile estimation}
+\title{CI_Fit: Identifies parameter confidence bound using the log-likelihood profile estimation}
 \usage{
 CI_Fit(
   data,
@@ -18,39 +18,42 @@ CI_Fit(
 )
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10))}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
-\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.}
+\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r}
 
-\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters.}
+\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
-\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
 }
 \value{
-
+A list with the parameter, -2LL, chisq and pvalue
 }
 \description{
-This function uses optim to fit the parameters at the specified confidence bound using the log-likelihood ratio test.
+Identify specified parameter confidence bound my minimizing the log-likelihood ratio test in optim.
 }
 \examples{
+#simulate bite dataset
+bite_data <- biteIntake(nBites = 15, Emax = 300, parameters = c(10, .10))
 
+upper_bound <- CI_Fit(data = bite_data, parameters = c(10, .10), )
 \dontrun{
 }
 
 }
 \seealso{
-\code{\link{CI_LPE}} is the function to compute the log-likelihood test \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
+\code{\link{CI_LPE}} computes the log-likelihood test and \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
 }

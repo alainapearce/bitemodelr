@@ -1,13 +1,6 @@
 #' ParamRecovery: This function recovers parameters for cumulative intake model and the bite data provided
 #'
-#' This function simulates the cumulative intake curve using average bites size and then fitting
-#' the model parameters for each curve. Process noise can be used rather than average bite size, if wanted.
-#' Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
-#' to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
-#' and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-#' is added after and there is no adjustment to fit the model. The parameters will be fit using either the
-#' Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential
-#' Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
+#' This function simulates the cumulative intake curve using average bites size and then fitting the model parameters for each curve. Process noise can be used rather than average bite size, if wanted. Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes and measurement noise is that process noise is added before the calculation of bite timing while measurement noise is added after and there is no adjustment to fit the model. The parameters will be fit using either the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 #'
 #' @inheritParams Quad_n2ll
 #' @inheritParams Quad_n2ll
@@ -123,9 +116,7 @@ ParamRecovery <- function(data, timeVar, intakeVar, idVar, model_str = "LODE", c
 
   # set up data
   if (isTRUE(id_arg)) {
-    paramRecov_all <- data.frame(
-      id = id_list,
-      model = rep(model_str, nobs)
+    paramRecov_all <- data.frame(id = id_list, model = rep(model_str, nobs)
     )
   } else {
     # add id just for the purpose of indexing in script

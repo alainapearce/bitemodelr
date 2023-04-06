@@ -19,8 +19,7 @@
 #'
 #' @keywords datasets
 #'
-#' @references Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
-#' (\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
+#' @references Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116 (\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
 #'
 #'
 #' @examples

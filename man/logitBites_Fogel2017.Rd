@@ -27,7 +27,6 @@ nBites <- attr(logitBites_Fogel2017, "Bites")
 \references{
 Fogel A, Goh AT, Fries LR, et al. A description of an “obesogenic” eating style that promotes higher energy intake and is associated with greater adiposity in 4.5year-old children: Results from the GUSTO cohort. Physiology & Behavior. 2017;176:107-116. doi:10.1016/j.physbeh.2017.02.013
 
-Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
-(\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
+Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116 (\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
 }
 \keyword{datasets}

@@ -7,14 +7,14 @@
 Quad_Fit(data, parameters, timeVar, intakeVar)
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{parameters}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic).}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 }
 \value{
 A list with of values from optim fit

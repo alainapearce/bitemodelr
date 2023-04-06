@@ -1,41 +1,35 @@
-#' biteTiming: Calculates bite timing from entered cumulative intake. If no cumulative intake data is entered, it will simulated a bite dataset.
+#' biteTiming: Calculate bite timing from entered cumulative intake. If no cumulative intake data is entered, it will be simulated.
 #'
-#' This function calcualtes bite timing from cumulative intake data using the cumulative intake
-#' data and the specified parameters of the model. The intake data will be calculated using either
-#' the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary
-#' Differential Equation (LODE) model (Thomas et al., 2017). If no bite timings are entered,
-#' this function simulates a bite dataset from specified parameters and model.
+#' Calculate bite timings from cumulative intake and the specified model parameters. Either the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) model (Thomas et al., 2017) will be used. If no cumulative intake values are entered, bite timings will be simulated from model parameters
 #'
-#' The simulation randomly samples bite timing using an uniformed distribution.
-#' There is the option of adding process noise to the bite timing, which can be added through
-#' jitter or a specified standard deviation. If sd_bitesize is specified, the bites timings
-#' will randomly vary across the meal using a Gaussian distribution with mean = timing between bites
-#' and SD = pNoiseSD. Process noise is added *before* to the calculation of bite timing.
-#' The timing of each bite will be calculated using the specified model and parameters
+#' In the case of a simulation, bite timings are randomly sampled from an uniform distribution. There is the option of adding process noise to the bite timings, which is be added through jitter by default. If sd_bitesize is specified, bites timings will randomly vary across the meal using a Gaussian distribution with mean = inter-bite-interval and specified SD. Process noise is added *before* calculating cumulative intake values.
 #'
-#' @param intakeDat If a vector of cumulative intake is entered, will calculate the bite timing using entered parameters rather than simulating timing data. No process noise will be added.
+#' @param intakeDat If a vector of cumulative intake values
 #' @inheritParams genBiteDat
 #' @inheritParams genBiteDat
 #' @inheritParams genBiteDat
+#' @param timePDF String for the generating probability distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Default is 'logis'.
+#' @inheritParams biteIntake
+#' @inheritParams biteIntake
 #' @inheritParams genBiteDat
-#' @param parameters A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).
-#' @param model_str The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.
-#' @inheritParams genBiteDat
-#' @param procNoise (optional) A logical indicator for adding random process noise to the timing data by jittering bite timing with cumulative intake calculated from jittered bite timing. This uses the default jitter amount (smallest distance/5). Default value is TRUE if bite timings are simulated.
+#' @param procNoise (optional) A logical indicator for adding random process noise. This jitters bite timing and the recalcualtes bite size and cumulative intake from jittered timing. This uses the default jitter amount (smallest distance/5). Default value is TRUE if intakeDate is not entered
 #' @inheritParams biteProcNoise
 #'
-#' @references Fogel A, Goh AT, Fries LR, et al. Physiology & Behavior. 2017;176:107-116
-#' (\href{https://pubmed.ncbi.nlm.nih.gov/28213204/}{PubMed})
-#' Kissileff HR, Thorton J, Becker E. Appetite. 1982;3:255-272
+#' @references Kissileff HR, Thorton J, Becker E. Appetite. 1982;3:255-272
 #' (\href{https://pubmed.ncbi.nlm.nih.gov/7159076/}{PubMed})
 #' Kissileff HR, Guss JL. Appetite. 2001;36:70-78
 #' (\href{https://pubmed.ncbi.nlm.nih.gov/11270360/}{PubMed})
 #' Thomas DM, Paynter J, Peterson CM, et al. Am J Clin Nutr. 2017;105:323-331
 #'  (\href{https://pubmed.ncbi.nlm.nih.gov/28077377/}{PubMed})
 #'
-#' @return A bite dataset with bite timing, bite size, and cumulative intake for each bite
+#' @return Dataset with bite timing, bite size, and cumulative intake for each bite
 #'
 #' @examples
+#' #simulate bite dataset
+#' bite_data <- biteTiming(nBites = 15, Emax = 300, mealDur = 30, parameters = c(10, .10))
+#'
+#' #simulate data similar to video coded bite data with process noise
+#' bite_data <- biteTiming(nBites = 15, Emax = 300, mealDur = 30, parameters = c(10, .10), procNoise = FALSE)
 #'
 #' \dontrun{
 #' }
@@ -43,8 +37,7 @@
 #'
 #' @export
 
-biteTiming <- function(intakeDat, nBites, Emax, mealDur, timePDF, parameters, model_str = "LODE", id,
-                       procNoise = TRUE, pNoiseSD = NA) {
+biteTiming <- function(intakeDat, nBites, Emax, mealDur, timePDF = 'logis', model_str = 'LODE', parameters, id, procNoise = TRUE, pNoiseSD = NA) {
 
 
   # get name of function that was passed
@@ -239,12 +232,10 @@ biteTiming <- function(intakeDat, nBites, Emax, mealDur, timePDF, parameters, mo
       # calculate intake from bite sizes AFTER bite size process noise
       # was added (if procNoise = TRUE)
       if (model_str == "LODE" | model_str == "LODEincorrect") {
-        simIntake <- mapply(intake_fn,
-                            time = time.bite, MoreArgs = list(parameters = parameters, Emax = Emax))
+        simIntake <- mapply(intake_fn, time = time.bite, MoreArgs = list(parameters = parameters, Emax = Emax))
 
       } else if (model_str == "Quad") {
-        simIntake <- mapply(intake_fn,
-                            time = time.bite, MoreArgs = list(parameters = parameters))
+        simIntake <- mapply(intake_fn, time = time.bite, MoreArgs = list(parameters = parameters))
       }
 
       # unlist if needed
@@ -262,9 +253,7 @@ biteTiming <- function(intakeDat, nBites, Emax, mealDur, timePDF, parameters, mo
       grams.bite <- c(simIntake[1], diff(simIntake, 1))
 
       ## organize data
-      biteData <- data.frame(
-        bites, time.bite, grams.bite, simIntake
-      )
+      biteData <- data.frame(bites, time.bite, grams.bite, simIntake)
 
       # get naming convention
       if(isTRUE(intake_arg)){

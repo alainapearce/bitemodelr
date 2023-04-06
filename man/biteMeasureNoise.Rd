@@ -2,15 +2,15 @@
 % Please edit documentation in R/biteMeasureNoise.R
 \name{biteMeasureNoise}
 \alias{biteMeasureNoise}
-\title{ParamRecovery: This function recovers parameters for cumulative intake model and the bite data provided}
+\title{biteMeasureNoise: Adds measurement noise to bite intake and timing.}
 \usage{
 biteMeasureNoise(
   BiteDat,
   nBites,
   Emax,
-  TimeVar = "EstimatedTime",
-  BiteVar = "BiteGrams",
-  measureNoise = FALSE,
+  TimeVar = NA,
+  BiteVar = NA,
+  measureNoise = "Both",
   mNoise_TimeSD = NA,
   mNoise_IntakeCat = "mean"
 )
@@ -18,41 +18,43 @@ biteMeasureNoise(
 \arguments{
 \item{BiteDat}{A dataset with Bites, bite sizes, cumulative intake, and bite timing.}
 
-\item{nBites}{A numeric value for total number of bites in a meal.}
+\item{nBites}{Total number of bites in a meal}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
-\item{TimeVar}{String reflecting name for bite timing variable BiteDat}
+\item{TimeVar}{(optional) use if data time variable name does not contain string 'Time' or is multiple variable names contain the sting 'Time'.}
 
-\item{BiteVar}{String reflecting name for bite size variable in BiteDat dataset}
+\item{BiteVar}{(optional) use if data time variable name does not contain string 'Bite' or is multiple variable names contain the sting 'Bite'.}
 
 \item{measureNoise}{(optional) A string indicating they type of measurement noise to add. The options include:
-'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered); or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is no measurement error.}
+'BiteSize' - will use average bite size for parameter recovery; 'BiteTiming' - add noise to bite timing (jittered); or 'Both' - will apply both types of measurement noise. This noise is applied to bite data after initial parameterization and before parameter recovery. Default is 'Both'.}
 
-\item{mNoise_TimeSD}{(optional) This allows you to enter the standard deviation for adjusting bite timing and will replace the default (jittered bite timing). The noise add to each timepoint will be chosen from a normal distribution  with mean = 0 and standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
+\item{mNoise_TimeSD}{(optional) Use only if want to replace default of jitter appraoch. Measurement noise added to each timepoint will be chosen from a Gaussian distribution with mean = 0 and entered standard deviation entered. measureNoise must be set to to 'BiteTiming' or 'Both' otherwise this argument will be ignored. Note: the normal distribution will be truncated at at each timepoint so that the time for timepoint t is not less than timepoint t-1.}
 
-\item{mNoise_IntakeCat}{(option) This allows you to alter the default for bite size error (average bite size) by
-entering category cut points or NA to skip this measurement error. Cut points must equal n - 1 categories (e.g., if want three categories you would enter the small-medium and medium-large large cut/boundry points). Cut points will be left/lower inclusive but exclude upper boundary. Bite sizes within each category will be set to the average bite size for that category. This will replace the default measureNoise routine (all bites = average bite size). measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored.}
+\item{mNoise_IntakeCat}{(option) Use only if want to replace default of using average bite size. Cut points must equal n - 1 categories (e.g., if want three small, medium, and large bitecategories, enter the small-medium and medium-large  cut points). Bite sizes within each category will be set to the average bite size for that category. measureNoise must be set to to 'BiteSize' or 'Both' otherwise this argument will be ignored. Note: Cut points will be left/lower inclusive but exclude upper boundary}
 }
 \value{
-It will always return a dataset with adjusted bite timing reflecting measurement error
+dataset with adjusted bite intake and timing values reflecting measurement error
 }
 \description{
-This function simulates the cumulative intake curve using average bites size and then fitting
-the model parameters for each curve. Process noise can be used rather than average bite size, if wanted.
-Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
-to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
-and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-is added after and there is no adjustment to fit the model. The parameters will be fit using either the
-Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation
-(LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
+Simulates measurement noise that could be incurred from video-coding meal microstructure data. After initial parametarization, measurement error is simulated by adding noise to bite timings and setting all bites to the average bite size.
+}
+\details{
+Measurement error can be added to bite timings through jitter (default) or a specified standard deviation. If mNoise_TimeSD is specified, the bites timings will randomly vary across the meal using a Gaussian distribution with mean = average bite size and SD = sd_bitesize. Process noise is added *before* to the calculation of bite timing. The timing of each bite will be calculated using the specified model and parameters.
+
+Measurement error can be added to bite sizes by setting all bites to the average bite size (default) or by specifying bite size categories. If mNoise_IntakeCat is specific, bites will be categorized based on the category cut points entered and set to the average size for each category (e.g., all bites falling within the entered boundaries for 'small' bites will be set to the average size for small bites).
 }
 \examples{
+#simulate bite dataset
+bite_data <- biteIntake(nBites = 15, Emax = 300, parameters = c(10, .10))
+
+#add measurement noise
+bite_data_update <- biteMeasureNoise(BiteDat = bite_data, nBites = 15, Emax = 300)
 
 \dontrun{
 }
 
 }
 \seealso{
-To add process noise to bite data *before* bite timing calculation see \code{\link{biteProcNoise}}
+To add process noise to bite data *before* initial parametarization see \code{\link{biteProcNoise}}
 }

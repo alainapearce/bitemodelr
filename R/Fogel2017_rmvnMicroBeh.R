@@ -1,4 +1,4 @@
-#' rmvnSample: Generates a random sample selected from the multivariate normal distribution based on Fogel et al., 2017
+#' Fogel2017_rmvnMicroBeh: Generates a random sample selected from the multivariate normal distribution based on Fogel et al., 2017
 #'
 #' This function selects a random sample from the multivariate normal distribution that includes: model parameters, total intake, and number of bites.
 #'

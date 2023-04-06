@@ -20,9 +20,9 @@ n2LL_grid(
 \arguments{
 \item{data}{A bite dataset containing cumulative intake and timing for each bite}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10))}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
 \item{paramStep}{Names of parameters that will be varied during calculation of -2 log-likelihoods: c('theta', 'r)}
 
@@ -32,9 +32,9 @@ n2LL_grid(
 
 \item{type}{The type of search to complete. 'grid' will calculate the -2 log-likihood for every combination of parameter step value combinations (default). 'linear' will calculate -2 log-likehood for every step of a single parameter while holding other parameters constant at the value entered in parameters.}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
 \item{graph}{(optional) A logical indicator indicate whether a graph should be returned. Default is TRUE}
 }

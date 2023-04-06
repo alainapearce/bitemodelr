@@ -1,6 +1,6 @@
-#' CI_Fit: Fits the parameters at the confidence bound using the log-likelihood profile estimation
+#' CI_Fit: Identifies parameter confidence bound using the log-likelihood profile estimation
 #'
-#' This function uses optim to fit the parameters at the specified confidence bound using the log-likelihood ratio test.
+#' Identify specified parameter confidence bound my minimizing the log-likelihood ratio test in optim.
 #'
 #' @inheritParams Quad_n2ll
 #' @inheritParams biteIntake
@@ -13,14 +13,17 @@
 #' @inheritParams CI_LPE
 #' @inheritParams CI_LPE
 #'
-#' @return
+#' @return A list with the parameter, -2LL, chisq and pvalue
 #'
 #' @examples
+#' #simulate bite dataset
+#' bite_data <- biteIntake(nBites = 15, Emax = 300, parameters = c(10, .10))
 #'
+#' upper_bound <- CI_Fit(data = bite_data, parameters = c(10, .10), )
 #' \dontrun{
 #' }
 #'
-#' @seealso \code{\link{CI_LPE}} is the function to compute the log-likelihood test \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
+#' @seealso \code{\link{CI_LPE}} computes the log-likelihood test and \code{\link{CIbound_LPE}} is a wrapper function to get upper and lower confidence bound for all model parameters.
 #'
 #' @export
 #'
@@ -42,24 +45,46 @@ CI_Fit <- function(data, parameters, Emax, paramIndex, min_n2ll, model_str = "LO
   # check input arguments for variable names
   intakeVar_arg <- methods::hasArg(intakeVar)
   if (isFALSE(intakeVar_arg)) {
-    stop("no intakeVar found. Set intakeVar to name of variable that
+    intake_ind <- grepl('cumulative', names(data), fixed = TRUE) | grepl('Cumulative', names(data), fixed = TRUE)
+    if (sum(intake_ind) < 0){
+      stop("No variable name found that contains 'cumulative'. Set intakeVar to name of variable that
       contains cumulative intake for your data")
-  } else if (!(intakeVar %in% names(data))) {
-    stop("string entered for intakeVar does not match any variables in data")
+    } else if (sum(intake_ind) > 1){
+      stop("Multiple variable names found that contains 'cumulative'. Set intakeVar to name of variable that
+      contains cumulative intake for your data")
+    } else {
+      intakeVar <- names(data)[intake_ind]
+    }
+
+  } else {
+    if (!(intakeVar %in% names(data))) {
+      stop("string entered for intakeVar does not match any variables in data")
+    }
   }
 
   timeVar_arg <- methods::hasArg(timeVar)
   if (isFALSE(timeVar_arg)) {
-    stop("no TimeVar found. Set timeVar to name of variable that
-      contains timing of each bite for your data")
-  } else if (!(timeVar %in% names(data))) {
-    stop("string entered for timeVar does not match any variables in data")
+    time_ind <- grepl('time', names(data), fixed = TRUE) | grepl('Time', names(data), fixed = TRUE)
+    if (sum(time_ind) < 0){
+      stop("No variable name found that contains 'time'. Set intakeVar to name of variable that
+      contains cumulative intake for your data")
+    } else if (sum(time_ind) > 1){
+      stop("Multiple variable names found that contains 'time'. Set intakeVar to name of variable that
+      contains cumulative intake for your data")
+    } else {
+      timeVar <- names(data)[time_ind]
+    }
+
+  } else {
+    if (!(timeVar %in% names(data))) {
+      stop("string entered for timeVar does not match any variables in data")
+    }
   }
 
   # fit upper bound
   BiteMod_CIbound <- tryCatch(
     {
-      stats::optim(par = c(parameters), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll, paramIndex = paramIndex, conf = conf, bound = bound)
+      stats::optim(par = c(parameters), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, min_n2ll = min_n2ll, paramIndex = paramIndex, conf = conf, bound = bound, timeVar = timeVar, intakeVar = intakeVar)
     },
     error = function(e) {
       conditionMessage(e)
@@ -78,7 +103,7 @@ CI_Fit <- function(data, parameters, Emax, paramIndex, min_n2ll, model_str = "LO
     # see if get same values twice
     BiteMod_CIbound_check <- tryCatch(
       {
-        stats::optim(par = c(check_params), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll, paramIndex = paramIndex, conf = conf, bound = bound)
+        stats::optim(par = c(check_params), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, min_n2ll = min_n2ll, paramIndex = paramIndex, conf = conf, bound = bound, timeVar = timeVar, intakeVar = intakeVar)
       },
       error = function(e) {
         conditionMessage(e)
@@ -102,7 +127,7 @@ CI_Fit <- function(data, parameters, Emax, paramIndex, min_n2ll, model_str = "LO
 
         BiteMod_CIbound_check <- tryCatch(
           {
-            stats::optim(par = c(check_params), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, timeVar = timeVar, intakeVar = intakeVar, min_n2ll = min_n2ll, paramIndex = paramIndex, conf = conf, bound = bound)
+            stats::optim(par = c(check_params), fn = CI_LPE, data = data, Emax = Emax, model_str = model_str, min_n2ll = min_n2ll, paramIndexparamIndex = paramIndex, conf = conf, bound = bound, timeVar = timeVar, intakeVar = intakeVar)
           },
           error = function(e) {
             conditionMessage(e)

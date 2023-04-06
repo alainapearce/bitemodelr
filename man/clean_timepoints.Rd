@@ -7,17 +7,17 @@
 clean_timepoints(time_dat, mealDur, nBites)
 }
 \arguments{
-\item{time_dat}{A vector of randomly sampled or jittered timepoints}
+\item{time_dat}{A vector of randomly sampled or jittered time points}
 
 \item{mealDur}{Meal duration in minutes}
 
-\item{nBites}{A numeric value for total number of bites in a meal.}
+\item{nBites}{Total number of bites in a meal}
 }
 \value{
 A vector of timepoints
 }
 \description{
-This cleans randomly sampled or jittered timepoints to ensure: 1) time does not exceed meal duration, 2) time is not negative, 3) time increases at each timpoint, and 4) has no NA or NULL value,
+Cleans randomly sampled or jittered time points to ensure: 1) time does not exceed meal duration, 2) time is not negative, 3) time increases at each time point, and 4) has no NA or NULL value,
 }
 \examples{
 

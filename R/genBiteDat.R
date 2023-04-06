@@ -1,14 +1,11 @@
 #' genBiteDat: Generates a cumulative intake bite dataset from a specific distribution
 #'
-#' This function generates a bite dataset based on a specified distribution and model.
-#' Using total meal duration and nBites, bite timing is randomly sampled from the specified distribution.
-#' Cumulative intake is generated using average bite size. The returned cumulative intake dataset will be
-#' checked to ensure it is a feasible intake pattern according to the LODE and quadratic models.
+#' This function generates a bite dataset based on a specified distribution and model. Using total meal duration and nBites, bite timing is randomly sampled from the specified distribution. Cumulative intake is generated using average bite size. The returned cumulative intake dataset will be checked to ensure it is a feasible intake pattern according to the LODE and quadratic models.
 #'
-#' @param nBites A numeric value for total number of bites in a meal.
-#' @param Emax A numeric value for total cumulative intake.
+#' @param nBites Total number of bites in a meal
+#' @param Emax Total cumulative intake
 #' @param mealDur Meal duration in minutes
-#' @param timePDF A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables.
+#' @param timePDF A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables. Default is 'logis'.
 #' @param return_params (optional) A boolean indicating if model parameters should be returned. Only relevant if a model_str is entered. Default is FALSE.
 #' @param id (optional) A string or numeric value for ID to be added to the simulated bite data.
 #'
@@ -28,10 +25,7 @@ genBiteDat <- function(nBites, Emax, mealDur, timePDF = "logis", return_params =
   id_arg <- methods::hasArg("id")
 
   if (isTRUE(id_arg)) {
-    bitedat <- data.frame(
-      ID = rep(id, nBites),
-      Bite = seq(1, nBites, by = 1)
-    )
+    bitedat <- data.frame(ID = rep(id, nBites), Bite = seq(1, nBites, by = 1) )
   } else {
     bitedat <- data.frame(Bite = seq(1, nBites, by = 1))
   }
@@ -51,10 +45,7 @@ genBiteDat <- function(nBites, Emax, mealDur, timePDF = "logis", return_params =
         optimFail <- TRUE
       }
     )
-    return(list(
-      optimFail = optimFail,
-      params = paramRecov
-    ))
+    return(list(optimFail = optimFail, params = paramRecov))
   }
 
   ## loop through distributions
@@ -190,10 +181,7 @@ genBiteDat <- function(nBites, Emax, mealDur, timePDF = "logis", return_params =
   }
 
   if (isTRUE(return_params)) {
-    return(list(
-      bitedat <- bitedat,
-      paramdat <- paramdat
-    ))
+    return(list(bitedat <- bitedat, paramdat <- paramdat))
   } else {
     return(bitedat)
   }

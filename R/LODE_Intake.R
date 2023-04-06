@@ -1,7 +1,6 @@
 #' LODE_Intake: Estimates cumulative intake using the Logistic Ordinary Differential Equation (LODE) model
 #'
-#' This function estimates cumulative intake at a given time since start of meal using
-#' the LODE for the cumulative intake curves from Thomas et al., (2017).
+#' This function estimates cumulative intake at a given time since start of meal using the LODE for the cumulative intake curves from Thomas et al., (2017).
 #'
 #' @inheritParams Quad_Intake
 #' @param parameters A set of numeric parameters for the Logistic Ordinary Differential Equation (LODE) in the format: c(theta, r)
@@ -23,10 +22,7 @@
 #' LODE_Intake(3, 30, .25, 300)
 #' }
 #'
-#' @seealso For the reverse calculation, see \code{\link{LODE_Time}} to get meal time
-#' from entered cumulative intake. To get cumulative intake and meal time using the
-#' Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
-#' and \code{\link{Quad_Time}}.
+#' @seealso For the reverse calculation, see \code{\link{LODE_Time}} to get meal time from entered cumulative intake. To get cumulative intake and meal time using the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}} and \code{\link{Quad_Time}}.
 #'
 #' @export
 LODE_Intake <- function(time, parameters, Emax) {

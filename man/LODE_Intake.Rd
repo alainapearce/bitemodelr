@@ -17,8 +17,7 @@ LODE_Intake(time, parameters, Emax)
 Numeric value indicating the cumulative intake at specified time given the specified parameters.
 }
 \description{
-This function estimates cumulative intake at a given time since start of meal using
-the LODE for the cumulative intake curves from Thomas et al., (2017).
+This function estimates cumulative intake at a given time since start of meal using the LODE for the cumulative intake curves from Thomas et al., (2017).
 }
 \examples{
 #Get cumulative intake at minute three:
@@ -36,8 +35,5 @@ LODE_Intake(3, 30, .25, 300)
 
 }
 \seealso{
-For the reverse calculation, see \code{\link{LODE_Time}} to get meal time
-from entered cumulative intake. To get cumulative intake and meal time using the
-Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
-and \code{\link{Quad_Time}}.
+For the reverse calculation, see \code{\link{LODE_Time}} to get meal time from entered cumulative intake. To get cumulative intake and meal time using the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}} and \code{\link{Quad_Time}}.
 }

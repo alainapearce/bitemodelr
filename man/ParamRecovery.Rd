@@ -19,18 +19,18 @@ ParamRecovery(
 )
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
 \item{idVar}{Name of the variable in data that contains id values}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA}
 
 \item{error_method}{(optional) A string indicating which error metrics to compute - 'rmse' for root mean squared error, 'R2' for pseudo-R2, and 'both' for both. If not specified, no error is not computed.}
 
@@ -44,14 +44,7 @@ ParamRecovery(
 Either 1 or 2 datasets. It will always return a dataset with recovered parameters but will only return a list with bite data sets for each simulation if keepBites = TRUE
 }
 \description{
-This function simulates the cumulative intake curve using average bites size and then fitting
-the model parameters for each curve. Process noise can be used rather than average bite size, if wanted.
-Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
-to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
-and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-is added after and there is no adjustment to fit the model. The parameters will be fit using either the
-Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential
-Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
+This function simulates the cumulative intake curve using average bites size and then fitting the model parameters for each curve. Process noise can be used rather than average bite size, if wanted. Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes and measurement noise is that process noise is added before the calculation of bite timing while measurement noise is added after and there is no adjustment to fit the model. The parameters will be fit using either the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 }
 \examples{
 

@@ -1,13 +1,6 @@
 #' simParamRecovery: This function recovers cumulative intake model parameters for simulated bite data
 #'
-#' This function simulates the cumulative intake curve using average bites size and then fitting
-#' the model parameters for each curve. Process noise can be used rather than average bite size, if wanted.
-#' Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting
-#' to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes
-#' and measurement noise is that process noise is added before the calculation of bite timing while measurement noise
-#' is added after and there is no adjustment to fit the model. The parameters will be fit using either the
-#' Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential
-#' Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
+#' This function simulates the cumulative intake curve using average bites size and then fitting the model parameters for each curve. Process noise can be used rather than average bite size, if wanted. Additionally, measurement error can be added after the estimation of bite timing (from bite size) by reverting to average bite size or categorizing bite sizes and jittering the bite timing. The distinction between processes and measurement noise is that process noise is added before the calculation of bite timing while measurement noise is added after and there is no adjustment to fit the model. The parameters will be fit using either the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), total intake (Emax), and number of bites.
 #'
 #' @param data A data.frame containing nBites, Emax, the parameter values, and id (if id is desired). Note: the naming of the variables must match exactly if using this method. Variable names for paremters must be either 'theta' and 'r' or 'int', 'linear', and 'quad. If no data is enter, must enter each variable individually.
 #' @param nBites If not using data.frame, a numeric value or a vector of values for total number of bites in a meal.
@@ -194,16 +187,10 @@ simParamRecovery <- function(data, nBites, Emax, parameters, id, model_str = 'LO
 
   #set up data
   if (isTRUE(id_arg)){
-    paramRecov_all <- data.frame(id = id,
-                                 model = rep(model_str, nobs),
-                                 nBites = nBites,
-                                 Emax = Emax)
+    paramRecov_all <- data.frame(id = id, model = rep(model_str, nobs), nBites = nBites, Emax = Emax)
   } else {
     #add id just for the purpose of indexing in script
-    paramRecov_all <- data.frame(id = seq(1, length(nBites)),
-                                 model = rep(model_str, nobs),
-                                 nBites = nBites,
-                                 Emax = Emax)
+    paramRecov_all <- data.frame(id = seq(1, length(nBites)), model = rep(model_str, nobs), nBites = nBites, Emax = Emax)
   }
 
   # add time_fn specific parameters to data frame

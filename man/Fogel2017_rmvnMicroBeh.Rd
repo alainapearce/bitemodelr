@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fogel2017_rmvnMicroBeh.R
 \name{Fogel2017_rmvnMicroBeh}
 \alias{Fogel2017_rmvnMicroBeh}
-\title{rmvnSample: Generates a random sample selected from the multivariate normal distribution based on Fogel et al., 2017}
+\title{Fogel2017_rmvnMicroBeh: Generates a random sample selected from the multivariate normal distribution based on Fogel et al., 2017}
 \usage{
 Fogel2017_rmvnMicroBeh(n)
 }

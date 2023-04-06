@@ -1,8 +1,7 @@
 # This script was written by Alaina Pearce in 2020
 # to generate data for the bitemodelr package based on the
 # Fogel et al., 2017 paper mean and covariance structure. Bites
-# and parameters were simulated using the logistic,
-# linear, quadratic, u-quadratic, or exponential distribution
+# and parameters were simulated using the logistic distribution
 #
 #     Copyright (C) 20120 Alaina L Pearce
 #
@@ -24,7 +23,7 @@ library(bitemodelr)
 #### Get Sample of Microstructure Behaviors ####
 
 # get 500 random draws from a multivariate normal distribution of microstructure behaviors
-# microBeh_Fogel2017 <- Fogel2017_rmvnMicroBeh(500)
+microBeh_Fogel2017 <- Fogel2017_rmvnMicroBeh(150)
 
 # ensure the random draws are feasible representatives of intake with at least 2 bites and positive meal duration
 if (min(microBeh_Fogel2017$nBites) < 2 || min(microBeh_Fogel2017$MealDur_min) < 0 ||
@@ -47,8 +46,12 @@ while (isTRUE(rerun)) {
 
 # write out initial microstructure distributions
 write.csv(microBeh_Fogel2017, "data-raw/microBeh_Fogel2017.csv", row.names = FALSE)
+usethis::use_data(microBeh_Fogel2017, overwrite = TRUE)
 
-#### 1) Simulate bite data from a Logistic Distribution ####
+#for debugging/adding
+#microBeh_Fogel2017 <- read.csv("data-raw/microBeh_Fogel2017.csv")
+
+#### Simulate bite data from a Logistic Distribution ####
 # sample bite timing from a logistic curve and use average bite size to get cumulative intake from genBiteDat.R
 
 logitBites_Fogel2017_list <- mapply(genBiteDat, nBites = microBeh_Fogel2017$nBites, Emax = microBeh_Fogel2017$TotalIntake_g, mealDur = microBeh_Fogel2017$MealDur_min, timePDF = 'logis', return_params = TRUE, id = microBeh_Fogel2017$id)
@@ -71,51 +74,3 @@ write.csv(logitParamDat_Fogel2017, "data-raw/logitParams_Fogel2017.csv", row.nam
 usethis::use_data(logitParamDat_Fogel2017, overwrite = TRUE)
 usethis::use_data(logitBites_Fogel2017, overwrite = TRUE)
 
-#### 2) Simulate bite data from a Exponential Distribution ####
-# sample bite timing from a exponential decay curve and use average bite size to get cumulative intake from genBiteDat.R
-
-expBites_Fogel2017_list <- mapply(genBiteDat, nBites = microBeh_Fogel2017$nBites, Emax = microBeh_Fogel2017$TotalIntake_g, mealDur = microBeh_Fogel2017$MealDur_min, timePDF = 'exp', return_params = TRUE, id = microBeh_Fogel2017$id)
-
-# unlist to get bite data
-expBites_Fogel2017 <- do.call(rbind, lapply(expBites_Fogel2017_list[1,], as.data.frame))
-names(expBites_Fogel2017) <- c("id", "Bite", "EstimatedCumulativeIntake", "SampledTime")
-
-# write out simulated bite and cumulative intake
-expBites_Fogel2017 <- expBites_Fogel2017[order(expBites_Fogel2017$id, expBites_Fogel2017$Bite), ]
-write.csv(expBites_Fogel2017, "data-raw/expBites_Fogel2017.csv", row.names = FALSE)
-
-# unlist to get parameter values
-expParamRec_Fogel2017 <- do.call(rbind, lapply(expBites_Fogel2017_list[2,], as.data.frame))
-
-# Add parameters to data
-expParamDat_Fogel2017 <- merge(microBeh_Fogel2017, expParamRec_Fogel2017[c(1, 5:11)], by = "id")
-write.csv(expParamDat_Fogel2017, "data-raw/expParams_Fogel2017.csv", row.names = FALSE)
-
-usethis::use_data(expParamDat_Fogel2017, overwrite = TRUE)
-usethis::use_data(expBites_Fogel2017, overwrite = TRUE)
-
-#### 3) Simulate bite data from a Linear Distribution ####
-# sample bite timing linearly and use average bite size to get cumulative intake from genBiteDat.R
-
-linearBites_Fogel2017_list <- mapply(genBiteDat, nBites = microBeh_Fogel2017$nBites, Emax = microBeh_Fogel2017$TotalIntake_g, mealDur = microBeh_Fogel2017$MealDur_min, timePDF = 'linear', return_params = TRUE, id = microBeh_Fogel2017$id)
-
-# unlist to get bite data
-linearBites_Fogel2017 <- do.call(rbind, lapply(linearBites_Fogel2017_list[1,], as.data.frame))
-names(linearBites_Fogel2017) <- c("id", "Bite", "EstimatedCumulativeIntake", "SampledTime")
-
-# write out simulated bite and cumulative intake
-linearBites_Fogel2017 <- linearBites_Fogel2017[order(linearBites_Fogel2017$id, linearBites_Fogel2017$Bite), ]
-write.csv(linearBites_Fogel2017, "data-raw/linearBites_Fogel2017.csv", row.names = FALSE)
-
-# unlist to get parameter values
-linearParamRec_Fogel2017 <- do.call(rbind, lapply(linearBites_Fogel2017_list[2,], as.data.frame))
-
-# Add parameters to data
-linearParamDat_Fogel2017 <- merge(microBeh_Fogel2017, linearParamRec_Fogel2017[c(1, 5:11)], by = "id")
-write.csv(linearParamDat_Fogel2017, "data-raw/linearParams_Fogel2017.csv", row.names = FALSE)
-
-usethis::use_data(linearParamDat_Fogel2017, overwrite = TRUE)
-usethis::use_data(linearBites_Fogel2017, overwrite = TRUE)
-
-#for debugging/adding
-microBeh_Fogel2017 <- read.csv("data-raw/microBeh_Fogel2017.csv")

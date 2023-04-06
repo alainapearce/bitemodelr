@@ -2,48 +2,48 @@
 % Please edit documentation in R/CI_LPE.R
 \name{CI_LPE}
 \alias{CI_LPE}
-\title{CI_LPE: Wrapper of model fit functions that calculates the likelihood profile confidence interval}
+\title{CI_LPE: Calculates log-likelihood ratio test for the upper or lower confidence bound}
 \usage{
 CI_LPE(
   data,
   par,
   Emax,
   model_str = "LODE",
-  timeVar,
-  intakeVar,
   min_n2ll,
   paramIndex,
   conf = 95,
-  bound
+  bound,
+  timeVar,
+  intakeVar
 )
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{par}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order; the Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r}
 
-\item{min_n2ll}{The minimum -2 log-likelihood value obtained when fitting the parameters.}
-
-\item{paramIndex}{The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.}
-
-\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.}
+\item{conf}{(optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA}
 
 \item{bound}{A string with the boundary value desired: 'upper' or 'lower'}
+
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
+
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 }
 \value{
 The likelihood ratio test for the CI bound and value (upper v lower) requested
 }
 \description{
-This function warps model fit functions called through optim {stats} to calculate the likelihood profile confidence intervals using the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
+Calculates log-likelihood ratio test for the upper or lower confidence bound.
 }
 \examples{
 

@@ -1,17 +1,17 @@
-#' CI_LPE: Wrapper of model fit functions that calculates the likelihood profile confidence interval
+#' CI_LPE: Calculates log-likelihood ratio test for the upper or lower confidence bound
 #'
-#' This function warps model fit functions called through optim {stats} to calculate the likelihood profile confidence intervals using the likelihood ratio test. This is a function that, when called by optim {stats} will identify a confidence bound of a parameter by optim's minimization of the calculated LRT value.
+#' Calculates log-likelihood ratio test for the upper or lower confidence bound.
 #'
 #' @inheritParams Quad_n2ll
 #' @param par A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order; the Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order
 #' @inheritParams biteIntake
 #' @inheritParams biteIntake
-#' @inheritParams Quad_n2ll
-#' @inheritParams Quad_n2ll
-#' @param min_n2ll The minimum -2 log-likelihood value obtained when fitting the parameters.
-#' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r.
-#' @param conf (optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA.
+#' @param min_n2ll The minimum -2 log-likelihood value obtained when fitting the parameters
+#' @param paramIndex The index number for par that corresponds to the parameter the CI is being fit for. E.g., if LODE Model, par[1] would be theta and par[2] would be r
+#' @param conf (optional) Level of confidence for calculation of confidence intervals around the fitted parameter estimates. Default is 95 for 95\% CI. If no confidence intervals are desired, set conf = NA
 #' @param bound A string with the boundary value desired: 'upper' or 'lower'
+#' @inheritParams Quad_n2ll
+#' @inheritParams Quad_n2ll
 #'
 #' @return The likelihood ratio test for the CI bound and value (upper v lower) requested
 #'
@@ -22,7 +22,7 @@
 #'
 #' @export
 #'
-CI_LPE <- function(data, par, Emax, model_str = "LODE", timeVar, intakeVar, min_n2ll, paramIndex, conf = 95, bound) {
+CI_LPE <- function(data, par, Emax, model_str = "LODE", min_n2ll, paramIndex, conf = 95, bound, timeVar, intakeVar) {
 
   # check input arguments
   if (model_str == "LODE" | model_str == "lode") {

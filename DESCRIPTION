@@ -7,8 +7,7 @@ Authors@R: person(given = "Alaina",
            role = c("aut", "cre"),
            email = "gu.alaina.pearce@gmail.com",
            comment = c(ORCID = "0000-0003-3157-6566"))
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: The bitemodelr package models cumulative intake curves from meal intake and bite data using quadratic functions and a logistic ordinary differential equation (LODE) model.
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
@@ -27,6 +26,6 @@ Remotes:
     debruine/faux
 Suggests: 
     testthat
-RoxygenNote: 7.1.1
+RoxygenNote: 7.2.1
 Depends: 
     R (>= 3.10)

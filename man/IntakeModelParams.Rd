@@ -14,16 +14,16 @@ IntakeModelParams(
 )
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10))}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
 \item{id}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 }
@@ -31,10 +31,7 @@ IntakeModelParams(
 A dataframe with fitted parameter values and all optim outputs
 }
 \description{
-This function provides fitted model parameters for the cumulative
-intake curve for a set of bite data. The parameters
-are either fit with the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
-or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017). The models are fit using optim {stats}.
+This function provides fitted model parameters for the cumulative intake curve for a set of bite data. The parameters are either fit with the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017). The models are fit using optim {stats}.
 }
 \examples{
 

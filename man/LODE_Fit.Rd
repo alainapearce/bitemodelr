@@ -7,14 +7,14 @@
 LODE_Fit(data, parameters, timeVar, intakeVar, Emax)
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{parameters}{A set of numeric parameters for the Logistic Ordinary Differential Equation (LODE) in the format: c(theta, r)}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 
 \item{Emax}{The total cumulative intake at the end of the meal.}
 }
@@ -29,9 +29,7 @@ A list with of values from optim fit
 }
 }
 \description{
-This function fits theta and r for the Logistic Ordinary Differential Equation (LODE) Model of the
-the cumulative intake curves from Thomas et al., (2017) using
-optim {stats}.
+This function fits theta and r for the Logistic Ordinary Differential Equation (LODE) Model of the the cumulative intake curves from Thomas et al., (2017) using optim {stats}.
 }
 \examples{
 
@@ -40,6 +38,5 @@ optim {stats}.
 
 }
 \seealso{
-To get fit your intake data using the Quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}}.
+To get fit your intake data using the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}}.
 }

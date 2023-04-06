@@ -2,41 +2,55 @@
 % Please edit documentation in R/biteProcNoise.R
 \name{biteProcNoise}
 \alias{biteProcNoise}
-\title{biteProcNoise: Adds process noise to either bite cumulative intake or bite timing}
+\title{biteProcNoise: Adds process noise to either bite intake or bite timing}
 \usage{
-biteProcNoise(data, type, nBites, Emax, Et0, mealDur, pNoiseSD = NA)
+biteProcNoise(
+  data,
+  type,
+  Emax,
+  mealDur,
+  model_str = "LODE",
+  parameters,
+  pNoiseSD = NA
+)
 }
 \arguments{
-\item{data}{A numeric vector representing the cumulative intake at each bite or bite timing}
+\item{data}{Either a vector of cumulative intake at each bite or bite timings}
 
-\item{type}{A string indicating type of data: 'intake' or 'time'}
+\item{type}{String indicating type of data: 'intake' or 'time'}
 
-\item{nBites}{A numeric value for total number of bites in a meal.}
+\item{Emax}{(optional) Total cumulative intake. If not entered, will use max of data for type = 'intake'}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{mealDur}{(optional) Meal duration in minutes. If not entered will use max of data entered for type = 'time'}
 
-\item{Et0}{Only needed if data entered is cumulative intake. Minimum intake in grams that maintains a time >= 0 (note, for LODE this is always 0, for the Quadratic models, need to calculate relative to the sign of the quadratic parameter and the vertex of the quadratic equation. See @biteIntake for full explanation).}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
-\item{mealDur}{Only needed if data entered is bite timing. Max duration of the meal.}
+\item{parameters}{(optional) Only needed if model_str = 'Quad'. A set of numeric parameters; the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order.}
 
-\item{pNoiseSD}{(optional) This allows you to enter the standard deviation of individuals bites sizes and will replace the default procNoise routine (jittered bite sizes). Bite sizes will be randomly chosen from a normal distribution truncated at min = 0 with mean = Emax/nBites and standard deviation equal to the entered value. procNoise must be set to TRUE, otherwise this argument will be ignored.}
+\item{pNoiseSD}{(optional) Only use if want to replace default approach (jitter). Standard deviation of individuals to use to generate a Gaussian distribution. Mean will be set depending on entered type: intake - mean bite size; time - mean inter-bite-interval. Distribution will be truncated at 0 if needed.}
 }
 \value{
-A dataset of bites and cumulative intake with process noise added
+If type = 'timing', a vector of bite timings with process noise added. If type = 'intake', a dataset of bite sizes and cumulative intake with process noise added.
 }
 \description{
-This function generates a bite data set after adding process noise to the dimension of interest - bite cumulative intakes or bite timings.
+Simulates process noise to better approximate human meal microstructure data. Process error is simulated by adding noise to bite intake and timing so each bite size differs slightly and the inter-bite-interval varies across meal time.
 }
 \details{
-If pNoiseSD is specified, the bites size will randomly vary across the meal using a Gussian
-ditribution. When adding process noise to intake data, the distribution will have a mean = average bite size and SD = pNoiseSD. When adding process noise to time data, the distribution will have a mean = average time between bites and SD = pNoiseSD.
+If pNoiseSD is specified, the bite sizes will randomly vary across the meal using a Gaussian distribution. When adding process noise to intake data, the distribution will have a mean = average bite size and SD = pNoiseSD. For the Quadratic model, the distribution will be truncated at the minimum bite size for time = 0 give the entered parameters. For the LODE model, it will be truncated at 0. When adding process noise to time data, the distribution will have a mean = average time between bites and SD = pNoiseSD.
 }
 \examples{
+#simulate bite dataset
+bite_data <- biteIntake(nBites = 15, Emax = 300, parameters = c(10, .10))
+
+#add noise to data
+intake_noise <- biteProcNoise(data = bite_data$CumulativeGrams_procNoise, type = 'intake')
+
+timing_noise <- biteProcNoise(data = bite_data$EstimatedTime_procNoise, type = 'time')
 
 \dontrun{
 }
 
 }
 \seealso{
-To add measurement noise to bite data *after* bite timing calculation see \code{\link{biteMeasureNoise}}
+To add measurement noise to bite data *after* initial parametarization see \code{\link{biteMeasureNoise}}
 }

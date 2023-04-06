@@ -1,9 +1,6 @@
 #' IntakeModelParams: Fits model parameters for cumulative intake curves
 #'
-#' This function provides fitted model parameters for the cumulative
-#' intake curve for a set of bite data. The parameters
-#' are either fit with the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001)
-#' or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017). The models are fit using optim {stats}.
+#' This function provides fitted model parameters for the cumulative intake curve for a set of bite data. The parameters are either fit with the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001) or the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017). The models are fit using optim {stats}.
 #'
 #' @inheritParams Quad_n2ll
 #' @inheritParams biteIntake
@@ -74,14 +71,11 @@ IntakeModelParams <- function(data, parameters, timeVar, intakeVar, model_str = 
     if (class(fit_fn) == "name") {
       BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters, timeVar = timeVar, intakeVar = intakeVar, Emax = emax))
     } else {
-      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar,
-                            Emax = emax)
+      BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar, Emax = emax)
     }
   } else if (fn_name == "Quad_Fit") {
     if (class(fit_fn) == "name") {
-      BiteMod_fit <- do.call(fn_name, list(
-        data = data, parameters = parameters,
-        timeVar = timeVar, intakeVar = intakeVar))
+      BiteMod_fit <- do.call(fn_name, list(data = data, parameters = parameters, timeVar = timeVar, intakeVar = intakeVar))
     } else {
       BiteMod_fit <- fit_fn(data, parameters, timeVar, intakeVar)
     }

@@ -2,27 +2,25 @@
 % Please edit documentation in R/Quad_n2ll.R
 \name{Quad_n2ll}
 \alias{Quad_n2ll}
-\title{Quad_n2ll: Calculates -2 loglikelihood for the Quadratic model}
+\title{Quad_n2ll: Calculates -2 log likelihood for the Quadratic model}
 \usage{
 Quad_n2ll(data, par, timeVar, intakeVar)
 }
 \arguments{
-\item{data}{A data frame that contains two varliabels:
+\item{data}{A data frame that contains:
 1) elapsed times for each bite/cumulative intake; 2) cumulative intake corresponding to each elapsed time}
 
 \item{par}{A set of numeric beta coefficients for the quadratic model in the format: c(intercept, linear, quadrtic)}
 
-\item{timeVar}{Name of the variable in data that contains timing data}
+\item{timeVar}{(optional) Use if name of bite timing variable does not include 'time' or multiple variable names in data include the string 'time'}
 
-\item{intakeVar}{AName of the variable in data that contains cumulative intake data}
+\item{intakeVar}{(optional) Use if name of bite timing variable does not include 'cumulative' or multiple variable names in data include the string 'cumulative'}
 }
 \value{
 The -2 log-likelihood for the model given the specified parameters.
 }
 \description{
-This function calculates the -2 loglikelihood for specific function for
-the Quadratic model for the cumulative intake curves
-(Kissileff, 1982; Kissileff & Guss, 2001)
+This function calculates the -2 log likelihood for specific function for the Quadratic model for the cumulative intake curves (Kissileff, 1982; Kissileff & Guss, 2001)
 }
 \examples{
 
@@ -31,8 +29,5 @@ the Quadratic model for the cumulative intake curves
 
 }
 \seealso{
-To get best fit parameters for the Logistic Ordinary Differential Equation (LODE) Model use \code{\link{LODE_Fit}}.
-To get your intake and bite timing data using the the Quadratic model
-(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}}
-and \code{\link{Quad_Time}}.
+To get best fit parameters for the Logistic Ordinary Differential Equation (LODE) Model use \code{\link{LODE_Fit}}. To get your intake and bite timing data using the the Quadratic model(Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Intake}} and \code{\link{Quad_Time}}.
 }

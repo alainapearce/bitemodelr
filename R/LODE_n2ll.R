@@ -1,7 +1,6 @@
-#' LODE_n2ll: Calculates -2 loglikelihood for the Logistic Ordinary Differential Equation (LODE) Model
+#' LODE_n2ll: Calculates -2 log likelihood for the Logistic Ordinary Differential Equation (LODE) Model
 #'
-#' This function calculates the -2 loglikelihood for specific function for
-#' the Logistic Ordinary Differential Equation (LODE) Model of the the cumulative intake curve (Thomas et al., 2017)
+#' This function calculates the -2 log likelihood for specific function for the Logistic Ordinary Differential Equation (LODE) Model of the the cumulative intake curve (Thomas et al., 2017)
 #'
 #' @inheritParams Quad_n2ll
 #' @param par  A set of numeric parameters for the LODE in the format: c(theta, r)
@@ -17,10 +16,7 @@
 #' \dontrun{
 #' }
 #'
-#' @seealso To get best fit parameters use \code{\link{LODE_Fit}}.
-#' To get fit your intake data using the  the Quadratic model
-#' (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}}
-#' and \code{\link{Quad_n2ll}}.
+#' @seealso To get best fit parameters use \code{\link{LODE_Fit}}. To get fit your intake data using the  the Quadratic model (Kissileff, 1982; Kissileff & Guss, 2001), see \code{\link{Quad_Fit}} and \code{\link{Quad_n2ll}}.
 #'
 #' @export
 LODE_n2ll <- function(data, par, timeVar, intakeVar, Emax) {

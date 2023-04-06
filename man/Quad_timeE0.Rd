@@ -7,9 +7,9 @@
 Quad_timeE0(Emax, parameters, id)
 }
 \arguments{
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
-\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10)).}
+\item{parameters}{A set of numeric parameters: the Quadratic Model needs an intercept, linear slope, and quadratic slope entered in that order (default is c(10, 1, -1)) and Logistic Ordinary Differential Equation (LODE) model needs theta and r entered in that order (default is c(10, .10))}
 
 \item{id}{(optional) A string or numeric value for ID to be added to the simulated bite data.}
 }

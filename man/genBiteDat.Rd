@@ -14,13 +14,13 @@ genBiteDat(
 )
 }
 \arguments{
-\item{nBites}{A numeric value for total number of bites in a meal.}
+\item{nBites}{Total number of bites in a meal}
 
-\item{Emax}{A numeric value for total cumulative intake.}
+\item{Emax}{Total cumulative intake}
 
 \item{mealDur}{Meal duration in minutes}
 
-\item{timePDF}{A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables.}
+\item{timePDF}{A string or vector of strings for the generating probibility distribution function. Options include: 'logis', 'quad', 'u-quad', 'exp', or 'linear'. Default is 'logis'. Can enter more than one to return different Time variables. Default is 'logis'.}
 
 \item{return_params}{(optional) A boolean indicating if model parameters should be returned. Only relevant if a model_str is entered. Default is FALSE.}
 
@@ -30,10 +30,7 @@ genBiteDat(
 A bite dataset with bite timing, bite size, and cumulative intake for each bite and a set of fitted parameters
 }
 \description{
-This function generates a bite dataset based on a specified distribution and model.
-Using total meal duration and nBites, bite timing is randomly sampled from the specified distribution.
-Cumulative intake is generated using average bite size. The returned cumulative intake dataset will be
-checked to ensure it is a feasible intake pattern according to the LODE and quadratic models.
+This function generates a bite dataset based on a specified distribution and model. Using total meal duration and nBites, bite timing is randomly sampled from the specified distribution. Cumulative intake is generated using average bite size. The returned cumulative intake dataset will be checked to ensure it is a feasible intake pattern according to the LODE and quadratic models.
 }
 \examples{
 

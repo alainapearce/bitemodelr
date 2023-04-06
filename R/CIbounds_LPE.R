@@ -1,6 +1,6 @@
-#' CIbounds_LPE: Estimates the confidence bounds using loglikelihood profile estimation
+#' CIbounds_LPE: Estimates stable paremeter confidence bounds using loglikelihood profile estimation
 #'
-#' This function Estimates the confidence bounds using log ratio tests using optim() to identify the boundaries for the upper and lower confidence bounds
+#' This function Estimates the confidence bounds using log ratio tests using optim() to identify the boundaries for the upper and lower parameter confidence bounds
 #'
 #' @inheritParams Quad_n2ll
 #' @inheritParams biteIntake

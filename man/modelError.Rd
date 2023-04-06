@@ -24,7 +24,7 @@ modelError(
 
 \item{intakeVar}{The variable name for the 'True' or observed cumulative intake in dataset}
 
-\item{model_str}{The base model to use--'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'.}
+\item{model_str}{(optional) Only needed if simulating data. 'LODE' for the Logistic Ordinary Differential Equation model and 'Quad' for the Quadratic model. Default is 'LODE'}
 
 \item{method}{Specify which error metric to compute - 'rmse' will calculated root mean squared error, 'R2' will calculate a pseudo-R^2, 'both' with return both measures}
 

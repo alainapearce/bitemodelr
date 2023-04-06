@@ -17,8 +17,7 @@ Quad_Time(intake, parameters, message = TRUE)
 Numeric value indicating the time since start of meal for given cumulative intake and parameters.
 }
 \description{
-This function estimates the elapsed time since start of a meal for a given cumulative intake using
-the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
+This function estimates the elapsed time since start of a meal for a given cumulative intake using the quadratic model for the cumulative intake curves from Kissileff (1982) and Kissileff & Guss (2001).
 }
 \examples{
 #Get the time when 15 grams have been consumed:
@@ -36,8 +35,5 @@ Quad_Time(15, 10, 7, -.3)
 
 }
 \seealso{
-For the reverse calculation, see \code{\link{Quad_Intake}} to get cumulative intake
-from entered time since start of meal. To get cumulative intake and meal time using the
-Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017),
-see \code{\link{LODE_Intake}} and \code{\link{LODE_Time}}.
+For the reverse calculation, see \code{\link{Quad_Intake}} to get cumulative intake from entered time since start of meal. To get cumulative intake and meal time using the Logistic Ordinary Differential Equation (LODE) Model (Thomas et al., 2017), see \code{\link{LODE_Intake}} and \code{\link{LODE_Time}}.
 }
